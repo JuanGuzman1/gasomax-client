@@ -8,6 +8,10 @@ import {
   CPaginationItem,
   CCardFooter,
   CButton,
+  CForm,
+  CFormLabel,
+  CFormSelect,
+  CFormInput,
 } from '@coreui/react'
 import ProviderModalForm from 'src/components/provider/ProviderModalForm'
 import ProviderTable from 'src/components/provider/ProviderTable'
@@ -25,6 +29,24 @@ const Providers = () => {
           </CButton>
         </CCardHeader>
         <CCardBody>
+          <CForm>
+            <CFormLabel>Filtros de busqueda</CFormLabel>
+            <div className="mb-3 d-flex">
+              <div className="flex-fill me-2">
+                <CFormSelect
+                  aria-label="caseFilter"
+                  options={[
+                    { label: 'Proveedor', value: 'provider' },
+                    { label: 'Contacto', value: 'contact' },
+                  ]}
+                />
+              </div>
+              <div className="flex-fill me-2">
+                <CFormInput type="text" id="provider" placeholder="Ingresar texto" />
+              </div>
+            </div>
+            <CButton type="button">Buscar</CButton>
+          </CForm>
           <ProviderTable />
         </CCardBody>
         <CCardFooter>

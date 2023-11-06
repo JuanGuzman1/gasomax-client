@@ -163,7 +163,15 @@ const ProviderModalForm = ({ visible, onClose }) => {
                     <CFormInput type="text" placeholder="Cuenta bancaria" />
                   </div>
                   <div className="flex-fill ms-2 me-2">
-                    <CFormInput type="email" placeholder="Banco" />
+                    <CFormSelect
+                      aria-label="caseFilter"
+                      options={[
+                        { label: 'Banorte', value: 'banorte' },
+                        { label: 'Banamex', value: 'banamex' },
+                        { label: 'Bancomer', value: 'bancomer' },
+                        { label: 'Santander', value: 'bancomer' },
+                      ]}
+                    />
                   </div>
                   <div className="flex-fill">
                     <CFormInput type="email" placeholder="CLABE" />
