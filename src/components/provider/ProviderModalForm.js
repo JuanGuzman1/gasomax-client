@@ -95,42 +95,73 @@ const ProviderModalForm = ({ visible, onClose }) => {
             <CForm className="mt-3">
               <div className="mb-3">
                 <CFormLabel htmlFor="provider">Proveedor</CFormLabel>
-                <CFormInput type="text" id="provider" placeholder="nombre" />
+                <CFormInput
+                  type="text"
+                  id="provider"
+                  placeholder="nombre"
+                  onChange={(e) => setProvider(e.target.value)}
+                />
               </div>
               <div className="mb-3">
                 <CFormLabel>Tipo</CFormLabel>
                 <CFormSelect
-                  aria-label="Default select example"
+                  aria-label="type"
                   options={[
                     { label: 'Interno', value: 'int' },
                     { label: 'Externo', value: 'ext' },
                   ]}
+                  onChange={(e) => setType(e.target.value)}
                 />
               </div>
               <div className="mb-3 d-flex">
                 <div className="flex-fill me-2">
                   <CFormLabel htmlFor="contact">Contacto</CFormLabel>
-                  <CFormInput type="text" id="contact" placeholder="contacto" />
+                  <CFormInput
+                    type="text"
+                    id="contact"
+                    placeholder="contacto"
+                    onChange={(e) => setContact(e.target.value)}
+                  />
                 </div>
                 <div className="flex-fill">
                   <CFormLabel htmlFor="rfc">RFC</CFormLabel>
-                  <CFormInput type="text" id="rfc" placeholder="RFC" />
+                  <CFormInput
+                    type="text"
+                    id="rfc"
+                    placeholder="RFC"
+                    onChange={(e) => setRfc(e.target.value)}
+                  />
                 </div>
               </div>
 
               <div className="mb-3">
                 <CFormLabel htmlFor="address">Dirección</CFormLabel>
-                <CFormInput type="text" id="address" placeholder="dirección" />
+                <CFormInput
+                  type="text"
+                  id="address"
+                  placeholder="dirección"
+                  onChange={(e) => setAddress(e.target.value)}
+                />
               </div>
 
               <div className="mb-3 d-flex">
                 <div className="flex-fill me-2">
                   <CFormLabel htmlFor="phone">Teléfono</CFormLabel>
-                  <CFormInput type="text" id="phone" placeholder="teléfono" />
+                  <CFormInput
+                    type="text"
+                    id="phone"
+                    placeholder="teléfono"
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
                 </div>
                 <div className="flex-fill">
                   <CFormLabel htmlFor="email">Correo electrónico</CFormLabel>
-                  <CFormInput type="email" id="email" placeholder="correo electrónico" />
+                  <CFormInput
+                    type="email"
+                    id="email"
+                    placeholder="correo electrónico"
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
                 </div>
               </div>
             </CForm>
@@ -140,7 +171,12 @@ const ProviderModalForm = ({ visible, onClose }) => {
             <CForm className="mt-3">
               <div className="mb-3">
                 <CFormLabel htmlFor="accountingAccount">Cuenta contable</CFormLabel>
-                <CFormInput type="text" id="accountingAccount" placeholder="cuenta contable" />
+                <CFormInput
+                  type="text"
+                  id="accountingAccount"
+                  placeholder="cuenta contable"
+                  onChange={(e) => setAccountingAccount(e.target.value)}
+                />
               </div>
               <div className="d-flex gap-2 align-items-center">
                 <h5>Cuentas bancarias</h5>

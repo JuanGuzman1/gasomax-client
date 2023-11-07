@@ -13,11 +13,15 @@ import 'simplebar/dist/simplebar.min.css'
 // sidebar nav config
 import navigation from '../_nav'
 import { logo2 } from 'src/assets/brand/logo2'
+import { setSidebar } from 'src/actions/sidebar'
 
 const AppSidebar = () => {
   const dispatch = useDispatch()
-  const unfoldable = useSelector((state) => state.sidebarUnfoldable)
-  const sidebarShow = useSelector((state) => state.sidebarShow)
+  const unfoldable = useSelector((state) => state.sidebar.sidebarUnfoldable)
+  const sidebarShow = useSelector((state) => {
+    console.log(state)
+    return state.sidebar.sidebarShow
+  })
 
   return (
     <CSidebar
@@ -25,22 +29,23 @@ const AppSidebar = () => {
       unfoldable={unfoldable}
       visible={sidebarShow}
       onVisibleChange={(visible) => {
-        dispatch({ type: 'set', sidebarShow: visible })
+        dispatch(setSidebar({ sidebarShow: visible }))
       }}
       style={{ backgroundColor: '#08255b' }}
+      data-coreui="navigation"
     >
       <CSidebarBrand className="d-none d-md-flex" to="/">
         <CIcon className="sidebar-brand-full" icon={logo2} height={45} />
         <CIcon className="sidebar-brand-narrow" icon={sygnet} height={35} />
       </CSidebarBrand>
-      <CSidebarNav>
+      <CSidebarNav data-coreui="navigation">
         <SimpleBar>
           <AppSidebarNav items={navigation} />
         </SimpleBar>
       </CSidebarNav>
       <CSidebarToggler
         className="d-none d-lg-flex"
-        onClick={() => dispatch({ type: 'set', sidebarUnfoldable: !unfoldable })}
+        onClick={() => dispatch(setSidebar({ sidebarUnfoldable: !unfoldable }))}
       />
     </CSidebar>
   )

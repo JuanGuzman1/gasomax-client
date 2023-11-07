@@ -1,0 +1,2 @@
+export const GET_PROVIDERS = 'GET_PROVIDER'
+export const PROVIDER_ERROR = 'PROVIDER_ERROR'
