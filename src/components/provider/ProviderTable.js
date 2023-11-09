@@ -11,7 +11,7 @@ import {
 import CIcon from '@coreui/icons-react'
 import { cilPencil, cilTrash, cilCloudDownload } from '@coreui/icons'
 
-const ProviderTable = () => {
+const ProviderTable = ({ data }) => {
   return (
     <CTable striped responsive>
       <CTableHead>
@@ -26,60 +26,27 @@ const ProviderTable = () => {
         </CTableRow>
       </CTableHead>
       <CTableBody>
-        <CTableRow>
-          <CTableHeaderCell scope="row">1</CTableHeaderCell>
-          <CTableDataCell>Provedor 1</CTableDataCell>
-          <CTableDataCell>Juan</CTableDataCell>
-          <CTableDataCell>Av. universidad #340</CTableDataCell>
-          <CTableDataCell>444444444</CTableDataCell>
-          <CTableDataCell>juan@email.com</CTableDataCell>
-          <CTableDataCell>
-            <CButton color="warning">
-              <CIcon icon={cilPencil} title="Download file" />
-            </CButton>
-            <CButton color="danger">
-              <CIcon icon={cilTrash} title="Download file" />
-            </CButton>
-            <CButton color="primary">
-              <CIcon icon={cilCloudDownload} title="Download file" />
-            </CButton>
-          </CTableDataCell>
-        </CTableRow>
-        <CTableRow>
-          <CTableHeaderCell scope="row">2</CTableHeaderCell>
-          <CTableDataCell>Telmex</CTableDataCell>
-          <CTableDataCell>Pedro</CTableDataCell>
-          <CTableDataCell>Buenos aires piso 3</CTableDataCell>
-          <CTableDataCell>444444444</CTableDataCell>
-          <CTableDataCell>pedro@email.com</CTableDataCell>
-          <CTableDataCell>
-            <CButton color="warning">
-              <CIcon icon={cilPencil} title="Download file" />
-            </CButton>
-            <CButton color="danger">
-              <CIcon icon={cilTrash} title="Download file" />
-            </CButton>
-          </CTableDataCell>
-        </CTableRow>
-        <CTableRow>
-          <CTableHeaderCell scope="row">3</CTableHeaderCell>
-          <CTableDataCell>Espectaculares SA.DE.CV</CTableDataCell>
-          <CTableDataCell>Paco</CTableDataCell>
-          <CTableDataCell>Lomas #203</CTableDataCell>
-          <CTableDataCell>444444444</CTableDataCell>
-          <CTableDataCell>espectaculares@email.com</CTableDataCell>
-          <CTableDataCell>
-            <CButton color="warning">
-              <CIcon icon={cilPencil} title="Download file" />
-            </CButton>
-            <CButton color="danger">
-              <CIcon icon={cilTrash} title="Download file" />
-            </CButton>
-            <CButton color="primary">
-              <CIcon icon={cilCloudDownload} title="Download file" />
-            </CButton>
-          </CTableDataCell>
-        </CTableRow>
+        {data?.map((provider) => (
+          <CTableRow key={provider.id}>
+            <CTableHeaderCell scope="row">{provider.id}</CTableHeaderCell>
+            <CTableDataCell>{provider.name}</CTableDataCell>
+            <CTableDataCell>{provider.contact}</CTableDataCell>
+            <CTableDataCell>{provider.address}</CTableDataCell>
+            <CTableDataCell>{provider.phone}</CTableDataCell>
+            <CTableDataCell>{provider.email}</CTableDataCell>
+            <CTableDataCell>
+              <CButton color="warning">
+                <CIcon icon={cilPencil} title="Editar" />
+              </CButton>
+              <CButton color="danger">
+                <CIcon icon={cilTrash} title="Eliminar" />
+              </CButton>
+              <CButton color="primary">
+                <CIcon icon={cilCloudDownload} title="Descargar CSF" />
+              </CButton>
+            </CTableDataCell>
+          </CTableRow>
+        ))}
       </CTableBody>
     </CTable>
   )

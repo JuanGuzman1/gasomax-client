@@ -1,4 +1,4 @@
-import { GET_PROVIDERS, PROVIDER_ERROR } from 'src/actions/types'
+import { ADD_PROVIDER, DELETE_PROVIDER, GET_PROVIDERS, PROVIDER_ERROR } from 'src/actions/types'
 
 const initialState = {
   providers: [],
@@ -15,6 +15,24 @@ export default function (state = initialState, action) {
       return {
         ...state,
         providers: payload,
+        loading: false,
+      }
+    case ADD_PROVIDER:
+      return {
+        ...state,
+        providers: [payload, ...state.providers],
+        loading: false,
+      }
+    case DELETE_PROVIDER:
+      return {
+        ...state,
+        providers: state.providers.filter((provider) => provider.id !== payload),
+        loading: false,
+      }
+    case PROVIDER_ERROR:
+      return {
+        ...state,
+        error: payload,
         loading: false,
       }
     default:

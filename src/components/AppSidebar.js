@@ -19,7 +19,6 @@ const AppSidebar = () => {
   const dispatch = useDispatch()
   const unfoldable = useSelector((state) => state.sidebar.sidebarUnfoldable)
   const sidebarShow = useSelector((state) => {
-    console.log(state)
     return state.sidebar.sidebarShow
   })
 

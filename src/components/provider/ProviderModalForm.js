@@ -24,6 +24,8 @@ import {
 } from '@coreui/react'
 import { cilPlus, cilTrash, cilCheckAlt } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
+import { useDispatch } from 'react-redux'
+import { addProvider } from 'src/actions/provider'
 
 const ProviderModalForm = ({ visible, onClose }) => {
   const [activeKey, setActiveKey] = useState(1),
@@ -38,11 +40,40 @@ const ProviderModalForm = ({ visible, onClose }) => {
     [accountingAccount, setAccountingAccount] = useState(),
     [bankAccount, setBankAccount] = useState(),
     [bank, setBank] = useState(),
-    [clabe, setClabe] = useState()
+    [clabe, setClabe] = useState(),
+    dispatch = useDispatch()
 
   const onSave = (e) => {
     e.preventDefault()
-    console.log('hola')
+    if (!provider) {
+      alert('Ingrese un nombre')
+      return
+    }
+    dispatch(
+      addProvider({
+        name: provider,
+        type,
+        contact,
+        rfc,
+        address,
+        phone,
+        email,
+        accountingAccount,
+      }),
+    )
+    onClose()
+    cleanInputs()
+  }
+
+  const cleanInputs = () => {
+    setProvider()
+    setType('ext')
+    setContact()
+    setRfc()
+    setAddress()
+    setPhone()
+    setEmail()
+    setAccountingAccount()
   }
 
   return (
@@ -100,6 +131,7 @@ const ProviderModalForm = ({ visible, onClose }) => {
                   id="provider"
                   placeholder="nombre"
                   onChange={(e) => setProvider(e.target.value)}
+                  value={provider}
                 />
               </div>
               <div className="mb-3">
@@ -111,6 +143,7 @@ const ProviderModalForm = ({ visible, onClose }) => {
                     { label: 'Externo', value: 'ext' },
                   ]}
                   onChange={(e) => setType(e.target.value)}
+                  value={type}
                 />
               </div>
               <div className="mb-3 d-flex">
@@ -121,6 +154,7 @@ const ProviderModalForm = ({ visible, onClose }) => {
                     id="contact"
                     placeholder="contacto"
                     onChange={(e) => setContact(e.target.value)}
+                    value={contact}
                   />
                 </div>
                 <div className="flex-fill">
@@ -130,6 +164,7 @@ const ProviderModalForm = ({ visible, onClose }) => {
                     id="rfc"
                     placeholder="RFC"
                     onChange={(e) => setRfc(e.target.value)}
+                    value={rfc}
                   />
                 </div>
               </div>
@@ -141,6 +176,7 @@ const ProviderModalForm = ({ visible, onClose }) => {
                   id="address"
                   placeholder="dirección"
                   onChange={(e) => setAddress(e.target.value)}
+                  value={address}
                 />
               </div>
 
@@ -152,6 +188,7 @@ const ProviderModalForm = ({ visible, onClose }) => {
                     id="phone"
                     placeholder="teléfono"
                     onChange={(e) => setPhone(e.target.value)}
+                    value={phone}
                   />
                 </div>
                 <div className="flex-fill">
@@ -161,6 +198,7 @@ const ProviderModalForm = ({ visible, onClose }) => {
                     id="email"
                     placeholder="correo electrónico"
                     onChange={(e) => setEmail(e.target.value)}
+                    value={email}
                   />
                 </div>
               </div>
@@ -176,6 +214,7 @@ const ProviderModalForm = ({ visible, onClose }) => {
                   id="accountingAccount"
                   placeholder="cuenta contable"
                   onChange={(e) => setAccountingAccount(e.target.value)}
+                  value={accountingAccount}
                 />
               </div>
               <div className="d-flex gap-2 align-items-center">

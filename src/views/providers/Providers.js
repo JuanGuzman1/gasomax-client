@@ -1,5 +1,5 @@
 /* eslint-disable react/no-unescaped-entities */
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   CCard,
   CCardBody,
@@ -12,13 +12,23 @@ import {
   CFormLabel,
   CFormSelect,
   CFormInput,
+  CSpinner,
 } from '@coreui/react'
 import ProviderModalForm from 'src/components/provider/ProviderModalForm'
 import ProviderTable from 'src/components/provider/ProviderTable'
+import { useDispatch, useSelector } from 'react-redux'
+import { getProviders } from 'src/actions/provider'
 
 const Providers = () => {
-  const [provider, setProvider] = useState(),
-    [visible, setVisible] = useState(false)
+  const [visible, setVisible] = useState(false),
+    dispatch = useDispatch(),
+    providers = useSelector((state) => state.provider.providers),
+    loading = useSelector((state) => state.provider.loading)
+
+  useEffect(() => {
+    dispatch(getProviders())
+  }, [dispatch])
+
   return (
     <>
       <CCard>
@@ -47,7 +57,13 @@ const Providers = () => {
             </div>
             <CButton type="button">Buscar</CButton>
           </CForm>
-          <ProviderTable />
+          {loading ? (
+            <div className="d-flex justify-content-center">
+              <CSpinner color="primary" variant="grow" />
+            </div>
+          ) : (
+            <ProviderTable data={providers} />
+          )}
         </CCardBody>
         <CCardFooter>
           <CPagination aria-label="Page navigation example" align="end">
