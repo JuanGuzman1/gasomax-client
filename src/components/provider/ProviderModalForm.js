@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   CModal,
   CModalHeader,
@@ -25,11 +25,12 @@ import {
 import { cilPlus, cilTrash, cilCheckAlt } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import { useDispatch } from 'react-redux'
-import { addProvider } from 'src/actions/provider'
+import { addProvider, updateProvider } from 'src/actions/provider'
 
-const ProviderModalForm = ({ visible, onClose }) => {
+const ProviderModalForm = ({ visible, onClose, providerData }) => {
   const [activeKey, setActiveKey] = useState(1),
     [showInputsAccount, setShowInputsAccount] = useState(false),
+    [providerID, setProviderID] = useState(),
     [provider, setProvider] = useState(),
     [type, setType] = useState('ext'),
     [contact, setContact] = useState(),
@@ -49,18 +50,17 @@ const ProviderModalForm = ({ visible, onClose }) => {
       alert('Ingrese un nombre')
       return
     }
-    dispatch(
-      addProvider({
-        name: provider,
-        type,
-        contact,
-        rfc,
-        address,
-        phone,
-        email,
-        accountingAccount,
-      }),
-    )
+    let data = {
+      name: provider,
+      type,
+      contact,
+      rfc,
+      address,
+      phone,
+      email,
+      accountingAccount,
+    }
+    dispatch(providerData ? updateProvider(data, providerID) : addProvider(data))
     onClose()
     cleanInputs()
   }
@@ -76,10 +76,27 @@ const ProviderModalForm = ({ visible, onClose }) => {
     setAccountingAccount()
   }
 
+  useEffect(() => {
+    if (!providerData) {
+      return
+    }
+    setProviderID(providerData.id)
+    setProvider(providerData.name)
+    setType(providerData.type)
+    setContact(providerData.contact)
+    setRfc(providerData.rfc)
+    setAddress(providerData.address)
+    setPhone(providerData.phone)
+    setEmail(providerData.email)
+    setAccountingAccount(providerData.accountingAccount)
+  }, [providerData])
+
   return (
     <CModal visible={visible} onClose={onClose} aria-labelledby="LiveDemoExampleLabel" size="lg">
       <CModalHeader onClose={onClose}>
-        <CModalTitle id="LiveDemoExampleLabel">Agregar nuevo</CModalTitle>
+        <CModalTitle id="LiveDemoExampleLabel">
+          {providerData ? `Editar ${providerData.name}` : 'Agregar nuevo'}
+        </CModalTitle>
       </CModalHeader>
       <CModalBody>
         <CNav variant="tabs" role="tablist">

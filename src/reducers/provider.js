@@ -1,7 +1,15 @@
-import { ADD_PROVIDER, DELETE_PROVIDER, GET_PROVIDERS, PROVIDER_ERROR } from 'src/actions/types'
+import {
+  ADD_PROVIDER,
+  DELETE_PROVIDER,
+  GET_PROVIDERS,
+  PROVIDER_ERROR,
+  UPDATE_PROVIDER,
+} from 'src/actions/types'
 
 const initialState = {
-  providers: [],
+  providers: {
+    data: [],
+  },
   loading: true,
   error: {},
 }
@@ -20,13 +28,21 @@ export default function (state = initialState, action) {
     case ADD_PROVIDER:
       return {
         ...state,
-        providers: [payload, ...state.providers],
+        providers: { data: [payload, ...state.providers.data] },
+        loading: false,
+      }
+    case UPDATE_PROVIDER:
+      let index = state.providers.data.findIndex((provider) => provider.id === payload.id)
+      state.providers.data[index] = payload
+      return {
+        ...state,
+        providers: { data: [...state.providers.data] },
         loading: false,
       }
     case DELETE_PROVIDER:
       return {
         ...state,
-        providers: state.providers.filter((provider) => provider.id !== payload),
+        providers: { data: state.providers.data.filter((provider) => provider.id !== payload) },
         loading: false,
       }
     case PROVIDER_ERROR:

@@ -22,12 +22,23 @@ import { getProviders } from 'src/actions/provider'
 const Providers = () => {
   const [visible, setVisible] = useState(false),
     dispatch = useDispatch(),
-    providers = useSelector((state) => state.provider.providers),
+    providers = useSelector((state) => state.provider.providers.data),
+    [currentPage, setCurrentPage] = useState(1),
+    currentPageState = useSelector((state) => state.provider.providers.current_page),
+    lastPage = useSelector((state) => state.provider.providers.last_page),
+    total = useSelector((state) => state.provider.providers.total),
     loading = useSelector((state) => state.provider.loading)
 
   useEffect(() => {
-    dispatch(getProviders())
-  }, [dispatch])
+    dispatch(getProviders(currentPage))
+  }, [dispatch, currentPage])
+
+  useEffect(() => {
+    if (!currentPageState) {
+      return
+    }
+    setCurrentPage(currentPageState)
+  }, [currentPageState])
 
   return (
     <>
@@ -48,6 +59,7 @@ const Providers = () => {
                   options={[
                     { label: 'Proveedor', value: 'provider' },
                     { label: 'Contacto', value: 'contact' },
+                    { label: 'RFC', value: 'rfc' },
                   ]}
                 />
               </div>
@@ -67,13 +79,49 @@ const Providers = () => {
         </CCardBody>
         <CCardFooter>
           <CPagination aria-label="Page navigation example" align="end">
-            <CPaginationItem aria-label="Previous" disabled>
+            <CPaginationItem
+              aria-label="Previous"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(currentPage - 1)}
+            >
               <span aria-hidden="true">&laquo;</span>
             </CPaginationItem>
-            <CPaginationItem active>1</CPaginationItem>
-            <CPaginationItem>2</CPaginationItem>
-            <CPaginationItem>3</CPaginationItem>
-            <CPaginationItem aria-label="Next">
+            {currentPage - 3 >= 1 && (
+              <CPaginationItem onClick={() => setCurrentPage(currentPage - 3)}>
+                {currentPage - 3}
+              </CPaginationItem>
+            )}
+            {currentPage - 2 >= 1 && (
+              <CPaginationItem onClick={() => setCurrentPage(currentPage - 2)}>
+                {currentPage - 2}
+              </CPaginationItem>
+            )}
+            {currentPage - 1 >= 1 && (
+              <CPaginationItem onClick={() => setCurrentPage(currentPage - 1)}>
+                {currentPage - 1}
+              </CPaginationItem>
+            )}
+            <CPaginationItem active>{currentPage}</CPaginationItem>
+            {currentPage + 1 <= lastPage && (
+              <CPaginationItem onClick={() => setCurrentPage(currentPage + 1)}>
+                {currentPage + 1}
+              </CPaginationItem>
+            )}
+            {currentPage + 2 <= lastPage && (
+              <CPaginationItem onClick={() => setCurrentPage(currentPage + 2)}>
+                {currentPage + 2}
+              </CPaginationItem>
+            )}
+            {currentPage + 3 <= lastPage && (
+              <CPaginationItem onClick={() => setCurrentPage(currentPage + 3)}>
+                {currentPage + 3}
+              </CPaginationItem>
+            )}
+            <CPaginationItem
+              aria-label="Next"
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage === lastPage}
+            >
               <span aria-hidden="true">&raquo;</span>
             </CPaginationItem>
           </CPagination>
