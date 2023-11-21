@@ -30,11 +30,11 @@ const AppSidebar = () => {
       onVisibleChange={(visible) => {
         dispatch(setSidebar({ sidebarShow: visible }))
       }}
-      style={{ backgroundColor: '#08255b' }}
+      style={{ backgroundColor: '#21274E' }}
       data-coreui="navigation"
     >
-      <CSidebarBrand className="d-none d-md-flex" to="/">
-        <CIcon className="sidebar-brand-full" icon={logo2} height={45} />
+      <CSidebarBrand className="d-none d-md-flex pb-2" to="/">
+        <CIcon className="sidebar-brand-full" icon={logo2} height={85} />
         <CIcon className="sidebar-brand-narrow" icon={sygnet} height={35} />
       </CSidebarBrand>
       <CSidebarNav data-coreui="navigation">

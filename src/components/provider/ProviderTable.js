@@ -6,14 +6,19 @@ import {
   CTableRow,
   CTableHeaderCell,
   CTableDataCell,
-  CButton,
+  CDropdown,
+  CDropdownToggle,
+  CDropdownMenu,
+  CDropdownItem,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
-import { cilPencil, cilTrash, cilCloudDownload } from '@coreui/icons'
+import { cilOptions } from '@coreui/icons'
 import { useDispatch } from 'react-redux'
 import Swal from 'sweetalert2'
 import { deleteProvider } from 'src/actions/provider'
 import ProviderModalForm from './ProviderModalForm'
+import { fileTags } from 'src/utils/fileTags'
+import { downloadFile } from 'src/actions/file'
 
 const ProviderTable = ({ data }) => {
   const [visible, setVisible] = useState(false),
@@ -40,6 +45,12 @@ const ProviderTable = ({ data }) => {
       }
     })
   }
+
+  const onDownload = (files) => {
+    const idCsfFile = files.find((file) => file.tag === fileTags.csf).id
+    dispatch(downloadFile(idCsfFile))
+  }
+
   return (
     <>
       <CTable striped responsive>
@@ -52,7 +63,9 @@ const ProviderTable = ({ data }) => {
             <CTableHeaderCell scope="col">Dirección</CTableHeaderCell>
             <CTableHeaderCell scope="col">Teléfono</CTableHeaderCell>
             <CTableHeaderCell scope="col">Correo electrónico</CTableHeaderCell>
-            <CTableHeaderCell scope="col">Opciones</CTableHeaderCell>
+            <CTableHeaderCell scope="col" className="text-center">
+              Opciones
+            </CTableHeaderCell>
           </CTableRow>
         </CTableHead>
         <CTableBody>
@@ -65,22 +78,35 @@ const ProviderTable = ({ data }) => {
               <CTableDataCell>{provider.address}</CTableDataCell>
               <CTableDataCell>{provider.phone}</CTableDataCell>
               <CTableDataCell>{provider.email}</CTableDataCell>
-              <CTableDataCell>
-                <CButton
-                  color="warning"
-                  onClick={() => {
-                    setVisible(!visible)
-                    setProviderData(provider)
-                  }}
-                >
-                  <CIcon icon={cilPencil} title="Editar" />
-                </CButton>
-                <CButton color="danger" onClick={() => onDelete(provider.id)}>
-                  <CIcon icon={cilTrash} title="Eliminar" />
-                </CButton>
-                <CButton color="primary">
-                  <CIcon icon={cilCloudDownload} title="Descargar CSF" />
-                </CButton>
+              <CTableDataCell className="text-center overflow-visible">
+                <CDropdown variant="dropdown">
+                  <CDropdownToggle href="#" color="light">
+                    <CIcon icon={cilOptions} title="Opciones" size="lg" />
+                  </CDropdownToggle>
+                  <CDropdownMenu className="position-fixed">
+                    <CDropdownItem
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => {
+                        setVisible(!visible)
+                        setProviderData(provider)
+                      }}
+                    >
+                      Editar
+                    </CDropdownItem>
+                    <CDropdownItem
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => onDelete(provider.id)}
+                    >
+                      Eliminar
+                    </CDropdownItem>
+                    <CDropdownItem
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => onDownload(provider.files)}
+                    >
+                      Descargar CSF
+                    </CDropdownItem>
+                  </CDropdownMenu>
+                </CDropdown>
               </CTableDataCell>
             </CTableRow>
           ))}

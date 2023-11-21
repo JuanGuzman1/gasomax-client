@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import {
   CModal,
   CModalHeader,
@@ -21,11 +21,15 @@ import {
   CTableBody,
   CTableDataCell,
   CFormSelect,
+  CProgress,
 } from '@coreui/react'
 import { cilPlus, cilTrash, cilCheckAlt } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { addProvider, updateProvider } from 'src/actions/provider'
+import { uploadFile } from 'src/actions/file'
+import { fileTags } from 'src/utils/fileTags'
+import { modelTypes } from 'src/utils/modelTypes'
 
 const ProviderModalForm = ({ visible, onClose, providerData }) => {
   const [activeKey, setActiveKey] = useState(1),
@@ -42,7 +46,10 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
     [bankAccount, setBankAccount] = useState(),
     [bank, setBank] = useState(),
     [clabe, setClabe] = useState(),
-    dispatch = useDispatch()
+    [csfFile, setCsfFile] = useState(),
+    dispatch = useDispatch(),
+    { progress } = useSelector((state) => state.file),
+    loadingProvider = useSelector((state) => state.provider.loading)
 
   const onSave = (e) => {
     e.preventDefault()
@@ -60,12 +67,23 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
       email,
       accountingAccount,
     }
-    dispatch(providerData ? updateProvider(data, providerID) : addProvider(data))
-    onClose()
-    cleanInputs()
+    dispatch(
+      providerData
+        ? updateProvider(data, providerID, (dataRes) => {
+            console.log(dataRes)
+          })
+        : addProvider(data, (dataRes) => {
+            if (csfFile) {
+              dispatch(uploadFile(csfFile, fileTags.csf, dataRes.id, modelTypes.provider))
+            } else {
+              onClose()
+              cleanInputs()
+            }
+          }),
+    )
   }
 
-  const cleanInputs = () => {
+  const cleanInputs = useCallback(() => {
     setProvider()
     setType('ext')
     setContact()
@@ -74,7 +92,9 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
     setPhone()
     setEmail()
     setAccountingAccount()
-  }
+    setCsfFile()
+    setActiveKey(1)
+  }, [])
 
   useEffect(() => {
     if (!providerData) {
@@ -83,13 +103,22 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
     setProviderID(providerData.id)
     setProvider(providerData.name)
     setType(providerData.type)
-    setContact(providerData.contact)
-    setRfc(providerData.rfc)
-    setAddress(providerData.address)
-    setPhone(providerData.phone)
-    setEmail(providerData.email)
-    setAccountingAccount(providerData.accountingAccount)
+    setContact(providerData.contact ?? '')
+    setRfc(providerData.rfc ?? '')
+    setAddress(providerData.address ?? '')
+    setPhone(providerData.phone ?? '')
+    setEmail(providerData.email ?? '')
+    setAccountingAccount(providerData.accountingAccount ?? '')
   }, [providerData])
+
+  useEffect(() => {
+    if (progress === 100) {
+      setTimeout(() => {
+        onClose()
+        cleanInputs()
+      }, 3000)
+    }
+  }, [progress, onClose, cleanInputs])
 
   return (
     <CModal visible={visible} onClose={onClose} aria-labelledby="LiveDemoExampleLabel" size="lg">
@@ -99,7 +128,12 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
         </CModalTitle>
       </CModalHeader>
       <CModalBody>
-        <CNav variant="tabs" role="tablist">
+        {csfFile && (
+          <CProgress value={progress} className="mb-2">
+            {progress}%
+          </CProgress>
+        )}
+        <CNav variant="tabs" role="tablist" className="mt-1">
           <CNavItem role="presentation">
             <CNavLink
               active={activeKey === 1}
@@ -241,6 +275,7 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
                     type="button"
                     size="sm"
                     shape="rounded-3"
+                    className="text-light fw-semibold"
                     title="Agregar"
                     onClick={() => setShowInputsAccount(true)}
                   >
@@ -269,7 +304,7 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
                     <CFormInput type="email" placeholder="CLABE" />
                   </div>
                   <CButton
-                    className="ms-2"
+                    className="ms-2 text-light"
                     shape="rounded-3"
                     type="button"
                     size="sm"
@@ -305,7 +340,12 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
                       <CIcon icon={cilCheckAlt} size="custom" />
                     </CTableDataCell>
                     <CTableDataCell>
-                      <CButton color="success" variant="outline" title="Asignar principal">
+                      <CButton
+                        color="success"
+                        variant="outline"
+                        title="Asignar principal"
+                        className="me-2"
+                      >
                         <CIcon icon={cilCheckAlt} size="sm" />
                       </CButton>
                       <CButton color="danger" variant="outline" title="Eliminar">
@@ -320,7 +360,12 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
                     <CTableDataCell className="text-center">Buenos aires piso 3</CTableDataCell>
                     <CTableDataCell></CTableDataCell>
                     <CTableDataCell>
-                      <CButton color="success" variant="outline" title="Asignar principal">
+                      <CButton
+                        color="success"
+                        variant="outline"
+                        title="Asignar principal"
+                        className="me-2"
+                      >
                         <CIcon icon={cilCheckAlt} size="sm" />
                       </CButton>
                       <CButton color="danger" variant="outline" title="Eliminar">
@@ -336,10 +381,13 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
           <CTabPane role="tabpanel" aria-labelledby="data-tab-pane" visible={activeKey === 3}>
             <CForm className="mt-3">
               <div className="mb-3">
-                <CFormLabel htmlFor="exampleFormControlInput1">
-                  Constancia de situación fiscal
-                </CFormLabel>
-                <CFormInput type="file" id="exampleFormControlInput1" placeholder="nombre" />
+                <CFormLabel htmlFor="csfFile">Constancia de situación fiscal</CFormLabel>
+                <CFormInput
+                  type="file"
+                  id="csfFile"
+                  placeholder="nombre"
+                  onChange={(e) => setCsfFile(e.target.files[0])}
+                />
               </div>
             </CForm>
           </CTabPane>
@@ -349,7 +397,7 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
         <CButton color="secondary" onClick={onClose}>
           Cerrar
         </CButton>
-        <CButton color="primary" onClick={onSave}>
+        <CButton color="primary" className="text-light fw-semibold" onClick={onSave}>
           Guardar
         </CButton>
       </CModalFooter>

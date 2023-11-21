@@ -5,3 +5,12 @@ export const ADD_PROVIDER = 'ADD_PROVIDER'
 export const UPDATE_PROVIDER = 'UPDATE_PROVIDER'
 export const DELETE_PROVIDER = 'DELETE_PROVIDER'
 export const PROVIDER_ERROR = 'PROVIDER_ERROR'
+
+//files
+export const GET_FILES = 'GET_FILES'
+export const DOWNLOAD_FILE = 'DOWNLOAD_FILE'
+export const UPLOAD_FILE = 'UPLOAD_FILE'
+export const UPLOAD_FILE_PROGRESS = 'UPLOAD_FILE_PROGRESS'
+export const UPDATE_FILE = 'UPDATE_FILE'
+export const DELETE_FILE = 'DELETE_FILE'
+export const FILE_ERROR = 'FILE_ERROR'

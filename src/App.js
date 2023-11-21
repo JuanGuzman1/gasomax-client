@@ -26,7 +26,6 @@ const mapStateToProps = (state) => ({
 class App extends Component {
   render() {
     let Toast = this.props.Toast
-    console.log(Toast)
     return (
       <HashRouter>
         <Suspense fallback={loading}>

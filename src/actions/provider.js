@@ -10,9 +10,11 @@ import { setToast } from './toast'
 import { AppToast } from 'src/components'
 import config from '../server.config'
 
-export const getProviders = (page) => async (dispatch) => {
+export const getProviders = (page, filter, value) => async (dispatch) => {
   try {
-    const res = await axios.get(`${config.instance.baseURL}/api/provider?page=${page}`)
+    const res = await axios.get(
+      `${config.instance.baseURL}/api/provider?${filter}=${value}&page=${page}`,
+    )
     dispatch({
       type: GET_PROVIDERS,
       payload: res.data,
@@ -28,7 +30,7 @@ export const getProviders = (page) => async (dispatch) => {
   }
 }
 
-export const addProvider = (data) => async (dispatch) => {
+export const addProvider = (data, cb) => async (dispatch) => {
   try {
     const res = await axios.post(
       `${config.instance.baseURL}/api/provider`,
@@ -39,6 +41,7 @@ export const addProvider = (data) => async (dispatch) => {
       type: ADD_PROVIDER,
       payload: res.data,
     })
+    cb(res.data)
     dispatch(setToast(AppToast({ msg: 'Proveedor agregado correctamente.', title: 'Proveedores' })))
   } catch (err) {
     dispatch({
@@ -52,7 +55,7 @@ export const addProvider = (data) => async (dispatch) => {
   }
 }
 
-export const updateProvider = (data, id) => async (dispatch) => {
+export const updateProvider = (data, id, cb) => async (dispatch) => {
   try {
     const res = await axios.put(
       `${config.instance.baseURL}/api/provider/${id}`,
@@ -63,6 +66,7 @@ export const updateProvider = (data, id) => async (dispatch) => {
       type: UPDATE_PROVIDER,
       payload: res.data,
     })
+    cb(res.data)
     dispatch(
       setToast(AppToast({ msg: 'Proveedor actualizado correctamente.', title: 'Proveedores' })),
     )

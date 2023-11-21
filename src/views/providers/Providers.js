@@ -18,10 +18,14 @@ import ProviderModalForm from 'src/components/provider/ProviderModalForm'
 import ProviderTable from 'src/components/provider/ProviderTable'
 import { useDispatch, useSelector } from 'react-redux'
 import { getProviders } from 'src/actions/provider'
+import CIcon from '@coreui/icons-react'
+import { cilPlus, cilCloudDownload } from '@coreui/icons'
 
 const Providers = () => {
   const [visible, setVisible] = useState(false),
     dispatch = useDispatch(),
+    [caseFilter, setCaseFilter] = useState('name'),
+    [filterValue, setFilterValue] = useState(''),
     providers = useSelector((state) => state.provider.providers.data),
     [currentPage, setCurrentPage] = useState(1),
     currentPageState = useSelector((state) => state.provider.providers.current_page),
@@ -30,7 +34,7 @@ const Providers = () => {
     loading = useSelector((state) => state.provider.loading)
 
   useEffect(() => {
-    dispatch(getProviders(currentPage))
+    dispatch(getProviders(currentPage, caseFilter, filterValue))
   }, [dispatch, currentPage])
 
   useEffect(() => {
@@ -43,11 +47,25 @@ const Providers = () => {
   return (
     <>
       <CCard>
-        <CCardHeader className="d-flex justify-content-between">
-          <h3>Listado de Proveedores</h3>
-          <CButton color="primary" onClick={() => setVisible(!visible)}>
-            Nuevo
-          </CButton>
+        <CCardHeader className="d-flex justify-content-between align-items-center">
+          <h4>Listado de Proveedores</h4>
+          <div className="d-flex gap-2">
+            <CButton
+              color="primary"
+              className="text-light fw-semibold align-content-center d-flex"
+              onClick={() => setVisible(!visible)}
+            >
+              <CIcon icon={cilPlus} size="xl" className="me-1" />
+              Nuevo
+            </CButton>
+            <CButton
+              color="success"
+              className="text-light align-content-center d-flex"
+              onClick={() => setVisible(!visible)}
+            >
+              <CIcon icon={cilCloudDownload} size="xl" />
+            </CButton>
+          </div>
         </CCardHeader>
         <CCardBody>
           <CForm>
@@ -55,19 +73,33 @@ const Providers = () => {
             <div className="mb-3 d-flex">
               <div className="flex-fill me-2">
                 <CFormSelect
+                  value={caseFilter}
+                  onChange={(e) => setCaseFilter(e.target.value)}
                   aria-label="caseFilter"
                   options={[
-                    { label: 'Proveedor', value: 'provider' },
+                    { label: 'Proveedor', value: 'name' },
                     { label: 'Contacto', value: 'contact' },
                     { label: 'RFC', value: 'rfc' },
                   ]}
                 />
               </div>
               <div className="flex-fill me-2">
-                <CFormInput type="text" id="provider" placeholder="Ingresar texto" />
+                <CFormInput
+                  value={filterValue}
+                  onChange={(e) => setFilterValue(e.target.value)}
+                  type="text"
+                  id="provider"
+                  placeholder="Ingresar texto"
+                />
               </div>
             </div>
-            <CButton type="button">Buscar</CButton>
+            <CButton
+              type="button"
+              className="text-light fw-semibold"
+              onClick={() => dispatch(getProviders(currentPage, caseFilter, filterValue))}
+            >
+              Buscar
+            </CButton>
           </CForm>
           {loading ? (
             <div className="d-flex justify-content-center">

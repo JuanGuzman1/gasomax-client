@@ -8,7 +8,9 @@ const config = {
     headers: {
       'Content-Type': 'application/json',
       Accept: 'application/json',
-      // Pragma: 'no-cache',
+    },
+    headersFormData: {
+      'Content-Type': 'multipart/form-data',
     },
   },
 }
