@@ -295,8 +295,6 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
                       options={[
                         { label: 'Banorte', value: 'banorte' },
                         { label: 'Banamex', value: 'banamex' },
-                        { label: 'Bancomer', value: 'bancomer' },
-                        { label: 'Santander', value: 'bancomer' },
                       ]}
                     />
                   </div>
@@ -333,9 +331,9 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
                 <CTableBody>
                   <CTableRow>
                     <CTableHeaderCell scope="row">1</CTableHeaderCell>
-                    <CTableDataCell>Provedor 1</CTableDataCell>
-                    <CTableDataCell>Juan</CTableDataCell>
-                    <CTableDataCell className="text-center">Av. universidad #340</CTableDataCell>
+                    <CTableDataCell>AD344222</CTableDataCell>
+                    <CTableDataCell>Banamex</CTableDataCell>
+                    <CTableDataCell className="text-center">1726357823657123</CTableDataCell>
                     <CTableDataCell className="text-center">
                       <CIcon icon={cilCheckAlt} size="custom" />
                     </CTableDataCell>
@@ -355,9 +353,9 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
                   </CTableRow>
                   <CTableRow>
                     <CTableHeaderCell scope="row">2</CTableHeaderCell>
-                    <CTableDataCell>Telmex</CTableDataCell>
-                    <CTableDataCell>Pedro</CTableDataCell>
-                    <CTableDataCell className="text-center">Buenos aires piso 3</CTableDataCell>
+                    <CTableDataCell>733H81SA</CTableDataCell>
+                    <CTableDataCell>Banamex</CTableDataCell>
+                    <CTableDataCell className="text-center">87349362749867</CTableDataCell>
                     <CTableDataCell></CTableDataCell>
                     <CTableDataCell>
                       <CButton

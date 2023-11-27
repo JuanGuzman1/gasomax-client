@@ -16,14 +16,13 @@ import { cilOptions } from '@coreui/icons'
 import { useDispatch } from 'react-redux'
 import Swal from 'sweetalert2'
 import { deleteProvider } from 'src/actions/provider'
-import ProviderModalForm from './ProviderModalForm'
-import { fileTags } from 'src/utils/fileTags'
 import { deleteFilesByModel, downloadFile } from 'src/actions/file'
 import { modelTypes } from 'src/utils/modelTypes'
+import BankModalForm from './BankModalForm'
 
-const ProviderTable = ({ data }) => {
+const BankTable = ({ data }) => {
   const [visible, setVisible] = useState(false),
-    [providerData, setProviderData] = useState(null),
+    [bankData, setBankData] = useState(null),
     dispatch = useDispatch()
 
   const onDelete = (id) => {
@@ -51,38 +50,23 @@ const ProviderTable = ({ data }) => {
     })
   }
 
-  const onDownload = (files) => {
-    const idCsfFile = files.find((file) => file.tag === fileTags.csf).id
-    dispatch(downloadFile(idCsfFile))
-  }
-
   return (
     <>
       <CTable striped responsive>
         <CTableHead>
           <CTableRow>
             <CTableHeaderCell scope="col">#</CTableHeaderCell>
-            <CTableHeaderCell scope="col">Proveedor</CTableHeaderCell>
-            <CTableHeaderCell scope="col">Contacto</CTableHeaderCell>
-            <CTableHeaderCell scope="col">RFC</CTableHeaderCell>
-            <CTableHeaderCell scope="col">Dirección</CTableHeaderCell>
-            <CTableHeaderCell scope="col">Teléfono</CTableHeaderCell>
-            <CTableHeaderCell scope="col">Correo electrónico</CTableHeaderCell>
+            <CTableHeaderCell scope="col">Banco</CTableHeaderCell>
             <CTableHeaderCell scope="col" className="text-center">
               Opciones
             </CTableHeaderCell>
           </CTableRow>
         </CTableHead>
         <CTableBody>
-          {data?.map((provider) => (
-            <CTableRow key={provider.id}>
-              <CTableHeaderCell scope="row">{provider.id}</CTableHeaderCell>
-              <CTableDataCell>{provider.name}</CTableDataCell>
-              <CTableDataCell>{provider.contact}</CTableDataCell>
-              <CTableDataCell>{provider.rfc}</CTableDataCell>
-              <CTableDataCell>{provider.address}</CTableDataCell>
-              <CTableDataCell>{provider.phone}</CTableDataCell>
-              <CTableDataCell>{provider.email}</CTableDataCell>
+          {data?.map((bank) => (
+            <CTableRow key={bank.id}>
+              <CTableHeaderCell scope="row">{bank.id}</CTableHeaderCell>
+              <CTableDataCell>{bank.name}</CTableDataCell>
               <CTableDataCell className="text-center overflow-visible">
                 <CDropdown variant="dropdown">
                   <CDropdownToggle href="#" color="light">
@@ -93,22 +77,13 @@ const ProviderTable = ({ data }) => {
                       style={{ cursor: 'pointer' }}
                       onClick={() => {
                         setVisible(!visible)
-                        setProviderData(provider)
+                        setBankData(bank)
                       }}
                     >
                       Editar
                     </CDropdownItem>
-                    <CDropdownItem
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => onDelete(provider.id)}
-                    >
+                    <CDropdownItem style={{ cursor: 'pointer' }} onClick={() => onDelete(bank.id)}>
                       Eliminar
-                    </CDropdownItem>
-                    <CDropdownItem
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => onDownload(provider.files)}
-                    >
-                      Descargar CSF
                     </CDropdownItem>
                   </CDropdownMenu>
                 </CDropdown>
@@ -117,13 +92,9 @@ const ProviderTable = ({ data }) => {
           ))}
         </CTableBody>
       </CTable>
-      <ProviderModalForm
-        visible={visible}
-        onClose={() => setVisible(false)}
-        providerData={providerData}
-      />
+      <BankModalForm visible={visible} onClose={() => setVisible(false)} bankData={bankData} />
     </>
   )
 }
 
-export default ProviderTable
+export default BankTable

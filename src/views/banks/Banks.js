@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unescaped-entities */
 import React, { useEffect, useState } from 'react'
 import {
   CCard,
@@ -14,27 +13,27 @@ import {
   CFormInput,
   CSpinner,
 } from '@coreui/react'
-import ProviderModalForm from 'src/components/provider/ProviderModalForm'
-import ProviderTable from 'src/components/provider/ProviderTable'
 import { useDispatch, useSelector } from 'react-redux'
-import { exportProviderExcel, getProviders } from 'src/actions/provider'
+import BankModalForm from 'src/components/bank/BankModalForm'
+import BankTable from 'src/components/bank/BankTable'
 import CIcon from '@coreui/icons-react'
-import { cilPlus, cilCloudDownload } from '@coreui/icons'
+import { cilPlus } from '@coreui/icons'
+import { getBanks } from 'src/actions/bank'
 
-const Providers = () => {
+const Banks = () => {
   const [visible, setVisible] = useState(false),
     dispatch = useDispatch(),
     [caseFilter, setCaseFilter] = useState('name'),
     [filterValue, setFilterValue] = useState(''),
-    providers = useSelector((state) => state.provider.providers.data),
+    banks = useSelector((state) => state.bank.banks.data),
     [currentPage, setCurrentPage] = useState(1),
-    currentPageState = useSelector((state) => state.provider.providers.current_page),
-    lastPage = useSelector((state) => state.provider.providers.last_page),
-    total = useSelector((state) => state.provider.providers.total),
-    loading = useSelector((state) => state.provider.loading)
+    currentPageState = useSelector((state) => state.bank.banks.current_page),
+    lastPage = useSelector((state) => state.bank.banks.last_page),
+    total = useSelector((state) => state.bank.banks.total),
+    loading = useSelector((state) => state.bank.loading)
 
   useEffect(() => {
-    dispatch(getProviders(currentPage, caseFilter, filterValue))
+    dispatch(getBanks(currentPage, caseFilter, filterValue))
   }, [dispatch, currentPage])
 
   useEffect(() => {
@@ -48,7 +47,7 @@ const Providers = () => {
     <>
       <CCard>
         <CCardHeader className="d-flex justify-content-between align-items-center">
-          <h4>Listado de Proveedores</h4>
+          <h4>Listado de Bancos</h4>
           <div className="d-flex gap-2">
             <CButton
               color="primary"
@@ -57,13 +56,6 @@ const Providers = () => {
             >
               <CIcon icon={cilPlus} size="xl" className="me-1" />
               Nuevo
-            </CButton>
-            <CButton
-              color="info"
-              className="text-light align-content-center d-flex"
-              onClick={() => dispatch(exportProviderExcel(caseFilter, filterValue))}
-            >
-              <CIcon icon={cilCloudDownload} size="xl" />
             </CButton>
           </div>
         </CCardHeader>
@@ -76,11 +68,7 @@ const Providers = () => {
                   value={caseFilter}
                   onChange={(e) => setCaseFilter(e.target.value)}
                   aria-label="caseFilter"
-                  options={[
-                    { label: 'Proveedor', value: 'name' },
-                    { label: 'Contacto', value: 'contact' },
-                    { label: 'RFC', value: 'rfc' },
-                  ]}
+                  options={[{ label: 'Banco', value: 'name' }]}
                 />
               </div>
               <div className="flex-fill me-2">
@@ -96,7 +84,7 @@ const Providers = () => {
             <CButton
               type="button"
               className="text-light fw-semibold"
-              onClick={() => dispatch(getProviders(currentPage, caseFilter, filterValue))}
+              onClick={() => dispatch(getBanks(currentPage, caseFilter, filterValue))}
             >
               Buscar
             </CButton>
@@ -106,7 +94,7 @@ const Providers = () => {
               <CSpinner color="primary" variant="grow" />
             </div>
           ) : (
-            <ProviderTable data={providers} />
+            <BankTable data={banks} />
           )}
         </CCardBody>
         <CCardFooter>
@@ -159,9 +147,9 @@ const Providers = () => {
           </CPagination>
         </CCardFooter>
       </CCard>
-      <ProviderModalForm visible={visible} onClose={() => setVisible(false)} />
+      <BankModalForm visible={visible} onClose={() => setVisible(false)} />
     </>
   )
 }
 
-export default Providers
+export default Banks

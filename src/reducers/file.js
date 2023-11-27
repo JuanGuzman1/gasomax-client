@@ -1,4 +1,10 @@
-import { DOWNLOAD_FILE, FILE_ERROR, UPLOAD_FILE, UPLOAD_FILE_PROGRESS } from '../actions/types'
+import {
+  DELETE_FILE,
+  DOWNLOAD_FILE,
+  FILE_ERROR,
+  UPLOAD_FILE,
+  UPLOAD_FILE_PROGRESS,
+} from '../actions/types'
 
 const initialState = {
   file: {},
@@ -22,6 +28,8 @@ export default function (state = initialState, action) {
         progress: payload,
       }
     case DOWNLOAD_FILE:
+      return state
+    case DELETE_FILE:
       return state
     case FILE_ERROR:
       return {

@@ -4,6 +4,7 @@ import {
   GET_PROVIDERS,
   PROVIDER_ERROR,
   UPDATE_PROVIDER,
+  EXPORT_PROVIDER_EXCEL,
 } from 'src/actions/types'
 
 const initialState = {
@@ -31,7 +32,7 @@ export default function (state = initialState, action) {
         providers: { data: [payload, ...state.providers.data] },
         loading: false,
       }
-    case UPDATE_PROVIDER:
+    case UPDATE_PROVIDER: {
       let index = state.providers.data.findIndex((provider) => provider.id === payload.id)
       state.providers.data[index] = payload
       return {
@@ -39,12 +40,15 @@ export default function (state = initialState, action) {
         providers: { data: [...state.providers.data] },
         loading: false,
       }
+    }
     case DELETE_PROVIDER:
       return {
         ...state,
         providers: { data: state.providers.data.filter((provider) => provider.id !== payload) },
         loading: false,
       }
+    case EXPORT_PROVIDER_EXCEL:
+      return state
     case PROVIDER_ERROR:
       return {
         ...state,

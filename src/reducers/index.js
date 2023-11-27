@@ -3,10 +3,12 @@ import provider from './provider'
 import sidebar from './sidebar'
 import toast from './toast'
 import file from './file'
+import bank from './bank'
 
 export default combineReducers({
   provider,
   sidebar,
   toast,
   file,
+  bank,
 })

@@ -1,6 +1,6 @@
 import axios from 'axios'
 import config from 'src/server.config'
-import { UPLOAD_FILE, FILE_ERROR, UPLOAD_FILE_PROGRESS, DOWNLOAD_FILE } from './types'
+import { UPLOAD_FILE, FILE_ERROR, UPLOAD_FILE_PROGRESS, DOWNLOAD_FILE, DELETE_FILE } from './types'
 import { setToast } from './toast'
 import { AppToast } from 'src/components'
 
@@ -19,14 +19,6 @@ export const uploadFile = (file, tag, model_id, model_type) => async (dispatch) 
           type: UPLOAD_FILE_PROGRESS,
           payload: percentCompleted,
         })
-        dispatch(
-          setToast(
-            AppToast({
-              msg: percentCompleted,
-              title: 'Archivos',
-            }),
-          ),
-        )
       },
     })
     dispatch({
@@ -84,6 +76,27 @@ export const downloadFile = (id) => async (dispatch) => {
     })
     dispatch(
       setToast(AppToast({ msg: 'Ha ocurrido un error al descargar archivo.', title: 'Archivos' })),
+    )
+  }
+}
+
+export const deleteFilesByModel = (model_id, model_type) => async (dispatch) => {
+  try {
+    await axios.delete(`${config.instance.baseURL}/api/${model_id}/${model_type}/destroy/files`)
+    dispatch({
+      type: DELETE_FILE,
+    })
+    dispatch(setToast(AppToast({ msg: 'Archivo eliminado correctamente.', title: 'Archivos' })))
+  } catch (err) {
+    dispatch({
+      type: FILE_ERROR,
+      payload: {
+        msg: err.response.statusText,
+        status: err.response.status,
+      },
+    })
+    dispatch(
+      setToast(AppToast({ msg: 'Ha ocurrido un error al eliminar archivo.', title: 'Archivos' })),
     )
   }
 }
