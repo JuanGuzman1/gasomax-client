@@ -52,6 +52,14 @@ const ProviderTable = ({ data }) => {
   }
 
   const onDownload = (files) => {
+    if (!files || files.length <= 0) {
+      Swal.fire({
+        title: 'CSF',
+        text: 'No existe cedula cargada a este proveedor',
+        icon: 'info',
+      })
+      return
+    }
     const idCsfFile = files.find((file) => file.tag === fileTags.csf).id
     dispatch(downloadFile(idCsfFile))
   }

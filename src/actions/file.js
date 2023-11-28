@@ -4,7 +4,7 @@ import { UPLOAD_FILE, FILE_ERROR, UPLOAD_FILE_PROGRESS, DOWNLOAD_FILE, DELETE_FI
 import { setToast } from './toast'
 import { AppToast } from 'src/components'
 
-export const uploadFile = (file, tag, model_id, model_type) => async (dispatch) => {
+export const uploadFile = (file, tag, model_id, model_type, cb) => async (dispatch) => {
   try {
     const formData = new FormData()
     formData.append('file', file)
@@ -25,8 +25,10 @@ export const uploadFile = (file, tag, model_id, model_type) => async (dispatch) 
       type: UPLOAD_FILE,
       payload: res.data,
     })
+    cb(res.data)
     dispatch(setToast(AppToast({ msg: 'Archivo subido correctamente.', title: 'Archivos' })))
   } catch (err) {
+    console.log(err)
     dispatch({
       type: FILE_ERROR,
       payload: {

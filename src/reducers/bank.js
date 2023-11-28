@@ -27,7 +27,7 @@ export default function (state = initialState, action) {
       }
     case UPDATE_BANK: {
       let index = state.banks.data.findIndex((bank) => bank.id === payload.id)
-      state.banks.data[index] = payload
+      state.banks.data[index] = { ...state.banks.data[index], ...payload }
       return {
         ...state,
         banks: { data: [...state.banks.data] },

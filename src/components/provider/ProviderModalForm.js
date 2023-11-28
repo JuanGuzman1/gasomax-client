@@ -22,11 +22,14 @@ import {
   CTableDataCell,
   CFormSelect,
   CProgress,
+  CCard,
+  CCardBody,
+  CCardTitle,
 } from '@coreui/react'
-import { cilPlus, cilTrash, cilCheckAlt } from '@coreui/icons'
+import { cilPlus, cilTrash, cilCheckAlt, cilFile } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import { useDispatch, useSelector } from 'react-redux'
-import { addProvider, updateProvider } from 'src/actions/provider'
+import { addProvider, getProviders, updateProvider } from 'src/actions/provider'
 import { uploadFile } from 'src/actions/file'
 import { fileTags } from 'src/utils/fileTags'
 import { modelTypes } from 'src/utils/modelTypes'
@@ -35,21 +38,22 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
   const [activeKey, setActiveKey] = useState(1),
     [showInputsAccount, setShowInputsAccount] = useState(false),
     [providerID, setProviderID] = useState(),
-    [provider, setProvider] = useState(),
+    [provider, setProvider] = useState(''),
     [type, setType] = useState('ext'),
-    [contact, setContact] = useState(),
-    [rfc, setRfc] = useState(),
-    [address, setAddress] = useState(),
-    [phone, setPhone] = useState(),
-    [email, setEmail] = useState(),
-    [accountingAccount, setAccountingAccount] = useState(),
-    [bankAccount, setBankAccount] = useState(),
-    [bank, setBank] = useState(),
-    [clabe, setClabe] = useState(),
+    [contact, setContact] = useState(''),
+    [rfc, setRfc] = useState(''),
+    [address, setAddress] = useState(''),
+    [phone, setPhone] = useState(''),
+    [email, setEmail] = useState(''),
+    [accountingAccount, setAccountingAccount] = useState(''),
+    [bankAccount, setBankAccount] = useState(''),
+    [bank, setBank] = useState(''),
+    [clabe, setClabe] = useState(''),
     [csfFile, setCsfFile] = useState(),
+    [files, setFiles] = useState([]),
     dispatch = useDispatch(),
     { progress } = useSelector((state) => state.file),
-    loadingProvider = useSelector((state) => state.provider.loading)
+    { loading, providers } = useSelector((state) => state.provider)
 
   const onSave = (e) => {
     e.preventDefault()
@@ -70,11 +74,22 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
     dispatch(
       providerData
         ? updateProvider(data, providerID, (dataRes) => {
-            console.log(dataRes)
+            onClose()
+            cleanInputs()
           })
-        : addProvider(data, (dataRes) => {
+        : addProvider(data, (providerRes) => {
             if (csfFile) {
-              dispatch(uploadFile(csfFile, fileTags.csf, dataRes.id, modelTypes.provider))
+              dispatch(
+                uploadFile(
+                  csfFile,
+                  fileTags.csf,
+                  providerRes.id,
+                  modelTypes.provider,
+                  (fileRes) => {
+                    dispatch(getProviders(1))
+                  },
+                ),
+              )
             } else {
               onClose()
               cleanInputs()
@@ -109,6 +124,7 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
     setPhone(providerData.phone ?? '')
     setEmail(providerData.email ?? '')
     setAccountingAccount(providerData.accountingAccount ?? '')
+    setFiles(providerData.files)
   }, [providerData])
 
   useEffect(() => {
@@ -235,7 +251,7 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
                 <div className="flex-fill me-2">
                   <CFormLabel htmlFor="phone">Teléfono</CFormLabel>
                   <CFormInput
-                    type="text"
+                    type="number"
                     id="phone"
                     placeholder="teléfono"
                     onChange={(e) => setPhone(e.target.value)}
@@ -380,12 +396,47 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
             <CForm className="mt-3">
               <div className="mb-3">
                 <CFormLabel htmlFor="csfFile">Constancia de situación fiscal</CFormLabel>
-                <CFormInput
-                  type="file"
-                  id="csfFile"
-                  placeholder="nombre"
-                  onChange={(e) => setCsfFile(e.target.files[0])}
-                />
+                {files.length <= 0 ? (
+                  <CFormInput
+                    type="file"
+                    id="csfFile"
+                    placeholder="nombre"
+                    onChange={(e) => setCsfFile(e.target.files[0])}
+                  />
+                ) : (
+                  <>
+                    {files.map((file) => {
+                      if (file.tag !== fileTags.csf) return null
+                      return (
+                        <CCard style={{ width: '12rem' }} key={file.tag}>
+                          <CIcon
+                            icon={cilFile}
+                            style={{ alignSelf: 'center', marginTop: 15 }}
+                            size="3xl"
+                            className="text-dark"
+                          />
+                          <CCardBody className="w-100">
+                            <CCardTitle className="fs-6">{file.name}</CCardTitle>
+
+                            <div className="dp-flex mt-2">
+                              <CButton
+                                href="#"
+                                className="text-white fw-semibold me-1"
+                                title="Descargar"
+                              >
+                                Descargar
+                              </CButton>
+
+                              <CButton href="#" color="danger" variant="outline" title="Eliminar">
+                                <CIcon icon={cilTrash} />
+                              </CButton>
+                            </div>
+                          </CCardBody>
+                        </CCard>
+                      )
+                    })}
+                  </>
+                )}
               </div>
             </CForm>
           </CTabPane>
