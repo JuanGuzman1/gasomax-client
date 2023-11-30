@@ -18,7 +18,7 @@ export const getProviders = (page, filter, value) => async (dispatch) => {
     )
     dispatch({
       type: GET_PROVIDERS,
-      payload: res.data,
+      payload: { ...res.data, filters: { filter, value } },
     })
   } catch (err) {
     dispatch({

@@ -6,6 +6,7 @@ export const UPDATE_BANK = 'UPDATE_BANK'
 export const DELETE_BANK = 'DELETE_BANK'
 export const BANK_ERROR = 'BANK_ERROR'
 export const EXPORT_BANK_EXCEL = 'EXPORT_BANK_EXCEL'
+export const SELECT_BANKS = 'SELECT_BANKS'
 
 // providers
 export const GET_PROVIDERS = 'GET_PROVIDERS'

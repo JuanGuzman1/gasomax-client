@@ -82,6 +82,27 @@ export const downloadFile = (id) => async (dispatch) => {
   }
 }
 
+export const deleteFile = (id, cb) => async (dispatch) => {
+  try {
+    await axios.delete(`${config.instance.baseURL}/api/file/${id}`)
+    dispatch({
+      type: DELETE_FILE,
+    })
+    cb()
+    dispatch(setToast(AppToast({ msg: 'Archivo eliminado correctamente.', title: 'Archivos' })))
+  } catch (err) {
+    console.log(err)
+    dispatch({
+      type: FILE_ERROR,
+      payload: {
+        msg: err.response.statusText,
+        status: err.response.status,
+      },
+    })
+    dispatch(setToast(AppToast({ msg: 'Ha ocurrido un al eliminar archivo.', title: 'Archivos' })))
+  }
+}
+
 export const deleteFilesByModel = (model_id, model_type) => async (dispatch) => {
   try {
     await axios.delete(`${config.instance.baseURL}/api/${model_id}/${model_type}/destroy/files`)

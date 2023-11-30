@@ -22,17 +22,16 @@ import {
   CTableDataCell,
   CFormSelect,
   CProgress,
-  CCard,
-  CCardBody,
-  CCardTitle,
 } from '@coreui/react'
-import { cilPlus, cilTrash, cilCheckAlt, cilFile } from '@coreui/icons'
+import { cilPlus, cilTrash, cilCheckAlt } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import { useDispatch, useSelector } from 'react-redux'
 import { addProvider, getProviders, updateProvider } from 'src/actions/provider'
 import { uploadFile } from 'src/actions/file'
 import { fileTags } from 'src/utils/fileTags'
 import { modelTypes } from 'src/utils/modelTypes'
+import { FileCard } from '../'
+import { selectBanks } from 'src/actions/bank'
 
 const ProviderModalForm = ({ visible, onClose, providerData }) => {
   const [activeKey, setActiveKey] = useState(1),
@@ -47,18 +46,23 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
     [email, setEmail] = useState(''),
     [accountingAccount, setAccountingAccount] = useState(''),
     [bankAccount, setBankAccount] = useState(''),
-    [bank, setBank] = useState(''),
+    [bank, setBank] = useState('1'),
     [clabe, setClabe] = useState(''),
-    [csfFile, setCsfFile] = useState(),
+    [bankAccounts, setBankAccounts] = useState([]),
+    [csfFile, setCsfFile] = useState(null),
     [files, setFiles] = useState([]),
     dispatch = useDispatch(),
     { progress } = useSelector((state) => state.file),
-    { loading, providers } = useSelector((state) => state.provider)
+    { loading, providers, filters } = useSelector((state) => state.provider),
+    { banks } = useSelector((state) => state.bank)
 
   const onSave = (e) => {
     e.preventDefault()
     if (!provider) {
       alert('Ingrese un nombre')
+      return
+    }
+    if (loading) {
       return
     }
     let data = {
@@ -70,44 +74,59 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
       phone,
       email,
       accountingAccount,
+      bankAccounts,
     }
     dispatch(
       providerData
-        ? updateProvider(data, providerID, (dataRes) => {
-            onClose()
-            cleanInputs()
+        ? updateProvider(data, providerID, (providerRes) => {
+            onUploadFile(providerRes)
           })
         : addProvider(data, (providerRes) => {
-            if (csfFile) {
-              dispatch(
-                uploadFile(
-                  csfFile,
-                  fileTags.csf,
-                  providerRes.id,
-                  modelTypes.provider,
-                  (fileRes) => {
-                    dispatch(getProviders(1))
-                  },
-                ),
-              )
-            } else {
-              onClose()
-              cleanInputs()
-            }
+            onUploadFile(providerRes)
           }),
     )
   }
 
+  const onUploadFile = (providerRes) => {
+    if (csfFile) {
+      dispatch(
+        uploadFile(csfFile, fileTags.csf, providerRes.id, modelTypes.provider, () => {
+          dispatch(getProviders(providers.current_page, filters.filter, filters.value))
+        }),
+      )
+    } else {
+      onClose()
+      cleanInputs()
+    }
+  }
+
+  const onAddAccount = () => {
+    setBankAccounts(
+      bankAccounts.concat({
+        bankAccount,
+        bank_id: parseInt(bank),
+        clabe,
+      }),
+    )
+    setShowInputsAccount(false)
+    setBankAccount('')
+    setClabe('')
+  }
+
+  const onRemoveAccount = (index) => {
+    setBankAccounts(bankAccounts.filter((v, i) => i !== index))
+  }
+
   const cleanInputs = useCallback(() => {
-    setProvider()
+    setProvider('')
     setType('ext')
-    setContact()
-    setRfc()
-    setAddress()
-    setPhone()
-    setEmail()
-    setAccountingAccount()
-    setCsfFile()
+    setContact('')
+    setRfc('')
+    setAddress('')
+    setPhone('')
+    setEmail('')
+    setAccountingAccount('')
+    setCsfFile(null)
     setActiveKey(1)
   }, [])
 
@@ -125,6 +144,7 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
     setEmail(providerData.email ?? '')
     setAccountingAccount(providerData.accountingAccount ?? '')
     setFiles(providerData.files)
+    setBankAccounts(providerData.accounts)
   }, [providerData])
 
   useEffect(() => {
@@ -136,10 +156,14 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
     }
   }, [progress, onClose, cleanInputs])
 
+  useEffect(() => {
+    dispatch(selectBanks())
+  }, [dispatch])
+  console.log(bank)
   return (
-    <CModal visible={visible} onClose={onClose} aria-labelledby="LiveDemoExampleLabel" size="lg">
+    <CModal visible={visible} onClose={onClose} aria-labelledby="ModalForm" size="lg">
       <CModalHeader onClose={onClose}>
-        <CModalTitle id="LiveDemoExampleLabel">
+        <CModalTitle id="ModalForm">
           {providerData ? `Editar ${providerData.name}` : 'Agregar nuevo'}
         </CModalTitle>
       </CModalHeader>
@@ -303,19 +327,33 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
               {showInputsAccount && (
                 <div className="mb-3 d-flex">
                   <div className="flex-fill ">
-                    <CFormInput type="text" placeholder="Cuenta bancaria" />
+                    <CFormInput
+                      type="text"
+                      placeholder="Cuenta bancaria"
+                      value={bankAccount}
+                      onChange={(e) => setBankAccount(e.target.value)}
+                    />
                   </div>
                   <div className="flex-fill ms-2 me-2">
                     <CFormSelect
                       aria-label="caseFilter"
-                      options={[
-                        { label: 'Banorte', value: 'banorte' },
-                        { label: 'Banamex', value: 'banamex' },
-                      ]}
-                    />
+                      value={bank}
+                      onChange={(e) => setBank(e.target.value)}
+                    >
+                      {banks.data.map((b) => (
+                        <option key={b.id} value={b.id}>
+                          {b.name}
+                        </option>
+                      ))}
+                    </CFormSelect>
                   </div>
                   <div className="flex-fill">
-                    <CFormInput type="email" placeholder="CLABE" />
+                    <CFormInput
+                      type="text"
+                      placeholder="CLABE"
+                      value={clabe}
+                      onChange={(e) => setClabe(e.target.value)}
+                    />
                   </div>
                   <CButton
                     className="ms-2 text-light"
@@ -323,7 +361,7 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
                     type="button"
                     size="sm"
                     title="Añadir"
-                    onClick={() => setShowInputsAccount(false)}
+                    onClick={onAddAccount}
                   >
                     <CIcon icon={cilCheckAlt} size="custom" />
                   </CButton>
@@ -332,7 +370,6 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
               <CTable striped responsive>
                 <CTableHead>
                   <CTableRow>
-                    <CTableHeaderCell scope="col">#</CTableHeaderCell>
                     <CTableHeaderCell scope="col">Cuenta bancaria</CTableHeaderCell>
                     <CTableHeaderCell scope="col">Banco</CTableHeaderCell>
                     <CTableHeaderCell scope="col" className="text-center">
@@ -345,48 +382,34 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
                   </CTableRow>
                 </CTableHead>
                 <CTableBody>
-                  <CTableRow>
-                    <CTableHeaderCell scope="row">1</CTableHeaderCell>
-                    <CTableDataCell>AD344222</CTableDataCell>
-                    <CTableDataCell>Banamex</CTableDataCell>
-                    <CTableDataCell className="text-center">1726357823657123</CTableDataCell>
-                    <CTableDataCell className="text-center">
-                      <CIcon icon={cilCheckAlt} size="custom" />
-                    </CTableDataCell>
-                    <CTableDataCell>
-                      <CButton
-                        color="success"
-                        variant="outline"
-                        title="Asignar principal"
-                        className="me-2"
-                      >
-                        <CIcon icon={cilCheckAlt} size="sm" />
-                      </CButton>
-                      <CButton color="danger" variant="outline" title="Eliminar">
-                        <CIcon icon={cilTrash} size="sm" />
-                      </CButton>
-                    </CTableDataCell>
-                  </CTableRow>
-                  <CTableRow>
-                    <CTableHeaderCell scope="row">2</CTableHeaderCell>
-                    <CTableDataCell>733H81SA</CTableDataCell>
-                    <CTableDataCell>Banamex</CTableDataCell>
-                    <CTableDataCell className="text-center">87349362749867</CTableDataCell>
-                    <CTableDataCell></CTableDataCell>
-                    <CTableDataCell>
-                      <CButton
-                        color="success"
-                        variant="outline"
-                        title="Asignar principal"
-                        className="me-2"
-                      >
-                        <CIcon icon={cilCheckAlt} size="sm" />
-                      </CButton>
-                      <CButton color="danger" variant="outline" title="Eliminar">
-                        <CIcon icon={cilTrash} size="sm" />
-                      </CButton>
-                    </CTableDataCell>
-                  </CTableRow>
+                  {bankAccounts.map((account, index) => (
+                    <CTableRow key={account.clabe}>
+                      <CTableDataCell>{account.bankAccount}</CTableDataCell>
+                      <CTableDataCell>
+                        {banks.data.find((b) => b.id === account.bank_id).name}
+                      </CTableDataCell>
+                      <CTableDataCell className="text-center">{account.clabe}</CTableDataCell>
+                      <CTableDataCell></CTableDataCell>
+                      <CTableDataCell>
+                        <CButton
+                          color="success"
+                          variant="outline"
+                          title="Asignar principal"
+                          className="me-2"
+                        >
+                          <CIcon icon={cilCheckAlt} size="sm" />
+                        </CButton>
+                        <CButton
+                          color="danger"
+                          variant="outline"
+                          title="Eliminar"
+                          onClick={() => onRemoveAccount(index)}
+                        >
+                          <CIcon icon={cilTrash} size="sm" />
+                        </CButton>
+                      </CTableDataCell>
+                    </CTableRow>
+                  ))}
                 </CTableBody>
               </CTable>
             </CForm>
@@ -408,31 +431,11 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
                     {files.map((file) => {
                       if (file.tag !== fileTags.csf) return null
                       return (
-                        <CCard style={{ width: '12rem' }} key={file.tag}>
-                          <CIcon
-                            icon={cilFile}
-                            style={{ alignSelf: 'center', marginTop: 15 }}
-                            size="3xl"
-                            className="text-dark"
-                          />
-                          <CCardBody className="w-100">
-                            <CCardTitle className="fs-6">{file.name}</CCardTitle>
-
-                            <div className="dp-flex mt-2">
-                              <CButton
-                                href="#"
-                                className="text-white fw-semibold me-1"
-                                title="Descargar"
-                              >
-                                Descargar
-                              </CButton>
-
-                              <CButton href="#" color="danger" variant="outline" title="Eliminar">
-                                <CIcon icon={cilTrash} />
-                              </CButton>
-                            </div>
-                          </CCardBody>
-                        </CCard>
+                        <FileCard
+                          file={file}
+                          key={file.tag}
+                          onDelete={(id) => setFiles(files.filter((f) => f.id !== id))}
+                        />
                       )
                     })}
                   </>

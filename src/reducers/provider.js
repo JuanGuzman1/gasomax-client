@@ -10,7 +10,9 @@ import {
 const initialState = {
   providers: {
     data: [],
+    current_page: 1,
   },
+  filters: {},
   loading: true,
   error: {},
 }

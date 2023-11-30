@@ -30,7 +30,10 @@ export default function (state = initialState, action) {
     case DOWNLOAD_FILE:
       return state
     case DELETE_FILE:
-      return state
+      return {
+        ...state,
+        file: payload,
+      }
     case FILE_ERROR:
       return {
         ...state,

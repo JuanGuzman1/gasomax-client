@@ -1,4 +1,11 @@
-import { ADD_BANK, DELETE_BANK, GET_BANKS, BANK_ERROR, UPDATE_BANK } from 'src/actions/types'
+import {
+  ADD_BANK,
+  DELETE_BANK,
+  GET_BANKS,
+  BANK_ERROR,
+  UPDATE_BANK,
+  SELECT_BANKS,
+} from 'src/actions/types'
 
 const initialState = {
   banks: {
@@ -38,6 +45,12 @@ export default function (state = initialState, action) {
       return {
         ...state,
         banks: { data: state.banks.data.filter((bank) => bank.id !== payload) },
+        loading: false,
+      }
+    case SELECT_BANKS:
+      return {
+        ...state,
+        banks: { data: payload },
         loading: false,
       }
     case BANK_ERROR:

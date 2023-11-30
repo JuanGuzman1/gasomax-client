@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { ADD_BANK, GET_BANKS, BANK_ERROR, DELETE_BANK, UPDATE_BANK } from './types'
+import { ADD_BANK, GET_BANKS, BANK_ERROR, DELETE_BANK, UPDATE_BANK, SELECT_BANKS } from './types'
 import { setToast } from './toast'
 import { AppToast } from 'src/components'
 import config from '../server.config'
@@ -92,5 +92,23 @@ export const deleteBank = (id, cb) => async (dispatch) => {
       },
     })
     dispatch(setToast(AppToast({ msg: 'Ha ocurrido un error.', title: 'Banco' })))
+  }
+}
+
+export const selectBanks = () => async (dispatch) => {
+  try {
+    const res = await axios.get(`${config.instance.baseURL}/api/select/bank`)
+    dispatch({
+      type: SELECT_BANKS,
+      payload: res.data,
+    })
+  } catch (err) {
+    dispatch({
+      type: BANK_ERROR,
+      payload: {
+        msg: err.response.statusText,
+        status: err.response.status,
+      },
+    })
   }
 }
