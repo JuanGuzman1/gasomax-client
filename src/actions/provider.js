@@ -8,7 +8,7 @@ import {
   EXPORT_PROVIDER_EXCEL,
 } from './types'
 import { setToast } from './toast'
-import { AppToast } from 'src/components'
+import { AppToast } from 'src/components/app'
 import config from '../server.config'
 
 export const getProviders = (page, filter, value) => async (dispatch) => {

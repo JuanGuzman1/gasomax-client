@@ -1,7 +1,5 @@
 import axios from 'axios'
 import { ADD_BANK, GET_BANKS, BANK_ERROR, DELETE_BANK, UPDATE_BANK, SELECT_BANKS } from './types'
-import { setToast } from './toast'
-import { AppToast } from 'src/components'
 import config from '../server.config'
 
 export const getBanks = (page, filter, value) => async (dispatch) => {
@@ -36,7 +34,6 @@ export const addBank = (data, cb) => async (dispatch) => {
       payload: res.data,
     })
     cb(res.data)
-    dispatch(setToast(AppToast({ msg: 'Banco agregado correctamente.', title: 'Bancos' })))
   } catch (err) {
     dispatch({
       type: BANK_ERROR,
@@ -45,7 +42,10 @@ export const addBank = (data, cb) => async (dispatch) => {
         status: err.response.status,
       },
     })
-    dispatch(setToast(AppToast({ msg: 'Ha ocurrido un error.', title: 'Bancos' })))
+    cb({
+      success: false,
+      message: err.message,
+    })
   }
 }
 
@@ -61,7 +61,6 @@ export const updateBank = (data, id, cb) => async (dispatch) => {
       payload: res.data,
     })
     cb(res.data)
-    dispatch(setToast(AppToast({ msg: 'Banco actualizado correctamente.', title: 'Bancos' })))
   } catch (err) {
     dispatch({
       type: BANK_ERROR,
@@ -70,19 +69,24 @@ export const updateBank = (data, id, cb) => async (dispatch) => {
         status: err.response.status,
       },
     })
-    dispatch(setToast(AppToast({ msg: 'Ha ocurrido un error.', title: 'Proveedores' })))
+    cb({
+      success: false,
+      message: err.message,
+    })
   }
 }
 
 export const deleteBank = (id, cb) => async (dispatch) => {
   try {
-    await axios.delete(`${config.instance.baseURL}/api/bank/${id}`, config.instance.headers)
+    const res = await axios.delete(
+      `${config.instance.baseURL}/api/bank/${id}`,
+      config.instance.headers,
+    )
     dispatch({
       type: DELETE_BANK,
       payload: id,
     })
-    cb(id)
-    dispatch(setToast(AppToast({ msg: 'Banco eliminado correctamente.', title: 'Banco' })))
+    cb(res.data)
   } catch (err) {
     dispatch({
       type: BANK_ERROR,
@@ -91,7 +95,10 @@ export const deleteBank = (id, cb) => async (dispatch) => {
         status: err.response.status,
       },
     })
-    dispatch(setToast(AppToast({ msg: 'Ha ocurrido un error.', title: 'Banco' })))
+    cb({
+      success: false,
+      message: err.message,
+    })
   }
 }
 

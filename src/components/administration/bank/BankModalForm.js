@@ -17,6 +17,8 @@ import {
 } from '@coreui/react'
 import { useDispatch, useSelector } from 'react-redux'
 import { addBank, updateBank } from 'src/actions/bank'
+import { setToast } from 'src/actions/toast'
+import { AppToast } from 'src/components/app'
 
 const BankModalForm = ({ visible, onClose, bankData }) => {
   const [activeKey, setActiveKey] = useState(1),
@@ -37,12 +39,44 @@ const BankModalForm = ({ visible, onClose, bankData }) => {
     dispatch(
       bankData
         ? updateBank(data, bankID, (dataRes) => {
-            console.log(dataRes)
+            if (dataRes.success) {
+              dispatch(
+                setToast(
+                  AppToast({
+                    msg: 'Banco actualizado correctamente.',
+                    title: 'Bancos',
+                    type: 'success',
+                  }),
+                ),
+              )
+            } else {
+              dispatch(
+                setToast(
+                  AppToast({ msg: 'Ha ocurrido un error.', title: 'Bancos', type: 'error' }),
+                ),
+              )
+            }
             cleanInputs()
             onClose()
           })
         : addBank(data, (dataRes) => {
-            console.log(dataRes)
+            if (dataRes.success) {
+              dispatch(
+                setToast(
+                  AppToast({
+                    msg: 'Banco agregado correctamente.',
+                    title: 'Bancos',
+                    type: 'success',
+                  }),
+                ),
+              )
+            } else {
+              dispatch(
+                setToast(
+                  AppToast({ msg: 'Ha ocurrido un error.', title: 'Bancos', type: 'error' }),
+                ),
+              )
+            }
             cleanInputs()
             onClose()
           }),

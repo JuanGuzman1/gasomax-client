@@ -2,7 +2,7 @@ import axios from 'axios'
 import config from 'src/server.config'
 import { UPLOAD_FILE, FILE_ERROR, UPLOAD_FILE_PROGRESS, DOWNLOAD_FILE, DELETE_FILE } from './types'
 import { setToast } from './toast'
-import { AppToast } from 'src/components'
+import { AppToast } from 'src/components/app'
 
 export const uploadFile = (file, tag, model_id, model_type, cb) => async (dispatch) => {
   try {

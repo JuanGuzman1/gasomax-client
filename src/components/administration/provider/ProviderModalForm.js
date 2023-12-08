@@ -30,7 +30,7 @@ import { addProvider, getProviders, updateProvider } from 'src/actions/provider'
 import { uploadFile } from 'src/actions/file'
 import { fileTags } from 'src/utils/fileTags'
 import { modelTypes } from 'src/utils/modelTypes'
-import { FileCard } from '../'
+import { FileCard } from '../../app'
 import { selectBanks } from 'src/actions/bank'
 
 const ProviderModalForm = ({ visible, onClose, providerData }) => {
@@ -117,6 +117,19 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
     setBankAccounts(bankAccounts.filter((v, i) => i !== index))
   }
 
+  const onSetPrimaryAccount = (index) => {
+    setBankAccounts(
+      bankAccounts.map((b, i) => {
+        if (i === index) {
+          b.primary = true
+        } else {
+          b.primary = false
+        }
+        return b
+      }),
+    )
+  }
+
   const cleanInputs = useCallback(() => {
     setProvider('')
     setType('ext')
@@ -159,7 +172,7 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
   useEffect(() => {
     dispatch(selectBanks())
   }, [dispatch])
-  console.log(bank)
+
   return (
     <CModal visible={visible} onClose={onClose} aria-labelledby="ModalForm" size="lg">
       <CModalHeader onClose={onClose}>
@@ -389,13 +402,16 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
                         {banks.data.find((b) => b.id === account.bank_id).name}
                       </CTableDataCell>
                       <CTableDataCell className="text-center">{account.clabe}</CTableDataCell>
-                      <CTableDataCell></CTableDataCell>
+                      <CTableDataCell>
+                        {account.primary ? <CIcon icon={cilCheckAlt} size="custom" /> : null}
+                      </CTableDataCell>
                       <CTableDataCell>
                         <CButton
                           color="success"
                           variant="outline"
                           title="Asignar principal"
                           className="me-2"
+                          onClick={() => onSetPrimaryAccount(index)}
                         >
                           <CIcon icon={cilCheckAlt} size="sm" />
                         </CButton>

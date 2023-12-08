@@ -15,10 +15,10 @@ import CIcon from '@coreui/icons-react'
 import { cilOptions } from '@coreui/icons'
 import { useDispatch } from 'react-redux'
 import Swal from 'sweetalert2'
-import { deleteProvider } from 'src/actions/provider'
-import { deleteFilesByModel, downloadFile } from 'src/actions/file'
-import { modelTypes } from 'src/utils/modelTypes'
 import BankModalForm from './BankModalForm'
+import { deleteBank } from 'src/actions/bank'
+import { setToast } from 'src/actions/toast'
+import { AppToast } from 'src/components/app'
 
 const BankTable = ({ data }) => {
   const [visible, setVisible] = useState(false),
@@ -37,15 +37,35 @@ const BankTable = ({ data }) => {
     }).then((result) => {
       if (result.isConfirmed) {
         dispatch(
-          deleteProvider(id, (id) => {
-            dispatch(deleteFilesByModel(id, modelTypes.provider))
+          deleteBank(id, (dataRes) => {
+            if (dataRes.success) {
+              dispatch(
+                setToast(
+                  AppToast({
+                    msg: 'Banco eliminado correctamente.',
+                    title: 'Bancos',
+                    type: 'success',
+                  }),
+                ),
+              )
+              Swal.fire({
+                title: 'Eliminado!',
+                text: 'El banco ha sido eliminado.',
+                icon: 'success',
+              })
+            } else {
+              dispatch(
+                setToast(
+                  AppToast({
+                    msg: 'Ocurrio un error.',
+                    title: 'Bancos',
+                    type: 'error',
+                  }),
+                ),
+              )
+            }
           }),
         )
-        Swal.fire({
-          title: 'Eliminado!',
-          text: 'El proveedor ha sido eliminado.',
-          icon: 'success',
-        })
       }
     })
   }

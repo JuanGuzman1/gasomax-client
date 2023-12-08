@@ -4,8 +4,6 @@ import {
   CCard,
   CCardBody,
   CCardHeader,
-  CPagination,
-  CPaginationItem,
   CCardFooter,
   CButton,
   CForm,
@@ -14,12 +12,13 @@ import {
   CFormInput,
   CSpinner,
 } from '@coreui/react'
-import ProviderModalForm from 'src/components/provider/ProviderModalForm'
-import ProviderTable from 'src/components/provider/ProviderTable'
+import ProviderModalForm from 'src/components/administration/provider/ProviderModalForm'
+import ProviderTable from 'src/components/administration/provider/ProviderTable'
 import { useDispatch, useSelector } from 'react-redux'
 import { exportProviderExcel, getProviders } from 'src/actions/provider'
 import CIcon from '@coreui/icons-react'
 import { cilPlus, cilCloudDownload } from '@coreui/icons'
+import { AppPagination } from 'src/components/app'
 
 const Providers = () => {
   const [visible, setVisible] = useState(false),
@@ -110,53 +109,11 @@ const Providers = () => {
           )}
         </CCardBody>
         <CCardFooter>
-          <CPagination aria-label="Page navigation example" align="end">
-            <CPaginationItem
-              aria-label="Previous"
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(currentPage - 1)}
-            >
-              <span aria-hidden="true">&laquo;</span>
-            </CPaginationItem>
-            {currentPage - 3 >= 1 && (
-              <CPaginationItem onClick={() => setCurrentPage(currentPage - 3)}>
-                {currentPage - 3}
-              </CPaginationItem>
-            )}
-            {currentPage - 2 >= 1 && (
-              <CPaginationItem onClick={() => setCurrentPage(currentPage - 2)}>
-                {currentPage - 2}
-              </CPaginationItem>
-            )}
-            {currentPage - 1 >= 1 && (
-              <CPaginationItem onClick={() => setCurrentPage(currentPage - 1)}>
-                {currentPage - 1}
-              </CPaginationItem>
-            )}
-            <CPaginationItem active>{currentPage}</CPaginationItem>
-            {currentPage + 1 <= lastPage && (
-              <CPaginationItem onClick={() => setCurrentPage(currentPage + 1)}>
-                {currentPage + 1}
-              </CPaginationItem>
-            )}
-            {currentPage + 2 <= lastPage && (
-              <CPaginationItem onClick={() => setCurrentPage(currentPage + 2)}>
-                {currentPage + 2}
-              </CPaginationItem>
-            )}
-            {currentPage + 3 <= lastPage && (
-              <CPaginationItem onClick={() => setCurrentPage(currentPage + 3)}>
-                {currentPage + 3}
-              </CPaginationItem>
-            )}
-            <CPaginationItem
-              aria-label="Next"
-              onClick={() => setCurrentPage(currentPage + 1)}
-              disabled={currentPage === lastPage}
-            >
-              <span aria-hidden="true">&raquo;</span>
-            </CPaginationItem>
-          </CPagination>
+          <AppPagination
+            currentPage={currentPage}
+            lastPage={lastPage}
+            setCurrentPage={setCurrentPage}
+          />
         </CCardFooter>
       </CCard>
       <ProviderModalForm visible={visible} onClose={() => setVisible(false)} />
