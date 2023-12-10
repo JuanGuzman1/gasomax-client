@@ -30,8 +30,9 @@ import { addProvider, getProviders, updateProvider } from 'src/actions/provider'
 import { uploadFile } from 'src/actions/file'
 import { fileTags } from 'src/utils/fileTags'
 import { modelTypes } from 'src/utils/modelTypes'
-import { FileCard } from '../../app'
+import { FileCard, AppToast } from '../../app'
 import { selectBanks } from 'src/actions/bank'
+import { setToast } from 'src/actions/toast'
 
 const ProviderModalForm = ({ visible, onClose, providerData }) => {
   const [activeKey, setActiveKey] = useState(1),
@@ -79,10 +80,44 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
     dispatch(
       providerData
         ? updateProvider(data, providerID, (providerRes) => {
-            onUploadFile(providerRes)
+            if (providerRes.success) {
+              dispatch(
+                setToast(
+                  AppToast({
+                    msg: 'Proveedor actualizado correctamente.',
+                    title: 'Proveedores',
+                    type: 'success',
+                  }),
+                ),
+              )
+              onUploadFile(providerRes.data)
+            } else {
+              dispatch(
+                setToast(
+                  AppToast({ msg: 'Ha ocurrido un error.', title: 'Proveedores', type: 'error' }),
+                ),
+              )
+            }
           })
         : addProvider(data, (providerRes) => {
-            onUploadFile(providerRes)
+            if (providerRes.success) {
+              dispatch(
+                setToast(
+                  AppToast({
+                    msg: 'Proveedor agregado correctamente.',
+                    title: 'Proveedores',
+                    type: 'success',
+                  }),
+                ),
+              )
+              onUploadFile(providerRes.data)
+            } else {
+              dispatch(
+                setToast(
+                  AppToast({ msg: 'Ha ocurrido un error.', title: 'Proveedores', type: 'error' }),
+                ),
+              )
+            }
           }),
     )
   }

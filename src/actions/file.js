@@ -109,7 +109,6 @@ export const deleteFilesByModel = (model_id, model_type) => async (dispatch) => 
     dispatch({
       type: DELETE_FILE,
     })
-    dispatch(setToast(AppToast({ msg: 'Archivo eliminado correctamente.', title: 'Archivos' })))
   } catch (err) {
     dispatch({
       type: FILE_ERROR,

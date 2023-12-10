@@ -20,6 +20,8 @@ import ProviderModalForm from './ProviderModalForm'
 import { fileTags } from 'src/utils/fileTags'
 import { deleteFilesByModel, downloadFile } from 'src/actions/file'
 import { modelTypes } from 'src/utils/modelTypes'
+import { setToast } from 'src/actions/toast'
+import { AppToast } from 'src/components/app'
 
 const ProviderTable = ({ data }) => {
   const [visible, setVisible] = useState(false),
@@ -38,8 +40,25 @@ const ProviderTable = ({ data }) => {
     }).then((result) => {
       if (result.isConfirmed) {
         dispatch(
-          deleteProvider(id, (id) => {
-            dispatch(deleteFilesByModel(id, modelTypes.provider))
+          deleteProvider(id, (dataRes) => {
+            if (dataRes.success) {
+              dispatch(
+                setToast(
+                  AppToast({
+                    msg: 'Proveedor eliminado correctamente.',
+                    title: 'Proveedores',
+                    type: 'success',
+                  }),
+                ),
+              )
+              dispatch(deleteFilesByModel(id, modelTypes.provider))
+            } else {
+              dispatch(
+                setToast(
+                  AppToast({ msg: 'Ha ocurrido un error.', title: 'Proveedores', type: 'error' }),
+                ),
+              )
+            }
           }),
         )
         Swal.fire({

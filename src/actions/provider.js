@@ -7,8 +7,6 @@ import {
   UPDATE_PROVIDER,
   EXPORT_PROVIDER_EXCEL,
 } from './types'
-import { setToast } from './toast'
-import { AppToast } from 'src/components/app'
 import config from '../server.config'
 
 export const getProviders = (page, filter, value) => async (dispatch) => {
@@ -40,10 +38,9 @@ export const addProvider = (data, cb) => async (dispatch) => {
     )
     dispatch({
       type: ADD_PROVIDER,
-      payload: res.data,
+      payload: res.data.data,
     })
     cb(res.data)
-    dispatch(setToast(AppToast({ msg: 'Proveedor agregado correctamente.', title: 'Proveedores' })))
   } catch (err) {
     dispatch({
       type: PROVIDER_ERROR,
@@ -52,7 +49,10 @@ export const addProvider = (data, cb) => async (dispatch) => {
         status: err.response.status,
       },
     })
-    dispatch(setToast(AppToast({ msg: 'Ha ocurrido un error.', title: 'Proveedores' })))
+    cb({
+      success: false,
+      message: err.message,
+    })
   }
 }
 
@@ -65,12 +65,9 @@ export const updateProvider = (data, id, cb) => async (dispatch) => {
     )
     dispatch({
       type: UPDATE_PROVIDER,
-      payload: res.data,
+      payload: res.data.data,
     })
     cb(res.data)
-    dispatch(
-      setToast(AppToast({ msg: 'Proveedor actualizado correctamente.', title: 'Proveedores' })),
-    )
   } catch (err) {
     dispatch({
       type: PROVIDER_ERROR,
@@ -79,21 +76,24 @@ export const updateProvider = (data, id, cb) => async (dispatch) => {
         status: err.response.status,
       },
     })
-    dispatch(setToast(AppToast({ msg: 'Ha ocurrido un error.', title: 'Proveedores' })))
+    cb({
+      success: false,
+      message: err.message,
+    })
   }
 }
 
 export const deleteProvider = (id, cb) => async (dispatch) => {
   try {
-    await axios.delete(`${config.instance.baseURL}/api/provider/${id}`, config.instance.headers)
+    const res = await axios.delete(
+      `${config.instance.baseURL}/api/provider/${id}`,
+      config.instance.headers,
+    )
     dispatch({
       type: DELETE_PROVIDER,
       payload: id,
     })
-    cb(id)
-    dispatch(
-      setToast(AppToast({ msg: 'Proveedor eliminado correctamente.', title: 'Proveedores' })),
-    )
+    cb(res.data)
   } catch (err) {
     dispatch({
       type: PROVIDER_ERROR,
@@ -102,7 +102,10 @@ export const deleteProvider = (id, cb) => async (dispatch) => {
         status: err.response.status,
       },
     })
-    dispatch(setToast(AppToast({ msg: 'Ha ocurrido un error.', title: 'Proveedores' })))
+    cb({
+      success: false,
+      message: err.message,
+    })
   }
 }
 
@@ -130,7 +133,6 @@ export const exportProviderExcel = (filter, value) => async (dispatch) => {
     dispatch({
       type: EXPORT_PROVIDER_EXCEL,
     })
-    dispatch(setToast(AppToast({ msg: 'Descargando archivo.', title: 'Archivos' })))
   } catch (err) {
     dispatch({
       type: PROVIDER_ERROR,
@@ -139,6 +141,5 @@ export const exportProviderExcel = (filter, value) => async (dispatch) => {
         status: err.response.status,
       },
     })
-    dispatch(setToast(AppToast({ msg: 'Ha ocurrido un error.', title: 'Proveedores' })))
   }
 }

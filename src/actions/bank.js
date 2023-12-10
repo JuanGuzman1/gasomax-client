@@ -31,7 +31,7 @@ export const addBank = (data, cb) => async (dispatch) => {
     )
     dispatch({
       type: ADD_BANK,
-      payload: res.data,
+      payload: res.data.data,
     })
     cb(res.data)
   } catch (err) {
@@ -58,7 +58,7 @@ export const updateBank = (data, id, cb) => async (dispatch) => {
     )
     dispatch({
       type: UPDATE_BANK,
-      payload: res.data,
+      payload: res.data.data,
     })
     cb(res.data)
   } catch (err) {
