@@ -20,10 +20,13 @@ import { deleteProvider } from 'src/actions/provider'
 import { fileTags } from 'src/utils/fileTags'
 import { deleteFilesByModel, downloadFile } from 'src/actions/file'
 import { modelTypes } from 'src/utils/modelTypes'
+import PurchaseRequestModalForm from './PurchaseRequestModalForm'
+import PurchaseRequestModalObs from './PurchaseRequestModalObs'
 
-const PurchaseTable = ({ data }) => {
+const PurchaseRequestTable = ({ data }) => {
   const [visible, setVisible] = useState(false),
-    [providerData, setProviderData] = useState(null),
+    [visibleObs, setVisibleObs] = useState(false),
+    [purchaseData, setPurchaseData] = useState(null),
     dispatch = useDispatch()
 
   return (
@@ -34,8 +37,8 @@ const PurchaseTable = ({ data }) => {
             <CTableHeaderCell scope="col">#</CTableHeaderCell>
             <CTableHeaderCell scope="col">Solicitante</CTableHeaderCell>
             <CTableHeaderCell scope="col">Proveedor</CTableHeaderCell>
-            <CTableHeaderCell scope="col">Concepto</CTableHeaderCell>
-            <CTableHeaderCell scope="col">Monto</CTableHeaderCell>
+            <CTableHeaderCell scope="col">Importe</CTableHeaderCell>
+            <CTableHeaderCell scope="col">Fecha</CTableHeaderCell>
             <CTableHeaderCell scope="col">Status</CTableHeaderCell>
             <CTableHeaderCell scope="col" className="text-center">
               Opciones
@@ -47,8 +50,8 @@ const PurchaseTable = ({ data }) => {
             <CTableHeaderCell scope="row">1</CTableHeaderCell>
             <CTableDataCell>Juan Guzman</CTableDataCell>
             <CTableDataCell>Provedor 1</CTableDataCell>
-            <CTableDataCell>concepto x</CTableDataCell>
             <CTableDataCell>$3000</CTableDataCell>
+            <CTableDataCell>11/Feb/2023</CTableDataCell>
             <CTableDataCell>
               <CBadge color="warning">Pendiente</CBadge>
             </CTableDataCell>
@@ -58,22 +61,37 @@ const PurchaseTable = ({ data }) => {
                   <CIcon icon={cilOptions} title="Opciones" size="lg" />
                 </CDropdownToggle>
                 <CDropdownMenu className="position-fixed">
-                  <CDropdownItem style={{ cursor: 'pointer' }}>Editar</CDropdownItem>
+                  <CDropdownItem
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => {
+                      setVisible(!visible)
+                    }}
+                  >
+                    Editar
+                  </CDropdownItem>
                   <CDropdownItem style={{ cursor: 'pointer' }}>Eliminar</CDropdownItem>
-                  <CDropdownItem style={{ cursor: 'pointer' }}>Ver observaciones</CDropdownItem>
+                  <CDropdownItem
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => {
+                      setVisibleObs(!visibleObs)
+                    }}
+                  >
+                    Ver observaciones
+                  </CDropdownItem>
                 </CDropdownMenu>
               </CDropdown>
             </CTableDataCell>
           </CTableRow>
         </CTableBody>
       </CTable>
-      {/* <ProviderModalForm
+      <PurchaseRequestModalForm
         visible={visible}
         onClose={() => setVisible(false)}
-        providerData={providerData}
-      /> */}
+        purchaseData={purchaseData}
+      />
+      <PurchaseRequestModalObs visible={visibleObs} onClose={() => setVisibleObs(false)} />
     </>
   )
 }
 
-export default PurchaseTable
+export default PurchaseRequestTable

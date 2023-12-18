@@ -16,7 +16,8 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilPlus, cilCloudDownload } from '@coreui/icons'
-import PurchaseTable from 'src/components/payments/purchase/PurchaseTable'
+import PurchaseRequestTable from 'src/components/payments/purchaseRequest/PurchaseRequestTable'
+import PurchaseRequestModalForm from 'src/components/payments/purchaseRequest/PurchaseRequestModalForm'
 
 const PurchaseRequest = () => {
   const [visible, setVisible] = useState(false),
@@ -81,11 +82,11 @@ const PurchaseRequest = () => {
           ) : (
             <ProviderTable data={providers} />
           )} */}
-          <PurchaseTable />
+          <PurchaseRequestTable />
         </CCardBody>
         <CCardFooter></CCardFooter>
       </CCard>
-      {/* <ProviderModalForm visible={visible} onClose={() => setVisible(false)} /> */}
+      <PurchaseRequestModalForm visible={visible} onClose={() => setVisible(false)} />
     </>
   )
 }
