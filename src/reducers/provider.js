@@ -5,6 +5,7 @@ import {
   PROVIDER_ERROR,
   UPDATE_PROVIDER,
   EXPORT_PROVIDER_EXCEL,
+  SELECT_PROVIDERS,
 } from 'src/actions/types'
 
 const initialState = {
@@ -51,6 +52,12 @@ export default function (state = initialState, action) {
       }
     case EXPORT_PROVIDER_EXCEL:
       return state
+    case SELECT_PROVIDERS:
+      return {
+        ...state,
+        providers: { data: payload },
+        loading: false,
+      }
     case PROVIDER_ERROR:
       return {
         ...state,

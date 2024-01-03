@@ -6,6 +6,7 @@ import {
   DELETE_PROVIDER,
   UPDATE_PROVIDER,
   EXPORT_PROVIDER_EXCEL,
+  SELECT_PROVIDERS,
 } from './types'
 import config from '../server.config'
 
@@ -132,6 +133,24 @@ export const exportProviderExcel = (filter, value) => async (dispatch) => {
 
     dispatch({
       type: EXPORT_PROVIDER_EXCEL,
+    })
+  } catch (err) {
+    dispatch({
+      type: PROVIDER_ERROR,
+      payload: {
+        msg: err.response.statusText,
+        status: err.response.status,
+      },
+    })
+  }
+}
+
+export const selectProviders = () => async (dispatch) => {
+  try {
+    const res = await axios.get(`${config.instance.baseURL}/api/select/provider`)
+    dispatch({
+      type: SELECT_PROVIDERS,
+      payload: res.data,
     })
   } catch (err) {
     dispatch({

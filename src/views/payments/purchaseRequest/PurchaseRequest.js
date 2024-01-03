@@ -4,8 +4,6 @@ import {
   CCard,
   CCardBody,
   CCardHeader,
-  CPagination,
-  CPaginationItem,
   CCardFooter,
   CButton,
   CForm,
@@ -18,13 +16,33 @@ import CIcon from '@coreui/icons-react'
 import { cilPlus, cilCloudDownload } from '@coreui/icons'
 import PurchaseRequestTable from 'src/components/payments/purchaseRequest/PurchaseRequestTable'
 import PurchaseRequestModalForm from 'src/components/payments/purchaseRequest/PurchaseRequestModalForm'
+import { useDispatch, useSelector } from 'react-redux'
+import { getPurchaseRequests } from 'src/actions/purchaseRequest'
+import { AppPagination } from 'src/components/app'
 
 const PurchaseRequest = () => {
   const [visible, setVisible] = useState(false),
     [caseFilter, setCaseFilter] = useState('name'),
     [filterValue, setFilterValue] = useState(''),
     [currentPage, setCurrentPage] = useState(1),
-    lastPage = 1
+    dispatch = useDispatch(),
+    {
+      currentPage: currentPageState,
+      last_page,
+      data: purchaseRequests,
+    } = useSelector((state) => state.purchaseRequest.purchaseRequests),
+    loading = useSelector((state) => state.purchaseRequest.loading)
+
+  useEffect(() => {
+    dispatch(getPurchaseRequests(currentPage))
+  }, [currentPage, dispatch])
+
+  useEffect(() => {
+    if (!currentPageState) {
+      return
+    }
+    setCurrentPage(currentPageState)
+  }, [currentPageState])
 
   return (
     <>
@@ -57,34 +75,53 @@ const PurchaseRequest = () => {
                   options={[
                     { label: 'Proveedor', value: 'name' },
                     { label: 'Solicitante', value: 'contact' },
-                    { label: 'Status', value: 'rfc' },
+                    { label: 'Status', value: 'status' },
                   ]}
                 />
               </div>
               <div className="flex-fill me-2">
-                <CFormInput
-                  value={filterValue}
-                  onChange={(e) => setFilterValue(e.target.value)}
-                  type="text"
-                  id="provider"
-                  placeholder="Ingresar texto"
-                />
+                {caseFilter !== 'status' ? (
+                  <CFormInput
+                    value={filterValue}
+                    onChange={(e) => setFilterValue(e.target.value)}
+                    type="text"
+                    id="provider"
+                    placeholder="Ingresar texto"
+                  />
+                ) : (
+                  <CFormSelect
+                    value={filterValue}
+                    onChange={(e) => setFilterValue(e.target.value)}
+                    aria-label="caseFilter"
+                    options={[
+                      { label: 'Pendientes', value: 'pending' },
+                      { label: 'Revisadas', value: 'review' },
+                      { label: 'Aprobadas', value: 'approved' },
+                      { label: 'Rechazadas', value: 'rejects' },
+                    ]}
+                  />
+                )}
               </div>
             </div>
             <CButton type="button" className="text-light fw-semibold">
               Buscar
             </CButton>
           </CForm>
-          {/* {loading ? (
+          {loading ? (
             <div className="d-flex justify-content-center">
               <CSpinner color="primary" variant="grow" />
             </div>
           ) : (
-            <ProviderTable data={providers} />
-          )} */}
-          <PurchaseRequestTable />
+            <PurchaseRequestTable data={purchaseRequests} />
+          )}
         </CCardBody>
-        <CCardFooter></CCardFooter>
+        <CCardFooter>
+          <AppPagination
+            currentPage={currentPage}
+            lastPage={last_page}
+            setCurrentPage={setCurrentPage}
+          />
+        </CCardFooter>
       </CCard>
       <PurchaseRequestModalForm visible={visible} onClose={() => setVisible(false)} />
     </>
