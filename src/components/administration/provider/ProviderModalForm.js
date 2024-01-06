@@ -37,7 +37,7 @@ import { setToast } from 'src/actions/toast'
 const ProviderModalForm = ({ visible, onClose, providerData }) => {
   const [activeKey, setActiveKey] = useState(1),
     [showInputsAccount, setShowInputsAccount] = useState(false),
-    [providerID, setProviderID] = useState(),
+    [providerID, setProviderID] = useState(''),
     [provider, setProvider] = useState(''),
     [type, setType] = useState('ext'),
     [contact, setContact] = useState(''),
@@ -166,6 +166,7 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
   }
 
   const cleanInputs = useCallback(() => {
+    setProviderID('')
     setProvider('')
     setType('ext')
     setContact('')

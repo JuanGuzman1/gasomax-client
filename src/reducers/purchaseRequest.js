@@ -4,6 +4,9 @@ import {
   UPDATE_PURCHASE_REQUEST,
   DELETE_PURCHASE_REQUEST,
   PURCHASE_REQUEST_ERROR,
+  ADD_PURCHASE_REQUEST_OBSERVATION,
+  GET_PURCHASE_REQUEST_OBSERVATIONS,
+  GET_PURCHASE_REQUEST_PDF,
 } from 'src/actions/types'
 
 const initialState = {
@@ -14,6 +17,8 @@ const initialState = {
   filters: {},
   loading: true,
   error: {},
+  loadingObservations: false,
+  observations: [],
 }
 
 // eslint-disable-next-line import/no-anonymous-default-export
@@ -49,6 +54,18 @@ export default function (state = initialState, action) {
           data: state.purchaseRequests.data.filter((pr) => pr.id !== payload),
         },
         loading: false,
+      }
+    case GET_PURCHASE_REQUEST_OBSERVATIONS:
+      return {
+        ...state,
+        observations: payload,
+        loadingObservations: false,
+      }
+    case ADD_PURCHASE_REQUEST_OBSERVATION:
+      return {
+        ...state,
+        observations: [...state.observations, payload],
+        loadingObservations: false,
       }
     case PURCHASE_REQUEST_ERROR:
       return {

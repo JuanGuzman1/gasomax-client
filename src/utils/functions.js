@@ -9,6 +9,10 @@ export const formatTimezoneToDate = (date) => {
   return DateTime.fromISO(date).toLocaleString(DateTime.DATE_SHORT)
 }
 
+export const formatTimezoneToDateTime = (date) => {
+  return DateTime.fromISO(date).toLocaleString(DateTime.DATETIME_SHORT)
+}
+
 export const movementTypes = {
   advance: 'Anticipo',
   settlement: 'Liquidación',

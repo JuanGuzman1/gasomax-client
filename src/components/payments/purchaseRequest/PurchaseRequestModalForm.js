@@ -33,11 +33,12 @@ import { FileCard, AppToast } from '../../app'
 import Swal from 'sweetalert2'
 import { formatNumber, movementTypes } from 'src/utils/functions'
 import { selectProviders } from 'src/actions/provider'
-import { addPurchaseRequest } from 'src/actions/purchaseRequest'
+import { addPurchaseRequest, updatePurchaseRequest } from 'src/actions/purchaseRequest'
 import { setToast } from 'src/actions/toast'
 
 const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
   const [activeKey, setActiveKey] = useState(1),
+    [purchaseRequestID, setPurchaseRequestID] = useState(''),
     [extraordinary, setExtraordinary] = useState(false),
     [station, setStation] = useState('guerra'),
     [business, setBusiness] = useState('gasStation'),
@@ -51,6 +52,7 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
     [observation, setObservation] = useState(''),
     [totalAmount, setTotalAmount] = useState(0),
     [paymentAmount, setPaymentAmount] = useState(0),
+    [fileType, setFileType] = useState('quotation'),
     [files, setFiles] = useState([]),
     dispatch = useDispatch(),
     { progress } = useSelector((state) => state.file),
@@ -64,6 +66,7 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
     if (!purchaseData) {
       return
     }
+    setPurchaseRequestID(purchaseData.id)
     setExtraordinary(purchaseData.extraordinary)
     setStation(purchaseData.station)
     setBusiness(purchaseData.business)
@@ -72,6 +75,10 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
     setPettyCash(purchaseData.pettyCash)
     setDetails(purchaseData.details)
   }, [purchaseData])
+
+  useEffect(() => {
+    setPettyCash(false)
+  }, [paymentMethod])
 
   const onReject = () => {
     Swal.fire({
@@ -138,6 +145,7 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
   }
 
   const clearGeneralInputs = () => {
+    setPurchaseRequestID('')
     setExtraordinary(false)
     setStation('guerra')
     setBusiness('gasStation')
@@ -151,11 +159,11 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
   const onSave = (e) => {
     e.preventDefault()
     try {
-      if (details.length <= 0) {
+      if (!providerID || providerID === '') {
         dispatch(
           setToast(
             AppToast({
-              msg: 'Falta agregar detalles a la solicitud',
+              msg: 'Falta seleccionar un proveedor',
               title: 'Error',
               type: 'error',
             }),
@@ -163,12 +171,11 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
         )
         return
       }
-
-      if (!providerID || providerID === '') {
+      if (details.length <= 0) {
         dispatch(
           setToast(
             AppToast({
-              msg: 'Falta seleccionar un proveedor',
+              msg: 'Falta agregar detalles a la solicitud',
               title: 'Error',
               type: 'error',
             }),
@@ -188,29 +195,53 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
         petitioner_id: 1,
       }
       dispatch(
-        addPurchaseRequest(data, (purchaseRequestRes) => {
-          if (purchaseRequestRes.success) {
-            dispatch(
-              setToast(
-                AppToast({
-                  msg: 'Solicitud realizada correctamente.',
-                  title: 'Solicitudes de compra',
-                  type: 'success',
-                }),
-              ),
-            )
-          } else {
-            dispatch(
-              setToast(
-                AppToast({
-                  msg: 'Ha ocurrido un error.',
-                  title: 'Solicitudes de compra',
-                  type: 'error',
-                }),
-              ),
-            )
-          }
-        }),
+        purchaseData
+          ? updatePurchaseRequest(data, purchaseRequestID, (purchaseRequestRes) => {
+              if (purchaseRequestRes.success) {
+                dispatch(
+                  setToast(
+                    AppToast({
+                      msg: 'Solicitud actualizada correctamente.',
+                      title: 'Solicitudes de compra',
+                      type: 'success',
+                    }),
+                  ),
+                )
+              } else {
+                dispatch(
+                  setToast(
+                    AppToast({
+                      msg: 'Ha ocurrido un error.',
+                      title: 'Solicitudes de compra',
+                      type: 'error',
+                    }),
+                  ),
+                )
+              }
+            })
+          : addPurchaseRequest(data, (purchaseRequestRes) => {
+              if (purchaseRequestRes.success) {
+                dispatch(
+                  setToast(
+                    AppToast({
+                      msg: 'Solicitud realizada correctamente.',
+                      title: 'Solicitudes de compra',
+                      type: 'success',
+                    }),
+                  ),
+                )
+              } else {
+                dispatch(
+                  setToast(
+                    AppToast({
+                      msg: 'Ha ocurrido un error.',
+                      title: 'Solicitudes de compra',
+                      type: 'error',
+                    }),
+                  ),
+                )
+              }
+            }),
       )
     } catch (error) {
       console.log(error)
@@ -496,10 +527,21 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
           {/* files purchase request */}
           <CTabPane role="tabpanel" aria-labelledby="data-tab-pane" visible={activeKey === 3}>
             <CForm className="mt-3">
+              <CFormLabel>Sube archivos necesarios para la solicitud</CFormLabel>
               <div className="mb-3">
-                <CFormLabel htmlFor="csfFile">
-                  Selecciona archivos necesarios para la solicitud (cotizacion, nota, factura)
-                </CFormLabel>
+                <div className="mb-2">
+                  <CFormLabel>Tipo de archivo</CFormLabel>
+                  <CFormSelect
+                    aria-label="fileType"
+                    options={[
+                      { label: 'Cotización ', value: 'quotation' },
+                      { label: 'Factura', value: 'invoice' },
+                      { label: 'Otro', value: 'other' },
+                    ]}
+                    onChange={(e) => setFileType(e.target.value)}
+                    value={fileType}
+                  />
+                </div>
                 <CFormInput
                   type="file"
                   id="csfFile"

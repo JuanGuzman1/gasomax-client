@@ -16,13 +16,15 @@ import CIcon from '@coreui/icons-react'
 import { cilOptions } from '@coreui/icons'
 import { useDispatch } from 'react-redux'
 import Swal from 'sweetalert2'
-import { deleteProvider } from 'src/actions/provider'
 import { fileTags } from 'src/utils/fileTags'
 import { deleteFilesByModel, downloadFile } from 'src/actions/file'
 import { modelTypes } from 'src/utils/modelTypes'
 import PurchaseRequestModalForm from './PurchaseRequestModalForm'
 import PurchaseRequestModalObs from './PurchaseRequestModalObs'
 import { formatNumber, formatTimezoneToDate } from 'src/utils/functions'
+import { deletePurchaseRequest, getPurchaseRequestPDF } from 'src/actions/purchaseRequest'
+import { setToast } from 'src/actions/toast'
+import { AppToast } from 'src/components/app'
 
 const PurchaseRequestTable = ({ data }) => {
   const [visible, setVisible] = useState(false),
@@ -30,6 +32,52 @@ const PurchaseRequestTable = ({ data }) => {
     [purchaseData, setPurchaseData] = useState(null),
     [viewModalMode, setViewModalMode] = useState(false),
     dispatch = useDispatch()
+
+  const onDelete = (id) => {
+    Swal.fire({
+      title: '¿Está seguro?',
+      text: 'No podrás revertir esto.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Si, eliminar.',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        dispatch(
+          deletePurchaseRequest(id, (dataRes) => {
+            if (dataRes.success) {
+              dispatch(
+                setToast(
+                  AppToast({
+                    msg: 'Solicitud eliminada correctamente.',
+                    title: 'Solicitudes de compra',
+                    type: 'success',
+                  }),
+                ),
+              )
+              dispatch(deleteFilesByModel(id, modelTypes.provider))
+            } else {
+              dispatch(
+                setToast(
+                  AppToast({
+                    msg: 'Ha ocurrido un error.',
+                    title: 'Solicitudes de compra',
+                    type: 'error',
+                  }),
+                ),
+              )
+            }
+          }),
+        )
+        Swal.fire({
+          title: 'Eliminado!',
+          text: 'La solicitud ha sido eliminada.',
+          icon: 'success',
+        })
+      }
+    })
+  }
 
   return (
     <>
@@ -69,6 +117,7 @@ const PurchaseRequestTable = ({ data }) => {
                     <CDropdownItem
                       style={{ cursor: 'pointer' }}
                       onClick={() => {
+                        setPurchaseData(pr)
                         setViewModalMode(true)
                         setVisible(!visible)
                       }}
@@ -84,16 +133,26 @@ const PurchaseRequestTable = ({ data }) => {
                     >
                       Editar
                     </CDropdownItem>
-                    <CDropdownItem style={{ cursor: 'pointer' }}>Eliminar</CDropdownItem>
+                    <CDropdownItem style={{ cursor: 'pointer' }} onClick={() => onDelete(pr.id)}>
+                      Eliminar
+                    </CDropdownItem>
                     <CDropdownItem
                       style={{ cursor: 'pointer' }}
                       onClick={() => {
+                        setPurchaseData(pr)
                         setVisibleObs(!visibleObs)
                       }}
                     >
                       Ver observaciones
                     </CDropdownItem>
-                    <CDropdownItem style={{ cursor: 'pointer' }}>Imprimir</CDropdownItem>
+                    <CDropdownItem
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => {
+                        dispatch(getPurchaseRequestPDF(pr.id))
+                      }}
+                    >
+                      Imprimir
+                    </CDropdownItem>
                   </CDropdownMenu>
                 </CDropdown>
               </CTableDataCell>
@@ -101,16 +160,24 @@ const PurchaseRequestTable = ({ data }) => {
           ))}
         </CTableBody>
       </CTable>
-      <PurchaseRequestModalForm
-        visible={visible}
-        onClose={() => {
-          setVisible(false)
-          setViewModalMode(false)
-        }}
-        purchaseData={purchaseData}
-        view={viewModalMode}
-      />
-      <PurchaseRequestModalObs visible={visibleObs} onClose={() => setVisibleObs(false)} />
+      {visible && (
+        <PurchaseRequestModalForm
+          visible={visible}
+          onClose={() => {
+            setVisible(false)
+            setViewModalMode(false)
+          }}
+          purchaseData={purchaseData}
+          view={viewModalMode}
+        />
+      )}
+      {visibleObs && (
+        <PurchaseRequestModalObs
+          purchaseRequestID={purchaseData?.id}
+          visible={visibleObs}
+          onClose={() => setVisibleObs(false)}
+        />
+      )}
     </>
   )
 }
