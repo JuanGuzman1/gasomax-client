@@ -7,6 +7,7 @@ import {
   DELETE_PURCHASE_REQUEST,
   ADD_PURCHASE_REQUEST_OBSERVATION,
   GET_PURCHASE_REQUEST_OBSERVATIONS,
+  GET_PP_PURCHASE_REQUEST_PROVIDER,
 } from './types'
 import config from '../server.config'
 
@@ -164,6 +165,26 @@ export const getPurchaseRequestPDF = (id) => async (dispatch) => {
     })
     const url = window.URL.createObjectURL(res.data)
     window.open(url, '_blank')
+  } catch (err) {
+    dispatch({
+      type: PURCHASE_REQUEST_ERROR,
+      payload: {
+        msg: err.response.statusText,
+        status: err.response.status,
+      },
+    })
+  }
+}
+
+export const getPendingPaymentsByProvider = (id) => async (dispatch) => {
+  try {
+    const res = await axios.get(
+      `${config.instance.baseURL}/api/pending/details/purchaseRequest?provider_id=${id}`,
+    )
+    dispatch({
+      type: GET_PP_PURCHASE_REQUEST_PROVIDER,
+      payload: res.data,
+    })
   } catch (err) {
     dispatch({
       type: PURCHASE_REQUEST_ERROR,

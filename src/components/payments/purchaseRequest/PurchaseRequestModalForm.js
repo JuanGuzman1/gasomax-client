@@ -25,7 +25,7 @@ import {
   CFormSelect,
   CProgress,
 } from '@coreui/react'
-import { cilPlus, cilTrash } from '@coreui/icons'
+import { cilPlus, cilTrash, cilDollar } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import { useDispatch, useSelector } from 'react-redux'
 import { fileTags } from 'src/utils/fileTags'
@@ -33,12 +33,18 @@ import { FileCard, AppToast } from '../../app'
 import Swal from 'sweetalert2'
 import { formatNumber, movementTypes } from 'src/utils/functions'
 import { selectProviders } from 'src/actions/provider'
-import { addPurchaseRequest, updatePurchaseRequest } from 'src/actions/purchaseRequest'
+import {
+  addPurchaseRequest,
+  getPendingPaymentsByProvider,
+  updatePurchaseRequest,
+} from 'src/actions/purchaseRequest'
 import { setToast } from 'src/actions/toast'
+import ModalFormPendingPaymentsTable from './ModalFormPendingPaymentsTable'
 
 const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
   const [activeKey, setActiveKey] = useState(1),
     [purchaseRequestID, setPurchaseRequestID] = useState(''),
+    [detailPendingID, setDetailPendingID] = useState(null),
     [extraordinary, setExtraordinary] = useState(false),
     [station, setStation] = useState('guerra'),
     [business, setBusiness] = useState('gasStation'),
@@ -52,15 +58,25 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
     [observation, setObservation] = useState(''),
     [totalAmount, setTotalAmount] = useState(0),
     [paymentAmount, setPaymentAmount] = useState(0),
+    [showPendingPayments, setShowPendingPayments] = useState(false),
     [fileType, setFileType] = useState('quotation'),
     [files, setFiles] = useState([]),
     dispatch = useDispatch(),
     { progress } = useSelector((state) => state.file),
-    { loading, providers } = useSelector((state) => state.provider)
+    { loading, providers } = useSelector((state) => state.provider),
+    { pendingPayments } = useSelector((state) => state.purchaseRequest)
 
   useEffect(() => {
     dispatch(selectProviders())
   }, [dispatch])
+
+  useEffect(() => {
+    if (!providerID || providerID === '') {
+      return
+    }
+    dispatch(getPendingPaymentsByProvider(providerID))
+    setDetails([])
+  }, [dispatch, providerID])
 
   useEffect(() => {
     if (!purchaseData) {
@@ -79,6 +95,12 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
   useEffect(() => {
     setPettyCash(false)
   }, [paymentMethod])
+
+  useEffect(() => {
+    if (movementType === 'settlement') {
+      setPaymentAmount(totalAmount)
+    }
+  }, [movementType, totalAmount])
 
   const onReject = () => {
     Swal.fire({
@@ -121,6 +143,13 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
   }
 
   const onAddDetail = () => {
+    if (charge === '') {
+      dispatch(setToast(AppToast({ msg: 'Selecciona un cargo', type: 'error' })))
+      return
+    }
+    if (concept === '') {
+      return
+    }
     const data = {
       charge,
       concept,
@@ -128,6 +157,7 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
       observation,
       totalAmount,
       paymentAmount,
+      purchase_detail_pending_id: detailPendingID,
     }
     setDetails([...details, data])
     clearDetailInputs()
@@ -137,11 +167,29 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
     setDetails(details.filter((d, i) => i !== index))
   }
 
+  const onAddDetailPending = (detail) => {
+    setCharge(detail.charge)
+    setConcept(detail.concept)
+    setObservation(detail.observation)
+    setMovementType('settlement')
+    setTotalAmount(detail.balance)
+    setDetailPendingID(detail.id)
+    setShowPendingPayments(false)
+  }
+
+  const onRemoveDetailPending = () => {
+    clearDetailInputs()
+    setShowPendingPayments(false)
+  }
+
   const clearDetailInputs = () => {
+    setCharge('')
+    setConcept('')
     setMovementType('advance')
     setObservation('')
     setTotalAmount(0)
     setPaymentAmount(0)
+    setDetailPendingID(null)
   }
 
   const clearGeneralInputs = () => {
@@ -164,7 +212,6 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
           setToast(
             AppToast({
               msg: 'Falta seleccionar un proveedor',
-              title: 'Error',
               type: 'error',
             }),
           ),
@@ -176,7 +223,6 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
           setToast(
             AppToast({
               msg: 'Falta agregar detalles a la solicitud',
-              title: 'Error',
               type: 'error',
             }),
           ),
@@ -388,91 +434,121 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
           {/* Details */}
           <CTabPane role="tabpanel" aria-labelledby="account-tab-pane" visible={activeKey === 2}>
             <CForm className="mt-3">
-              <div className="mb-3 d-flex">
-                <div className="flex-fill me-2">
-                  <CFormLabel>Cargo</CFormLabel>
-                  <CFormSelect
-                    aria-label="charge"
-                    options={[
-                      { label: 'Seleccione...', value: null },
-                      { label: 'ACTIVO FIJO', value: 'ACTIVO FIJO' },
-                      {
-                        label: 'GASTOS DIRECTOS DE OPERACIÓN',
-                        value: 'GASTOS DIRECTOS DE OPERACIÓN',
-                      },
-                    ]}
-                    onChange={(e) => setCharge(e.target.value)}
-                    value={charge}
-                  />
-                </div>
-                <div className="flex-fill me-2">
-                  <CFormLabel>Concepto</CFormLabel>
-                  <CFormSelect
-                    aria-label="concept"
-                    options={[
-                      { label: 'Seleccione...', value: null },
-                      {
-                        label: 'Equipo y software informático',
-                        value: 'Equipo y software informático',
-                      },
-                      { label: 'Vehículos', value: 'Vehículos' },
-                      { label: 'Honorarios', value: 'Honorarios' },
-                    ]}
-                    onChange={(e) => setConcept(e.target.value)}
-                    value={concept}
-                  />
-                </div>
-                <div className="flex-fill">
-                  <CFormLabel>Tipo de movimiento</CFormLabel>
-                  <CFormSelect
-                    aria-label="movementType"
-                    options={[
-                      { label: 'Anticipo', value: 'advance' },
-                      { label: 'Liquidación ', value: 'settlement' },
-                      { label: 'Abono a cuenta', value: 'payment' },
-                    ]}
-                    onChange={(e) => setMovementType(e.target.value)}
-                    value={movementType}
-                  />
-                </div>
-              </div>
+              {!showPendingPayments ? (
+                <>
+                  <div className="mb-3 d-flex">
+                    <div className="flex-fill me-2">
+                      <CFormLabel>Cargo</CFormLabel>
+                      <CFormSelect
+                        aria-label="charge"
+                        options={[
+                          { label: 'Seleccione...', value: '' },
+                          { label: 'ACTIVO FIJO', value: 'ACTIVO FIJO' },
+                          {
+                            label: 'GASTOS DIRECTOS DE OPERACIÓN',
+                            value: 'GASTOS DIRECTOS DE OPERACIÓN',
+                          },
+                        ]}
+                        onChange={(e) => setCharge(e.target.value)}
+                        value={charge}
+                        disabled={detailPendingID}
+                      />
+                    </div>
+                    <div className="flex-fill me-2">
+                      <CFormLabel>Concepto</CFormLabel>
+                      <CFormSelect
+                        aria-label="concept"
+                        options={[
+                          { label: 'Seleccione...', value: '' },
+                          {
+                            label: 'Equipo y software informático',
+                            value: 'Equipo y software informático',
+                          },
+                          { label: 'Vehículos', value: 'Vehículos' },
+                          { label: 'Honorarios', value: 'Honorarios' },
+                        ]}
+                        onChange={(e) => setConcept(e.target.value)}
+                        value={concept}
+                        disabled={detailPendingID}
+                      />
+                    </div>
+                    <div className="flex-fill">
+                      <CFormLabel>Tipo de movimiento</CFormLabel>
+                      <CFormSelect
+                        aria-label="movementType"
+                        options={[
+                          { label: 'Anticipo', value: 'advance' },
+                          { label: 'Liquidación ', value: 'settlement' },
+                          { label: 'Abono a cuenta', value: 'payment' },
+                        ]}
+                        onChange={(e) => setMovementType(e.target.value)}
+                        value={movementType}
+                      />
+                    </div>
+                  </div>
+                  <div className="mb-3">
+                    <CFormTextarea
+                      id="obs"
+                      label="Observación"
+                      rows={2}
+                      text="Debe tener entre 5 y 10 palabras."
+                      value={observation}
+                      onChange={(e) => setObservation(e.target.value)}
+                    ></CFormTextarea>
+                  </div>
+                  <div className="mb-3 d-flex">
+                    <div className="flex-fill me-2">
+                      <CFormLabel htmlFor="totalAmount">Importe total ($)</CFormLabel>
+                      <CFormInput
+                        type="number"
+                        id="totalAmount"
+                        placeholder="Importe"
+                        onChange={(e) => setTotalAmount(e.target.value)}
+                        value={totalAmount}
+                      />
+                    </div>
+                    <div className="flex-fill">
+                      <CFormLabel htmlFor="paymentAmount">Importe a pagar ($)</CFormLabel>
+                      <CFormInput
+                        type="number"
+                        id="paymentAmount"
+                        placeholder="Pago"
+                        onChange={(e) => setPaymentAmount(e.target.value)}
+                        value={paymentAmount}
+                        disabled={movementType === 'settlement'}
+                      />
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <ModalFormPendingPaymentsTable
+                  onAddDetailPending={(detail) => onAddDetailPending(detail)}
+                  onRemoveDetailPending={() => onRemoveDetailPending()}
+                  detailPendingID={detailPendingID}
+                  details={details}
+                />
+              )}
               <div className="mb-3">
-                <CFormTextarea
-                  id="obs"
-                  label="Observación"
-                  rows={2}
-                  text="Debe tener entre 5 y 10 palabras."
-                  value={observation}
-                  onChange={(e) => setObservation(e.target.value)}
-                ></CFormTextarea>
-              </div>
-              <div className="mb-3 d-flex">
-                <div className="flex-fill me-2">
-                  <CFormLabel htmlFor="totalAmount">Importe total ($)</CFormLabel>
-                  <CFormInput
-                    type="number"
-                    id="totalAmount"
-                    placeholder="Importe"
-                    onChange={(e) => setTotalAmount(e.target.value)}
-                    value={totalAmount}
-                  />
-                </div>
-                <div className="flex-fill">
-                  <CFormLabel htmlFor="paymentAmount">Importe a pagar ($)</CFormLabel>
-                  <CFormInput
-                    type="number"
-                    id="paymentAmount"
-                    placeholder="Pago"
-                    onChange={(e) => setPaymentAmount(e.target.value)}
-                    value={paymentAmount}
-                  />
-                </div>
-              </div>
-              <div className="mb-3">
-                <CButton color="primary" className="text-light fw-semibold" onClick={onAddDetail}>
-                  <CIcon icon={cilPlus} className="me-1" />
-                  Añadir a la solicitud
-                </CButton>
+                {!showPendingPayments && (
+                  <CButton
+                    color="primary"
+                    className="text-light fw-semibold me-2"
+                    onClick={onAddDetail}
+                  >
+                    <CIcon icon={cilPlus} className="me-1" />
+                    Añadir a la solicitud
+                  </CButton>
+                )}
+                {pendingPayments.length > 0 && (
+                  <CButton
+                    color={showPendingPayments ? 'danger' : 'info'}
+                    className="text-light fw-semibold"
+                    onClick={() => setShowPendingPayments(!showPendingPayments)}
+                  >
+                    <CIcon icon={cilDollar} className="me-1" />
+                    {showPendingPayments ? 'Ocultar' : 'Ver'} pagos pendientes
+                  </CButton>
+                )}
               </div>
               <CTable striped responsive>
                 <CTableHead>

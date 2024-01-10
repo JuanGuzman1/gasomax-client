@@ -6,7 +6,7 @@ import {
   PURCHASE_REQUEST_ERROR,
   ADD_PURCHASE_REQUEST_OBSERVATION,
   GET_PURCHASE_REQUEST_OBSERVATIONS,
-  GET_PURCHASE_REQUEST_PDF,
+  GET_PP_PURCHASE_REQUEST_PROVIDER,
 } from 'src/actions/types'
 
 const initialState = {
@@ -19,6 +19,7 @@ const initialState = {
   error: {},
   loadingObservations: false,
   observations: [],
+  pendingPayments: [],
 }
 
 // eslint-disable-next-line import/no-anonymous-default-export
@@ -66,6 +67,11 @@ export default function (state = initialState, action) {
         ...state,
         observations: [...state.observations, payload],
         loadingObservations: false,
+      }
+    case GET_PP_PURCHASE_REQUEST_PROVIDER:
+      return {
+        ...state,
+        pendingPayments: payload,
       }
     case PURCHASE_REQUEST_ERROR:
       return {

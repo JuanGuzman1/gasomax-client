@@ -22,7 +22,7 @@ import { AppPagination } from 'src/components/app'
 
 const PurchaseRequest = () => {
   const [visible, setVisible] = useState(false),
-    [caseFilter, setCaseFilter] = useState('name'),
+    [caseFilter, setCaseFilter] = useState('provider'),
     [filterValue, setFilterValue] = useState(''),
     [currentPage, setCurrentPage] = useState(1),
     dispatch = useDispatch(),
@@ -34,7 +34,7 @@ const PurchaseRequest = () => {
     loading = useSelector((state) => state.purchaseRequest.loading)
 
   useEffect(() => {
-    dispatch(getPurchaseRequests(currentPage))
+    dispatch(getPurchaseRequests(currentPage, caseFilter, filterValue))
   }, [currentPage, dispatch])
 
   useEffect(() => {
@@ -73,8 +73,8 @@ const PurchaseRequest = () => {
                   onChange={(e) => setCaseFilter(e.target.value)}
                   aria-label="caseFilter"
                   options={[
-                    { label: 'Proveedor', value: 'name' },
-                    { label: 'Solicitante', value: 'contact' },
+                    { label: 'Proveedor', value: 'provider' },
+                    { label: 'Solicitante', value: 'petitioner' },
                     { label: 'Status', value: 'status' },
                   ]}
                 />
@@ -103,7 +103,11 @@ const PurchaseRequest = () => {
                 )}
               </div>
             </div>
-            <CButton type="button" className="text-light fw-semibold">
+            <CButton
+              type="button"
+              className="text-light fw-semibold"
+              onClick={() => dispatch(getPurchaseRequests(currentPage, caseFilter, filterValue))}
+            >
               Buscar
             </CButton>
           </CForm>
