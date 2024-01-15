@@ -35,7 +35,9 @@ import { formatNumber, movementTypes } from 'src/utils/functions'
 import { selectProviders } from 'src/actions/provider'
 import {
   addPurchaseRequest,
+  approvePurchaseRequest,
   getPendingPaymentsByProvider,
+  rejectPurchaseRequest,
   updatePurchaseRequest,
 } from 'src/actions/purchaseRequest'
 import { setToast } from 'src/actions/toast'
@@ -75,8 +77,11 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
       return
     }
     dispatch(getPendingPaymentsByProvider(providerID))
-    setDetails([])
-  }, [dispatch, providerID])
+    setShowPendingPayments(false)
+    if (!purchaseData) {
+      setDetails([])
+    }
+  }, [dispatch, providerID, purchaseData])
 
   useEffect(() => {
     if (!purchaseData) {
@@ -113,18 +118,25 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
       confirmButtonText: 'Enviar',
       confirmButtonColor: '#E94834',
       showLoaderOnConfirm: true,
-      preConfirm: async (login) => {
+      preConfirm: async (observation) => {
         try {
-          const githubUrl = `
-            https://api.github.com/users/${login}
-          `
-          const response = await fetch(githubUrl)
-          if (!response.ok) {
-            return Swal.showValidationMessage(`
-              ${JSON.stringify(await response.json())}
-            `)
+          if (!observation) {
+            Swal.showValidationMessage(`
+            Escribe una observacion
+          `)
+            return
           }
-          return response.json()
+          dispatch(
+            rejectPurchaseRequest(
+              { observation, user_id: 1 },
+              purchaseData.id,
+              (purchaseRequestRes) => {
+                if (purchaseRequestRes.success) {
+                  dispatch(setToast(AppToast({ msg: 'Solicitud rechazada', type: 'success' })))
+                }
+              },
+            ),
+          )
         } catch (error) {
           Swal.showValidationMessage(`
             Request failed: ${error}
@@ -135,11 +147,35 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
     }).then((result) => {
       if (result.isConfirmed) {
         Swal.fire({
-          title: `${result.value.login}'s avatar`,
-          imageUrl: result.value.avatar_url,
+          title: `Solicitud rechazada correctamente`,
         })
       }
     })
+  }
+
+  const onApprove = (e) => {
+    e.preventDefault()
+    try {
+      dispatch(
+        approvePurchaseRequest({ user_id: 1 }, purchaseRequestID, (purchaseRequestRes) => {
+          if (purchaseRequestRes.success) {
+            dispatch(setToast(AppToast({ msg: 'Cotización autorizada', type: 'success' })))
+          } else {
+            dispatch(
+              setToast(
+                AppToast({
+                  msg: 'Ha ocurrido un error.',
+                  type: 'error',
+                }),
+              ),
+            )
+          }
+        }),
+      )
+    } catch (error) {
+      console.log(error)
+    }
+    onClose()
   }
 
   const onAddDetail = () => {
@@ -476,14 +512,13 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
                       <CFormLabel>Tipo de movimiento</CFormLabel>
                       <CFormSelect
                         aria-label="movementType"
-                        options={[
-                          { label: 'Anticipo', value: 'advance' },
-                          { label: 'Liquidación ', value: 'settlement' },
-                          { label: 'Abono a cuenta', value: 'payment' },
-                        ]}
                         onChange={(e) => setMovementType(e.target.value)}
                         value={movementType}
-                      />
+                      >
+                        {!detailPendingID && <option value={'advance'}>Anticipo</option>}
+                        <option value={'settlement'}>Liquidación</option>
+                        {detailPendingID && <option value={'payment'}>Abono a cuenta</option>}
+                      </CFormSelect>
                     </div>
                   </div>
                   <div className="mb-3">
@@ -505,6 +540,7 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
                         placeholder="Importe"
                         onChange={(e) => setTotalAmount(e.target.value)}
                         value={totalAmount}
+                        disabled={detailPendingID}
                       />
                     </div>
                     <div className="flex-fill">
@@ -539,7 +575,7 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
                     Añadir a la solicitud
                   </CButton>
                 )}
-                {pendingPayments.length > 0 && (
+                {pendingPayments.length > 0 && providerID && (
                   <CButton
                     color={showPendingPayments ? 'danger' : 'info'}
                     className="text-light fw-semibold"
@@ -640,12 +676,11 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
         </CButton>
         {view && (
           <>
-            <CButton color="info" className="text-light fw-semibold">
-              Revisado
-            </CButton>
-            <CButton color="success" className="text-light fw-semibold">
-              Autorizar
-            </CButton>
+            {purchaseData.status !== 'approved' && (
+              <CButton color="success" className="text-light fw-semibold" onClick={onApprove}>
+                Autorizar
+              </CButton>
+            )}
             <CButton color="danger" className="text-light fw-semibold" onClick={onReject}>
               Rechazar
             </CButton>

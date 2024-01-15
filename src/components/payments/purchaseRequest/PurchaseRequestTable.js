@@ -21,7 +21,12 @@ import { deleteFilesByModel, downloadFile } from 'src/actions/file'
 import { modelTypes } from 'src/utils/modelTypes'
 import PurchaseRequestModalForm from './PurchaseRequestModalForm'
 import PurchaseRequestModalObs from './PurchaseRequestModalObs'
-import { formatNumber, formatTimezoneToDate } from 'src/utils/functions'
+import {
+  formatNumber,
+  formatTimezoneToDate,
+  statusPurchaseRequest,
+  statusPurchaseRequestColors,
+} from 'src/utils/functions'
 import { deletePurchaseRequest, getPurchaseRequestPDF } from 'src/actions/purchaseRequest'
 import { setToast } from 'src/actions/toast'
 import { AppToast } from 'src/components/app'
@@ -106,7 +111,9 @@ const PurchaseRequestTable = ({ data }) => {
               </CTableDataCell>
               <CTableDataCell>{formatTimezoneToDate(pr.created_at)}</CTableDataCell>
               <CTableDataCell>
-                <CBadge color="warning">{pr.status}</CBadge>
+                <CBadge color={statusPurchaseRequestColors[pr.status]}>
+                  {statusPurchaseRequest[pr.status]}
+                </CBadge>
               </CTableDataCell>
               <CTableDataCell className="text-center overflow-visible">
                 <CDropdown variant="dropdown">

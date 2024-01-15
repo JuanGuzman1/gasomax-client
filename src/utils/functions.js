@@ -18,3 +18,17 @@ export const movementTypes = {
   settlement: 'Liquidación',
   payment: 'Abono a cuenta',
 }
+
+export const statusPurchaseRequest = {
+  pending: 'Cotización completa',
+  approved: 'Cotización aprobada',
+  paid: 'Cotización pagada',
+  rejected: 'Cotización rechazada',
+}
+
+export const statusPurchaseRequestColors = {
+  pending: 'warning',
+  approved: 'success',
+  paid: 'info',
+  rejected: 'danger',
+}

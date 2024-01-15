@@ -5,6 +5,7 @@ import toast from './toast'
 import file from './file'
 import bank from './bank'
 import purchaseRequest from './purchaseRequest'
+import pendingPayments from './pendingPayments'
 
 export default combineReducers({
   provider,
@@ -13,4 +14,5 @@ export default combineReducers({
   file,
   bank,
   purchaseRequest,
+  pendingPayments,
 })

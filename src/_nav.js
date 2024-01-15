@@ -58,7 +58,12 @@ const _nav = [
       {
         component: CNavItem,
         name: 'Solicitud de compra',
-        to: '/solicitudes',
+        to: '/pagos/solicitudes',
+      },
+      {
+        component: CNavItem,
+        name: 'Pagos pendientes',
+        to: '/pagos/pendientes',
       },
     ],
   },

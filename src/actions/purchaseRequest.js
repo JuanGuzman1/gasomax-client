@@ -195,3 +195,57 @@ export const getPendingPaymentsByProvider = (id) => async (dispatch) => {
     })
   }
 }
+
+export const rejectPurchaseRequest = (data, id, cb) => async (dispatch) => {
+  try {
+    const res = await axios.put(
+      `${config.instance.baseURL}/api/reject/purchaseRequest/${id}`,
+      data,
+      config.instance.headers,
+    )
+    dispatch({
+      type: UPDATE_PURCHASE_REQUEST,
+      payload: res.data.data,
+    })
+    cb(res.data)
+  } catch (err) {
+    dispatch({
+      type: PURCHASE_REQUEST_ERROR,
+      payload: {
+        msg: err.response.statusText,
+        status: err.response.status,
+      },
+    })
+    cb({
+      success: false,
+      message: err.message,
+    })
+  }
+}
+
+export const approvePurchaseRequest = (data, id, cb) => async (dispatch) => {
+  try {
+    const res = await axios.put(
+      `${config.instance.baseURL}/api/approve/purchaseRequest/${id}`,
+      data,
+      config.instance.headers,
+    )
+    dispatch({
+      type: UPDATE_PURCHASE_REQUEST,
+      payload: res.data.data,
+    })
+    cb(res.data)
+  } catch (err) {
+    dispatch({
+      type: PURCHASE_REQUEST_ERROR,
+      payload: {
+        msg: err.response.statusText,
+        status: err.response.status,
+      },
+    })
+    cb({
+      success: false,
+      message: err.message,
+    })
+  }
+}
