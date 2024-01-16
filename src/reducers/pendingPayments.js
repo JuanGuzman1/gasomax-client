@@ -1,4 +1,8 @@
-import { GET_PENDING_PAYMENTS, PENDING_PAYMENTS_ERROR } from 'src/actions/types'
+import {
+  GET_PENDING_PAYMENTS,
+  GET_BALANCE_PAYMENTS,
+  PENDING_PAYMENTS_ERROR,
+} from 'src/actions/types'
 
 const initialState = {
   pendingPayments: {
@@ -8,6 +12,8 @@ const initialState = {
   filters: {},
   loading: true,
   error: {},
+  balance: [],
+  loadingBalance: true,
 }
 
 // eslint-disable-next-line import/no-anonymous-default-export
@@ -20,6 +26,12 @@ export default function (state = initialState, action) {
         ...state,
         pendingPayments: payload,
         loading: false,
+      }
+    case GET_BALANCE_PAYMENTS:
+      return {
+        ...state,
+        balance: payload,
+        loadingBalance: false,
       }
     case PENDING_PAYMENTS_ERROR:
       return {
