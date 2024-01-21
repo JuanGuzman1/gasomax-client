@@ -6,6 +6,9 @@ export const getBanks = (page, filter, value) => async (dispatch) => {
   try {
     const res = await axios.get(
       `${config.instance.baseURL}/api/bank?${filter}=${value}&page=${page}`,
+      {
+        headers: config.instance.headers,
+      },
     )
     dispatch({
       type: GET_BANKS,
@@ -24,11 +27,9 @@ export const getBanks = (page, filter, value) => async (dispatch) => {
 
 export const addBank = (data, cb) => async (dispatch) => {
   try {
-    const res = await axios.post(
-      `${config.instance.baseURL}/api/bank`,
-      data,
-      config.instance.headers,
-    )
+    const res = await axios.post(`${config.instance.baseURL}/api/bank`, data, {
+      headers: config.instance.headers,
+    })
     dispatch({
       type: ADD_BANK,
       payload: res.data.data,
@@ -51,11 +52,9 @@ export const addBank = (data, cb) => async (dispatch) => {
 
 export const updateBank = (data, id, cb) => async (dispatch) => {
   try {
-    const res = await axios.put(
-      `${config.instance.baseURL}/api/bank/${id}`,
-      data,
-      config.instance.headers,
-    )
+    const res = await axios.put(`${config.instance.baseURL}/api/bank/${id}`, data, {
+      headers: config.instance.headers,
+    })
     dispatch({
       type: UPDATE_BANK,
       payload: res.data.data,
@@ -78,10 +77,9 @@ export const updateBank = (data, id, cb) => async (dispatch) => {
 
 export const deleteBank = (id, cb) => async (dispatch) => {
   try {
-    const res = await axios.delete(
-      `${config.instance.baseURL}/api/bank/${id}`,
-      config.instance.headers,
-    )
+    const res = await axios.delete(`${config.instance.baseURL}/api/bank/${id}`, {
+      headers: config.instance.headers,
+    })
     dispatch({
       type: DELETE_BANK,
       payload: id,
@@ -104,7 +102,9 @@ export const deleteBank = (id, cb) => async (dispatch) => {
 
 export const selectBanks = () => async (dispatch) => {
   try {
-    const res = await axios.get(`${config.instance.baseURL}/api/select/bank`)
+    const res = await axios.get(`${config.instance.baseURL}/api/select/bank`, {
+      headers: config.instance.headers,
+    })
     dispatch({
       type: SELECT_BANKS,
       payload: res.data,

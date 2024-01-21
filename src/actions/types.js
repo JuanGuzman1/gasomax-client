@@ -1,3 +1,16 @@
+//authentication
+export const LOGIN = 'LOGIN'
+export const LOGOUT = 'LOGOUT'
+export const AUTH_ERROR = 'AUTH_ERROR'
+
+// departments
+export const GET_DEPARTMENTS = 'GET_DEPARTMENTS'
+export const ADD_DEPARTMENT = 'ADD_DEPARTMENT'
+export const UPDATE_DEPARTMENT = 'UPDATE_DEPARTMENT'
+export const DELETE_DEPARTMENT = 'DELETE_DEPARTMENT'
+export const DEPARTMENT_ERROR = 'DEPARTMENT_ERROR'
+export const SELECT_DEPARTMENTS = 'SELECT_DEPARTMENTS'
+
 // banks
 export const GET_BANKS = 'GET_BANKS'
 export const GET_BANK = 'GET_BANK'

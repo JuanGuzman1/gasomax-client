@@ -14,6 +14,9 @@ export const getProviders = (page, filter, value) => async (dispatch) => {
   try {
     const res = await axios.get(
       `${config.instance.baseURL}/api/provider?${filter}=${value}&page=${page}`,
+      {
+        headers: config.instance.headers,
+      },
     )
     dispatch({
       type: GET_PROVIDERS,
@@ -32,11 +35,9 @@ export const getProviders = (page, filter, value) => async (dispatch) => {
 
 export const addProvider = (data, cb) => async (dispatch) => {
   try {
-    const res = await axios.post(
-      `${config.instance.baseURL}/api/provider`,
-      data,
-      config.instance.headers,
-    )
+    const res = await axios.post(`${config.instance.baseURL}/api/provider`, data, {
+      headers: config.instance.headers,
+    })
     dispatch({
       type: ADD_PROVIDER,
       payload: res.data.data,
@@ -59,11 +60,9 @@ export const addProvider = (data, cb) => async (dispatch) => {
 
 export const updateProvider = (data, id, cb) => async (dispatch) => {
   try {
-    const res = await axios.put(
-      `${config.instance.baseURL}/api/provider/${id}`,
-      data,
-      config.instance.headers,
-    )
+    const res = await axios.put(`${config.instance.baseURL}/api/provider/${id}`, data, {
+      headers: config.instance.headers,
+    })
     dispatch({
       type: UPDATE_PROVIDER,
       payload: res.data.data,
@@ -86,10 +85,9 @@ export const updateProvider = (data, id, cb) => async (dispatch) => {
 
 export const deleteProvider = (id, cb) => async (dispatch) => {
   try {
-    const res = await axios.delete(
-      `${config.instance.baseURL}/api/provider/${id}`,
-      config.instance.headers,
-    )
+    const res = await axios.delete(`${config.instance.baseURL}/api/provider/${id}`, {
+      headers: config.instance.headers,
+    })
     dispatch({
       type: DELETE_PROVIDER,
       payload: id,
@@ -147,7 +145,9 @@ export const exportProviderExcel = (filter, value) => async (dispatch) => {
 
 export const selectProviders = () => async (dispatch) => {
   try {
-    const res = await axios.get(`${config.instance.baseURL}/api/select/provider`)
+    const res = await axios.get(`${config.instance.baseURL}/api/select/provider`, {
+      headers: config.instance.headers,
+    })
     dispatch({
       type: SELECT_PROVIDERS,
       payload: res.data,

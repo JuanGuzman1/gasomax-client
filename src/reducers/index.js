@@ -1,4 +1,6 @@
 import { combineReducers } from 'redux'
+import auth from './auth'
+import department from './department'
 import provider from './provider'
 import sidebar from './sidebar'
 import toast from './toast'
@@ -8,6 +10,8 @@ import purchaseRequest from './purchaseRequest'
 import pendingPayments from './pendingPayments'
 
 export default combineReducers({
+  auth,
+  department,
   provider,
   sidebar,
   toast,

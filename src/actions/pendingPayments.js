@@ -7,6 +7,7 @@ export const getPendingPayments = (page, filter, value) => async (dispatch) => {
     const userId = 1
     const res = await axios.get(
       `${config.instance.baseURL}/api/pending/purchaseRequest?user_id=${userId}&${filter}=${value}&page=${page}`,
+      { headers: config.instance.headers },
     )
     dispatch({
       type: GET_PENDING_PAYMENTS,
@@ -27,6 +28,9 @@ export const getBalancePayments = (id) => async (dispatch) => {
   try {
     const res = await axios.get(
       `${config.instance.baseURL}/api/balance/purchaseRequestDetail/${id}`,
+      {
+        headers: config.instance.headers,
+      },
     )
     dispatch({
       type: GET_BALANCE_PAYMENTS,

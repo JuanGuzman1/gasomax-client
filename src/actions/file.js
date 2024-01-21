@@ -84,14 +84,15 @@ export const downloadFile = (id) => async (dispatch) => {
 
 export const deleteFile = (id, cb) => async (dispatch) => {
   try {
-    await axios.delete(`${config.instance.baseURL}/api/file/${id}`)
+    await axios.delete(`${config.instance.baseURL}/api/file/${id}`, {
+      headers: config.instance.headers,
+    })
     dispatch({
       type: DELETE_FILE,
     })
     cb()
     dispatch(setToast(AppToast({ msg: 'Archivo eliminado correctamente.', title: 'Archivos' })))
   } catch (err) {
-    console.log(err)
     dispatch({
       type: FILE_ERROR,
       payload: {
@@ -105,7 +106,9 @@ export const deleteFile = (id, cb) => async (dispatch) => {
 
 export const deleteFilesByModel = (model_id, model_type) => async (dispatch) => {
   try {
-    await axios.delete(`${config.instance.baseURL}/api/${model_id}/${model_type}/destroy/files`)
+    await axios.delete(`${config.instance.baseURL}/api/${model_id}/${model_type}/destroy/files`, {
+      headers: config.instance.headers,
+    })
     dispatch({
       type: DELETE_FILE,
     })

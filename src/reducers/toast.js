@@ -7,7 +7,7 @@ export default function (state = initialState, action) {
   const { type, payload } = action
   switch (type) {
     case 'set':
-      return { ...state, ToastComponent: payload }
+      return { ToastComponent: payload }
     default:
       return state
   }

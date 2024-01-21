@@ -75,7 +75,6 @@ const Banks = () => {
                   value={filterValue}
                   onChange={(e) => setFilterValue(e.target.value)}
                   type="text"
-                  id="provider"
                   placeholder="Ingresar texto"
                 />
               </div>
