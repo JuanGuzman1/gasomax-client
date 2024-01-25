@@ -12,6 +12,7 @@ import {
   CInputGroup,
   CInputGroupText,
   CRow,
+  CPopover,
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilLockLocked, cilUser } from '@coreui/icons'
@@ -91,10 +92,14 @@ const Login = () => {
                           Entrar
                         </CButton>
                       </CCol>
-                      <CCol xs={6} className="text-right">
-                        <CButton color="link" className="px-0">
-                          ¿Olvidaste tu contraseña?
-                        </CButton>
+                      <CCol xs={6}>
+                        <CPopover
+                          title="¿Olvidaste tu contraseña?"
+                          content="Contacta con un administrador del sistema directamente."
+                          placement="right"
+                        >
+                          <CButton color="link">¿Olvidaste tu contraseña?</CButton>
+                        </CPopover>
                       </CCol>
                     </CRow>
                   </CForm>

@@ -2,6 +2,7 @@
 export const LOGIN = 'LOGIN'
 export const LOGOUT = 'LOGOUT'
 export const AUTH_ERROR = 'AUTH_ERROR'
+export const GET_USER = 'GET_USER'
 
 // departments
 export const GET_DEPARTMENTS = 'GET_DEPARTMENTS'
@@ -55,3 +56,11 @@ export const UPLOAD_FILE_PROGRESS = 'UPLOAD_FILE_PROGRESS'
 export const UPDATE_FILE = 'UPDATE_FILE'
 export const DELETE_FILE = 'DELETE_FILE'
 export const FILE_ERROR = 'FILE_ERROR'
+
+// users
+export const GET_USERS = 'GET_USERS'
+export const ADD_USER = 'ADD_USER'
+export const UPDATE_USER = 'UPDATE_USER'
+export const DELETE_USER = 'DELETE_USER'
+export const ASSIGN_MODULE_USER = 'ASSIGN_MODULE_USER'
+export const USER_ERROR = 'USER_ERROR'

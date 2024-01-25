@@ -12,6 +12,7 @@ import {
   cilPuzzle,
   cilSpeedometer,
   cilStar,
+  cilPeople,
   cilWallet,
 } from '@coreui/icons'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
@@ -35,22 +36,20 @@ const _nav = [
     component: CNavGroup,
     name: 'Administración',
     to: '/administracion',
+    key: 'administration',
     icon: <CIcon icon={cilPuzzle} customClassName="nav-icon" />,
     items: [
       {
         component: CNavItem,
-        name: 'Departamentos',
-        to: '/departamentos',
-      },
-      {
-        component: CNavItem,
         name: 'Bancos',
         to: '/bancos',
+        key: 'banks',
       },
       {
         component: CNavItem,
         name: 'Proveedores',
         to: '/proveedores',
+        key: 'providers',
       },
     ],
   },
@@ -58,17 +57,41 @@ const _nav = [
     component: CNavGroup,
     name: 'Pagos',
     to: '/pagos',
+    key: 'payments',
     icon: <CIcon icon={cilWallet} customClassName="nav-icon" />,
     items: [
       {
         component: CNavItem,
         name: 'Solicitud de compra',
         to: '/pagos/solicitudes',
+        key: 'purchaseRequest',
       },
       {
         component: CNavItem,
         name: 'Pagos pendientes',
         to: '/pagos/pendientes',
+        key: 'pendingPayments',
+      },
+    ],
+  },
+  {
+    component: CNavGroup,
+    name: 'Usuarios',
+    to: '/usuarios',
+    key: 'users',
+    icon: <CIcon icon={cilPeople} customClassName="nav-icon" />,
+    items: [
+      {
+        component: CNavItem,
+        name: 'Departamentos',
+        to: '/departamentos',
+        key: 'departments',
+      },
+      {
+        component: CNavItem,
+        name: 'Usuarios',
+        to: '/usuarios',
+        key: 'users',
       },
     ],
   },

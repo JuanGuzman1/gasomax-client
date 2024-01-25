@@ -1,11 +1,13 @@
 import React from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import PropTypes from 'prop-types'
-
 import { CBadge } from '@coreui/react'
+import { useSelector } from 'react-redux'
 
 export const AppSidebarNav = ({ items }) => {
+  const modules = useSelector((state) => state.auth.modules)
   const location = useLocation()
+
   const navLink = (name, icon, badge) => {
     return (
       <>
@@ -31,11 +33,13 @@ export const AppSidebarNav = ({ items }) => {
           })}
         key={index}
         {...rest}
+        className={modules.find((m) => m.submodule === rest.key) || !rest.key ? 'd-flex' : 'd-none'}
       >
         {navLink(name, icon, badge)}
       </Component>
     )
   }
+
   const navGroup = (item, index) => {
     const { component, name, icon, to, ...rest } = item
     const Component = component

@@ -25,7 +25,7 @@ const DepartmentModalForm = ({ visible, onClose, departmentData }) => {
     [departmentID, setDepartmentID] = useState(),
     [department, setDepartment] = useState(),
     dispatch = useDispatch(),
-    loading = useSelector((state) => state.bank.loading)
+    loading = useSelector((state) => state.department.loading)
 
   const onSave = (e) => {
     e.preventDefault()

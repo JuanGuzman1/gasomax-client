@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { LOGIN, AUTH_ERROR, LOGOUT } from './types'
+import { LOGIN, AUTH_ERROR, GET_USER } from './types'
 import config from 'src/server.config'
 
 export const login = (data, cb) => async (dispatch) => {
@@ -13,6 +13,7 @@ export const login = (data, cb) => async (dispatch) => {
     })
     cb(res.data)
   } catch (err) {
+    console.log(err)
     dispatch({
       type: AUTH_ERROR,
       payload: {
@@ -22,7 +23,7 @@ export const login = (data, cb) => async (dispatch) => {
     })
     cb({
       success: false,
-      message: err.message,
+      message: err.response.data.message,
     })
   }
 }
@@ -45,6 +46,26 @@ export const logout = (cb) => async (dispatch) => {
     cb({
       success: false,
       message: err.message,
+    })
+  }
+}
+
+export const getUser = () => async (dispatch) => {
+  try {
+    const res = await axios.get(`${config.instance.baseURL}/api/auth/user`, {
+      headers: config.instance.headers,
+    })
+    dispatch({
+      type: GET_USER,
+      payload: res.data.data,
+    })
+  } catch (err) {
+    dispatch({
+      type: AUTH_ERROR,
+      payload: {
+        msg: err.response.statusText,
+        status: err.response.status,
+      },
     })
   }
 }

@@ -10,6 +10,7 @@ import {
 const initialState = {
   departments: {
     data: [],
+    current_page: 1,
   },
   loading: true,
   error: {},

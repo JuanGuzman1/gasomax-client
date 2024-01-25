@@ -1,7 +1,16 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { AppContent, AppSidebar, AppFooter, AppHeader } from '../components/app/index'
+import { useDispatch, useSelector } from 'react-redux'
+import { getUser } from 'src/actions/auth'
 
 const DefaultLayout = () => {
+  const dispatch = useDispatch()
+  const user = useSelector((state) => state.auth.user)
+
+  useEffect(() => {
+    dispatch(getUser())
+  }, [dispatch])
+
   return (
     <div>
       <AppSidebar />

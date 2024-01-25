@@ -12,13 +12,12 @@ import {
   CSpinner,
 } from '@coreui/react'
 import { useDispatch, useSelector } from 'react-redux'
-import BankModalForm from 'src/components/administration/bank/BankModalForm'
 import CIcon from '@coreui/icons-react'
 import { cilPlus } from '@coreui/icons'
 import { AppPagination } from 'src/components/app'
 import { getDepartments } from 'src/actions/department'
-import DepartmentTable from 'src/components/administration/department/DepartmentTable'
-import DepartmentModalForm from 'src/components/administration/department/DepartmentModalForm'
+import DepartmentTable from 'src/components/users/departments/DepartmentTable'
+import DepartmentModalForm from 'src/components/users/departments/DepartmentModalForm'
 
 const Departments = () => {
   const [visible, setVisible] = useState(false),
