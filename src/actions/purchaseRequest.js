@@ -15,7 +15,12 @@ export const getPurchaseRequests = (page, filter, value) => async (dispatch) => 
   try {
     const res = await axios.get(
       `${config.instance.baseURL}/api/purchaseRequest?${filter}=${value}&page=${page}`,
-      { headers: config.instance.headers },
+      {
+        headers: {
+          ...config.instance.headers,
+          Authorization: 'Bearer ' + localStorage.getItem('token'),
+        },
+      },
     )
     dispatch({
       type: GET_PURCHASE_REQUESTS,
@@ -35,7 +40,10 @@ export const getPurchaseRequests = (page, filter, value) => async (dispatch) => 
 export const addPurchaseRequest = (data, cb) => async (dispatch) => {
   try {
     const res = await axios.post(`${config.instance.baseURL}/api/purchaseRequest`, data, {
-      headers: config.instance.headers,
+      headers: {
+        ...config.instance.headers,
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
     })
     dispatch({
       type: ADD_PURCHASE_REQUEST,
@@ -60,7 +68,10 @@ export const addPurchaseRequest = (data, cb) => async (dispatch) => {
 export const updatePurchaseRequest = (data, id, cb) => async (dispatch) => {
   try {
     const res = await axios.put(`${config.instance.baseURL}/api/purchaseRequest/${id}`, data, {
-      headers: config.instance.headers,
+      headers: {
+        ...config.instance.headers,
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
     })
     dispatch({
       type: UPDATE_PURCHASE_REQUEST,
@@ -85,7 +96,10 @@ export const updatePurchaseRequest = (data, id, cb) => async (dispatch) => {
 export const deletePurchaseRequest = (id, cb) => async (dispatch) => {
   try {
     const res = await axios.delete(`${config.instance.baseURL}/api/purchaseRequest/${id}`, {
-      headers: config.instance.headers,
+      headers: {
+        ...config.instance.headers,
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
     })
     dispatch({
       type: DELETE_PURCHASE_REQUEST,
@@ -111,7 +125,12 @@ export const getPurchaseRequestObservations = (id) => async (dispatch) => {
   try {
     const res = await axios.get(
       `${config.instance.baseURL}/api/purchaseRequestObservation?purchase_request_id=${id}`,
-      { headers: config.instance.headers },
+      {
+        headers: {
+          ...config.instance.headers,
+          Authorization: 'Bearer ' + localStorage.getItem('token'),
+        },
+      },
     )
     dispatch({
       type: GET_PURCHASE_REQUEST_OBSERVATIONS,
@@ -133,7 +152,12 @@ export const addPurchaseRequestObservation = (data, cb) => async (dispatch) => {
     const res = await axios.post(
       `${config.instance.baseURL}/api/purchaseRequestObservation`,
       data,
-      { headers: config.instance.headers },
+      {
+        headers: {
+          ...config.instance.headers,
+          Authorization: 'Bearer ' + localStorage.getItem('token'),
+        },
+      },
     )
     dispatch({
       type: ADD_PURCHASE_REQUEST_OBSERVATION,
@@ -158,7 +182,10 @@ export const addPurchaseRequestObservation = (data, cb) => async (dispatch) => {
 export const getPurchaseRequestPDF = (id) => async (dispatch) => {
   try {
     const res = await axios.get(`${config.instance.baseURL}/api/pdf/purchaseRequest/export/${id}`, {
-      headers: config.instance.headersFormData,
+      headers: {
+        ...config.instance.headersFormData,
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
       responseType: 'blob',
     })
     const url = window.URL.createObjectURL(res.data)
@@ -178,7 +205,12 @@ export const getPendingPaymentsByProvider = (id) => async (dispatch) => {
   try {
     const res = await axios.get(
       `${config.instance.baseURL}/api/pending/details/purchaseRequest?provider_id=${id}`,
-      { headers: config.instance.headers },
+      {
+        headers: {
+          ...config.instance.headers,
+          Authorization: 'Bearer ' + localStorage.getItem('token'),
+        },
+      },
     )
     dispatch({
       type: GET_PP_PURCHASE_REQUEST_PROVIDER,
@@ -200,7 +232,12 @@ export const rejectPurchaseRequest = (data, id, cb) => async (dispatch) => {
     const res = await axios.put(
       `${config.instance.baseURL}/api/reject/purchaseRequest/${id}`,
       data,
-      { headers: config.instance.headers },
+      {
+        headers: {
+          ...config.instance.headers,
+          Authorization: 'Bearer ' + localStorage.getItem('token'),
+        },
+      },
     )
     dispatch({
       type: UPDATE_PURCHASE_REQUEST,
@@ -227,7 +264,12 @@ export const approvePurchaseRequest = (data, id, cb) => async (dispatch) => {
     const res = await axios.put(
       `${config.instance.baseURL}/api/approve/purchaseRequest/${id}`,
       data,
-      { headers: config.instance.headers },
+      {
+        headers: {
+          ...config.instance.headers,
+          Authorization: 'Bearer ' + localStorage.getItem('token'),
+        },
+      },
     )
     dispatch({
       type: UPDATE_PURCHASE_REQUEST,

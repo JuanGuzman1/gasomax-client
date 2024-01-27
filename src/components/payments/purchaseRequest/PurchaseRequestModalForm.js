@@ -681,6 +681,11 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
                 Autorizar
               </CButton>
             )}
+            {purchaseData.status === 'approved' && (
+              <CButton color="info" className="text-light fw-semibold">
+                Pagar
+              </CButton>
+            )}
             <CButton color="danger" className="text-light fw-semibold" onClick={onReject}>
               Rechazar
             </CButton>

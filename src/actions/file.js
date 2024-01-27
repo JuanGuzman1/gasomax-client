@@ -12,7 +12,10 @@ export const uploadFile = (file, tag, model_id, model_type, cb) => async (dispat
     formData.append('fileable_id', model_id)
     formData.append('fileable_type', model_type)
     const res = await axios.post(`${config.instance.baseURL}/api/file`, formData, {
-      headers: config.instance.headersFormData,
+      headers: {
+        ...config.instance.headersFormData,
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
       onUploadProgress: (progressEvent) => {
         const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
         dispatch({
@@ -45,7 +48,10 @@ export const uploadFile = (file, tag, model_id, model_type, cb) => async (dispat
 export const downloadFile = (id) => async (dispatch) => {
   try {
     const res = await axios.get(`${config.instance.baseURL}/api/download/${id}`, {
-      headers: config.instance.headers,
+      headers: {
+        ...config.instance.headers,
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
       responseType: 'blob',
     })
     const url = window.URL.createObjectURL(new Blob([res.data]))
@@ -85,7 +91,10 @@ export const downloadFile = (id) => async (dispatch) => {
 export const deleteFile = (id, cb) => async (dispatch) => {
   try {
     await axios.delete(`${config.instance.baseURL}/api/file/${id}`, {
-      headers: config.instance.headers,
+      headers: {
+        ...config.instance.headers,
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
     })
     dispatch({
       type: DELETE_FILE,
@@ -107,7 +116,10 @@ export const deleteFile = (id, cb) => async (dispatch) => {
 export const deleteFilesByModel = (model_id, model_type) => async (dispatch) => {
   try {
     await axios.delete(`${config.instance.baseURL}/api/${model_id}/${model_type}/destroy/files`, {
-      headers: config.instance.headers,
+      headers: {
+        ...config.instance.headers,
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
     })
     dispatch({
       type: DELETE_FILE,

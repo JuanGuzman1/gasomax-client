@@ -37,9 +37,10 @@ const AppHeaderDropdown = () => {
     dispatch(
       logout((logoutRes) => {
         if (logoutRes.success) {
+          localStorage.removeItem('token')
+          localStorage.clear()
           navigate('/login')
           dispatch(setToast(AppToast({ msg: logoutRes.message, type: 'success' })))
-          localStorage.removeItem('token')
           dispatch({
             type: LOGOUT,
             payload: logoutRes.data,

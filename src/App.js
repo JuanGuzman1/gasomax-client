@@ -28,6 +28,7 @@ class App extends Component {
   render() {
     let Toast = this.props.Toast
     let User = this.props.User
+
     return (
       <BrowserRouter>
         <Suspense fallback={loading}>

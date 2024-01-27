@@ -36,7 +36,7 @@ const PendingPaymentsModalBalance = ({ visible, onClose, purchaseRequestDetailID
     if (!balance) {
       return
     }
-    setTotalAmount(balance.find((b) => !b.purchase_detail_pending_id).totalAmount)
+    setTotalAmount(balance.find((b) => !b.purchase_detail_pending_id)?.totalAmount)
   }, [balance])
 
   return (
@@ -58,9 +58,9 @@ const PendingPaymentsModalBalance = ({ visible, onClose, purchaseRequestDetailID
               </div>
               <div className="mb-3">
                 <p>Importe total</p>
-                <p id="totalAmount" className="fw-bold text-primary">
+                <h5 id="totalAmount" className="fw-bold text-primary">
                   ${formatNumber(totalAmount)}
-                </p>
+                </h5>
                 {/* <CFormInput type="number" id="totalAmount" value={totalAmount} disabled /> */}
               </div>
             </CForm>
@@ -85,7 +85,7 @@ const PendingPaymentsModalBalance = ({ visible, onClose, purchaseRequestDetailID
                     <CTableDataCell>${formatNumber(balance.paymentAmount)}</CTableDataCell>
                     <CTableDataCell>
                       {balance.balance <= 0
-                        ? '$' + formatNumber(balance.totalAmount - balance.paymentAmount)
+                        ? '$' + formatNumber(balance?.totalAmount - balance?.paymentAmount)
                         : '$' + formatNumber(balance.balance)}
                     </CTableDataCell>
                   </CTableRow>

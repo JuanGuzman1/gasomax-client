@@ -24,8 +24,8 @@ import { setToast } from 'src/actions/toast'
 import { AppToast } from 'src/components/app'
 
 const Login = () => {
-  const [email, setEmail] = useState(),
-    [password, setPassword] = useState(),
+  const [email, setEmail] = useState(''),
+    [password, setPassword] = useState(''),
     dispatch = useDispatch(),
     navigate = useNavigate()
 
@@ -34,7 +34,6 @@ const Login = () => {
     dispatch(
       login({ email, password }, (loginRes) => {
         if (loginRes.success) {
-          localStorage.setItem('token', loginRes.data.access_token)
           dispatch(setToast(AppToast({ msg: loginRes.message, type: 'success' })))
           navigate('/dashboard')
         } else {
@@ -80,7 +79,7 @@ const Login = () => {
                       </CInputGroupText>
                       <CFormInput
                         type="password"
-                        placeholder="Contraseñas "
+                        placeholder="Contraseña"
                         autoComplete="contraseña"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}

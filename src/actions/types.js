@@ -64,3 +64,7 @@ export const UPDATE_USER = 'UPDATE_USER'
 export const DELETE_USER = 'DELETE_USER'
 export const ASSIGN_MODULE_USER = 'ASSIGN_MODULE_USER'
 export const USER_ERROR = 'USER_ERROR'
+
+// permissions
+export const GET_PERMISSIONS = 'GET_PERMISSIONS'
+export const PERMISSION_ERROR = 'PERMISSION_ERROR'

@@ -14,7 +14,10 @@ export const getDepartments = (page, filter, value) => async (dispatch) => {
     const res = await axios.get(
       `${config.instance.baseURL}/api/department?${filter}=${value}&page=${page}`,
       {
-        headers: config.instance.headers,
+        headers: {
+          ...config.instance.headers,
+          Authorization: 'Bearer ' + localStorage.getItem('token'),
+        },
       },
     )
     dispatch({
@@ -35,7 +38,10 @@ export const getDepartments = (page, filter, value) => async (dispatch) => {
 export const addDepartment = (data, cb) => async (dispatch) => {
   try {
     const res = await axios.post(`${config.instance.baseURL}/api/department`, data, {
-      headers: config.instance.headers,
+      headers: {
+        ...config.instance.headers,
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
     })
     dispatch({
       type: ADD_DEPARTMENT,
@@ -60,7 +66,10 @@ export const addDepartment = (data, cb) => async (dispatch) => {
 export const updateDepartment = (data, id, cb) => async (dispatch) => {
   try {
     const res = await axios.put(`${config.instance.baseURL}/api/department/${id}`, data, {
-      headers: config.instance.headers,
+      headers: {
+        ...config.instance.headers,
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
     })
     dispatch({
       type: UPDATE_DEPARTMENT,
@@ -85,7 +94,10 @@ export const updateDepartment = (data, id, cb) => async (dispatch) => {
 export const deleteDepartment = (id, cb) => async (dispatch) => {
   try {
     const res = await axios.delete(`${config.instance.baseURL}/api/department/${id}`, {
-      headers: config.instance.headers,
+      headers: {
+        ...config.instance.headers,
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
     })
     dispatch({
       type: DELETE_DEPARTMENT,
@@ -110,7 +122,10 @@ export const deleteDepartment = (id, cb) => async (dispatch) => {
 export const selectDepartments = () => async (dispatch) => {
   try {
     const res = await axios.get(`${config.instance.baseURL}/api/select/department`, {
-      headers: config.instance.headers,
+      headers: {
+        ...config.instance.headers,
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
     })
     dispatch({
       type: SELECT_DEPARTMENTS,

@@ -5,15 +5,15 @@ import config from 'src/server.config'
 export const login = (data, cb) => async (dispatch) => {
   try {
     const res = await axios.post(`${config.instance.baseURL}/api/login`, data, {
-      headers: config.instance.headers,
+      headers: { ...config.instance.headers, Authorization: null },
     })
+    localStorage.setItem('token', res.data.data.access_token)
     dispatch({
       type: LOGIN,
       payload: res.data,
     })
     cb(res.data)
   } catch (err) {
-    console.log(err)
     dispatch({
       type: AUTH_ERROR,
       payload: {
@@ -31,7 +31,10 @@ export const login = (data, cb) => async (dispatch) => {
 export const logout = (cb) => async (dispatch) => {
   try {
     const res = await axios.post(`${config.instance.baseURL}/api/logout`, null, {
-      headers: config.instance.headers,
+      headers: {
+        ...config.instance.headers,
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
     })
 
     cb(res.data)
@@ -53,7 +56,10 @@ export const logout = (cb) => async (dispatch) => {
 export const getUser = () => async (dispatch) => {
   try {
     const res = await axios.get(`${config.instance.baseURL}/api/auth/user`, {
-      headers: config.instance.headers,
+      headers: {
+        ...config.instance.headers,
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
     })
     dispatch({
       type: GET_USER,

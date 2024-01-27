@@ -15,7 +15,7 @@ export default function (state = initialState, action) {
       return {
         ...state,
         user: payload,
-        modules: payload.modules.map((m) => ({
+        modules: payload?.data?.user?.modules?.map((m) => ({
           module: m.module.module,
           submodule: m.module.submodule,
         })),
@@ -31,7 +31,7 @@ export default function (state = initialState, action) {
       return {
         ...state,
         user: { data: { user: payload } },
-        modules: payload.modules.map((m) => ({
+        modules: payload.modules?.map((m) => ({
           module: m.module.module,
           submodule: m.module.submodule,
         })),

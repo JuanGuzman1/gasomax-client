@@ -8,11 +8,9 @@ const config = {
     headers: {
       'Content-Type': 'application/json',
       Accept: 'application/json',
-      Authorization: 'Bearer ' + localStorage.getItem('token'),
     },
     headersFormData: {
       'Content-Type': 'multipart/form-data',
-      Authorization: 'Bearer ' + localStorage.getItem('token'),
     },
   },
 }

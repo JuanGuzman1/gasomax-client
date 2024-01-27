@@ -32,3 +32,15 @@ export const statusPurchaseRequestColors = {
   paid: 'info',
   rejected: 'danger',
 }
+
+export const permissions = {
+  index: 'Lectura',
+  create: 'Crear',
+  edit: 'Editar',
+  delete: 'Eliminar',
+  reject: 'Rechazar',
+  pay: 'Pagar',
+  authorize: 'Autorizar',
+  modules: 'Asignar modulos',
+  permissions: 'Asignar permisos',
+}

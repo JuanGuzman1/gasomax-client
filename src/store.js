@@ -8,7 +8,7 @@ const initialState = {}
 const persistConfig = {
   key: 'root',
   storage,
-  blacklist: ['toast'],
+  whitelist: ['auth'],
 }
 const persistedReducer = persistReducer(persistConfig, rootReducer)
 export const store = createStore(persistedReducer, initialState, applyMiddleware(thunk))

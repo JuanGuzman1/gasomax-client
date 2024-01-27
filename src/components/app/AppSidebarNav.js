@@ -33,7 +33,9 @@ export const AppSidebarNav = ({ items }) => {
           })}
         key={index}
         {...rest}
-        className={modules.find((m) => m.submodule === rest.key) || !rest.key ? 'd-flex' : 'd-none'}
+        className={
+          modules?.find((m) => m.submodule === rest.key) || !rest.key ? 'd-flex' : 'd-none'
+        }
       >
         {navLink(name, icon, badge)}
       </Component>
@@ -50,6 +52,7 @@ export const AppSidebarNav = ({ items }) => {
         toggler={navLink(name, icon)}
         visible={location.pathname.startsWith(to)}
         {...rest}
+        className={modules?.find((m) => m.module === rest.key) || !rest.key ? 'd-inline' : 'd-none'}
       >
         {item.items?.map((item, index) =>
           item.items ? navGroup(item, index) : navItem(item, index),

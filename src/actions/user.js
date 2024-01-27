@@ -1,7 +1,6 @@
 import axios from 'axios'
 import {
   GET_USERS,
-  GET_USER,
   ADD_USER,
   UPDATE_USER,
   DELETE_USER,
@@ -15,7 +14,10 @@ export const getUsers = (page, filter, value) => async (dispatch) => {
     const res = await axios.get(
       `${config.instance.baseURL}/api/user?${filter}=${value}&page=${page}`,
       {
-        headers: config.instance.headers,
+        headers: {
+          ...config.instance.headers,
+          Authorization: 'Bearer ' + localStorage.getItem('token'),
+        },
       },
     )
     dispatch({
@@ -36,7 +38,10 @@ export const getUsers = (page, filter, value) => async (dispatch) => {
 export const addUser = (data, cb) => async (dispatch) => {
   try {
     const res = await axios.post(`${config.instance.baseURL}/api/user`, data, {
-      headers: config.instance.headers,
+      headers: {
+        ...config.instance.headers,
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
     })
     dispatch({
       type: ADD_USER,
@@ -61,7 +66,10 @@ export const addUser = (data, cb) => async (dispatch) => {
 export const updateUser = (data, id, cb) => async (dispatch) => {
   try {
     const res = await axios.put(`${config.instance.baseURL}/api/user/${id}`, data, {
-      headers: config.instance.headers,
+      headers: {
+        ...config.instance.headers,
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
     })
     dispatch({
       type: UPDATE_USER,
@@ -86,7 +94,10 @@ export const updateUser = (data, id, cb) => async (dispatch) => {
 export const deleteUser = (id, cb) => async (dispatch) => {
   try {
     const res = await axios.delete(`${config.instance.baseURL}/api/user/${id}`, {
-      headers: config.instance.headers,
+      headers: {
+        ...config.instance.headers,
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
     })
     dispatch({
       type: DELETE_USER,
@@ -111,7 +122,10 @@ export const deleteUser = (id, cb) => async (dispatch) => {
 export const assignModules = (data, cb) => async (dispatch) => {
   try {
     const res = await axios.post(`${config.instance.baseURL}/api/assign/module`, data, {
-      headers: config.instance.headers,
+      headers: {
+        ...config.instance.headers,
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
     })
     dispatch({
       type: ASSIGN_MODULE_USER,

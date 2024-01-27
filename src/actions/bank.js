@@ -7,7 +7,10 @@ export const getBanks = (page, filter, value) => async (dispatch) => {
     const res = await axios.get(
       `${config.instance.baseURL}/api/bank?${filter}=${value}&page=${page}`,
       {
-        headers: config.instance.headers,
+        headers: {
+          ...config.instance.headers,
+          Authorization: 'Bearer ' + localStorage.getItem('token'),
+        },
       },
     )
     dispatch({
@@ -28,7 +31,10 @@ export const getBanks = (page, filter, value) => async (dispatch) => {
 export const addBank = (data, cb) => async (dispatch) => {
   try {
     const res = await axios.post(`${config.instance.baseURL}/api/bank`, data, {
-      headers: config.instance.headers,
+      headers: {
+        ...config.instance.headers,
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
     })
     dispatch({
       type: ADD_BANK,
@@ -53,7 +59,10 @@ export const addBank = (data, cb) => async (dispatch) => {
 export const updateBank = (data, id, cb) => async (dispatch) => {
   try {
     const res = await axios.put(`${config.instance.baseURL}/api/bank/${id}`, data, {
-      headers: config.instance.headers,
+      headers: {
+        ...config.instance.headers,
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
     })
     dispatch({
       type: UPDATE_BANK,
@@ -78,7 +87,10 @@ export const updateBank = (data, id, cb) => async (dispatch) => {
 export const deleteBank = (id, cb) => async (dispatch) => {
   try {
     const res = await axios.delete(`${config.instance.baseURL}/api/bank/${id}`, {
-      headers: config.instance.headers,
+      headers: {
+        ...config.instance.headers,
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
     })
     dispatch({
       type: DELETE_BANK,
@@ -103,7 +115,10 @@ export const deleteBank = (id, cb) => async (dispatch) => {
 export const selectBanks = () => async (dispatch) => {
   try {
     const res = await axios.get(`${config.instance.baseURL}/api/select/bank`, {
-      headers: config.instance.headers,
+      headers: {
+        ...config.instance.headers,
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
     })
     dispatch({
       type: SELECT_BANKS,
