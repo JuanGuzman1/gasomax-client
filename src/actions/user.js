@@ -5,6 +5,7 @@ import {
   UPDATE_USER,
   DELETE_USER,
   ASSIGN_MODULE_USER,
+  ASSIGN_PERMISSION_USER,
   USER_ERROR,
 } from './types'
 import config from 'src/server.config'
@@ -128,7 +129,35 @@ export const assignModules = (data, cb) => async (dispatch) => {
       },
     })
     dispatch({
-      type: ASSIGN_MODULE_USER,
+      type: UPDATE_USER,
+      payload: res.data.data,
+    })
+    cb(res.data)
+  } catch (err) {
+    dispatch({
+      type: USER_ERROR,
+      payload: {
+        msg: err.response.statusText,
+        status: err.response.status,
+      },
+    })
+    cb({
+      success: false,
+      message: err.message,
+    })
+  }
+}
+
+export const assignPermissions = (data, cb) => async (dispatch) => {
+  try {
+    const res = await axios.post(`${config.instance.baseURL}/api/assign/permission`, data, {
+      headers: {
+        ...config.instance.headers,
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
+    })
+    dispatch({
+      type: UPDATE_USER,
       payload: res.data.data,
     })
     cb(res.data)

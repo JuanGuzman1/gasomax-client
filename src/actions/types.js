@@ -63,6 +63,7 @@ export const ADD_USER = 'ADD_USER'
 export const UPDATE_USER = 'UPDATE_USER'
 export const DELETE_USER = 'DELETE_USER'
 export const ASSIGN_MODULE_USER = 'ASSIGN_MODULE_USER'
+export const ASSIGN_PERMISSION_USER = 'ASSIGN_PERMISSION_USER'
 export const USER_ERROR = 'USER_ERROR'
 
 // permissions

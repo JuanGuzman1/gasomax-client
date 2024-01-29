@@ -42,15 +42,6 @@ export default function (state = initialState, action) {
         loading: false,
       }
     }
-    case ASSIGN_MODULE_USER: {
-      let index = state.users.data.findIndex((user) => user.id === payload.id)
-      state.users.data[index] = { ...state.users.data[index], ...payload }
-      return {
-        ...state,
-        users: { data: [...state.users.data] },
-        loading: false,
-      }
-    }
     case DELETE_USER:
       return {
         ...state,
