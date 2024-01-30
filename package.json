@@ -2,7 +2,6 @@
   "name": "gasomax-client",
   "version": "4.5.0",
   "description": "Gasomax client react",
-  "homepage": ".",
   "license": "MIT",
   "author": "Jose Juan Guzman",
   "scripts": {
