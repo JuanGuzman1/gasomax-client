@@ -3,7 +3,7 @@ const config = {
     baseURL:
       process.env.NODE_ENV === 'development'
         ? 'http://localhost:8000'
-        : 'https:/cms.grupoguerra.com',
+        : 'https://api-test.grupoguerramotors.com/',
     timeout: 20000,
     headers: {
       'Content-Type': 'application/json',
