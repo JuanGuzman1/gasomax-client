@@ -21,13 +21,18 @@ import { deleteUser } from 'src/actions/user'
 import UserModalForm from './UserModalForm'
 import UserModulesModalForm from './UserModulesModalForm'
 import UserPermissionsModalForm from './UserPermissionsModalForm'
+import { useHasPermission } from 'src/utils/functions'
 
 const UserTable = ({ data }) => {
   const [visible, setVisible] = useState(false),
     [visibleModules, setVisibleModules] = useState(false),
     [visiblePermissions, setVisiblePermissions] = useState(false),
     [userData, setUserData] = useState(null),
-    dispatch = useDispatch()
+    dispatch = useDispatch(),
+    hasDeletePermission = useHasPermission('users', 'delete'),
+    hasEditPermission = useHasPermission('users', 'edit'),
+    hasModulesPermission = useHasPermission('users', 'modules'),
+    hasPermissionsPermission = useHasPermission('users', 'permissions')
 
   const onDelete = (id) => {
     Swal.fire({
@@ -105,36 +110,47 @@ const UserTable = ({ data }) => {
                     <CIcon icon={cilOptions} title="Opciones" size="lg" />
                   </CDropdownToggle>
                   <CDropdownMenu className="position-fixed">
-                    <CDropdownItem
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => {
-                        setVisibleModules(!visibleModules)
-                        setUserData(user)
-                      }}
-                    >
-                      Asignar modulos
-                    </CDropdownItem>
-                    <CDropdownItem
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => {
-                        setVisiblePermissions(!visiblePermissions)
-                        setUserData(user)
-                      }}
-                    >
-                      Permisos
-                    </CDropdownItem>
-                    <CDropdownItem
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => {
-                        setVisible(!visible)
-                        setUserData(user)
-                      }}
-                    >
-                      Editar
-                    </CDropdownItem>
-                    <CDropdownItem style={{ cursor: 'pointer' }} onClick={() => onDelete(user.id)}>
-                      Eliminar
-                    </CDropdownItem>
+                    {hasModulesPermission && (
+                      <CDropdownItem
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => {
+                          setVisibleModules(!visibleModules)
+                          setUserData(user)
+                        }}
+                      >
+                        Asignar modulos
+                      </CDropdownItem>
+                    )}
+                    {hasPermissionsPermission && (
+                      <CDropdownItem
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => {
+                          setVisiblePermissions(!visiblePermissions)
+                          setUserData(user)
+                        }}
+                      >
+                        Permisos
+                      </CDropdownItem>
+                    )}
+                    {hasEditPermission && (
+                      <CDropdownItem
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => {
+                          setVisible(!visible)
+                          setUserData(user)
+                        }}
+                      >
+                        Editar
+                      </CDropdownItem>
+                    )}
+                    {hasDeletePermission && (
+                      <CDropdownItem
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => onDelete(user.id)}
+                      >
+                        Eliminar
+                      </CDropdownItem>
+                    )}
                   </CDropdownMenu>
                 </CDropdown>
               </CTableDataCell>

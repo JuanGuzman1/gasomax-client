@@ -1,4 +1,5 @@
 import { DateTime } from 'luxon'
+import { useSelector } from 'react-redux'
 
 export const formatNumber = (value) => {
   let val = (value / 1).toFixed(2)
@@ -43,4 +44,21 @@ export const permissions = {
   authorize: 'Autorizar',
   modules: 'Asignar modulos',
   permissions: 'Asignar permisos',
+}
+
+export const useHasPermission = (submodule, permission) => {
+  const userPermissions = useSelector((state) => state.auth.permissions)
+  const userModules = useSelector((state) => state.auth.modules)
+
+  const hasSubmodule = userModules.find((m) => m.submodule === submodule)
+
+  if (hasSubmodule) {
+    return userPermissions.find(
+      (p) => p.submodule === hasSubmodule.submodule && p.permission === permission,
+    )
+      ? true
+      : false
+  }
+
+  return false
 }

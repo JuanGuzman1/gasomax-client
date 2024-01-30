@@ -5,6 +5,7 @@ const initialState = {
   loading: true,
   error: {},
   modules: [],
+  permissions: [],
 }
 
 // eslint-disable-next-line import/no-anonymous-default-export
@@ -18,6 +19,10 @@ export default function (state = initialState, action) {
         modules: payload?.data?.user?.modules?.map((m) => ({
           module: m.module.module,
           submodule: m.module.submodule,
+        })),
+        permissions: payload?.data?.user?.permissions?.map((p) => ({
+          submodule: p.permission.module.module.submodule,
+          permission: p.permission.name,
         })),
         loading: false,
       }
@@ -34,6 +39,10 @@ export default function (state = initialState, action) {
         modules: payload.modules?.map((m) => ({
           module: m.module.module,
           submodule: m.module.submodule,
+        })),
+        permissions: payload.permissions?.map((p) => ({
+          submodule: p.permission.module.submodule,
+          permission: p.permission.name,
         })),
         loading: false,
       }

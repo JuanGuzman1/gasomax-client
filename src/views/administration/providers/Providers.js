@@ -19,6 +19,7 @@ import { exportProviderExcel, getProviders } from 'src/actions/provider'
 import CIcon from '@coreui/icons-react'
 import { cilPlus, cilCloudDownload } from '@coreui/icons'
 import { AppPagination } from 'src/components/app'
+import { useHasPermission } from 'src/utils/functions'
 
 const Providers = () => {
   const [visible, setVisible] = useState(false),
@@ -49,14 +50,16 @@ const Providers = () => {
         <CCardHeader className="d-flex justify-content-between align-items-center">
           <h4>Listado de Proveedores</h4>
           <div className="d-flex gap-2">
-            <CButton
-              color="primary"
-              className="text-light fw-semibold align-content-center d-flex"
-              onClick={() => setVisible(!visible)}
-            >
-              <CIcon icon={cilPlus} size="xl" className="me-1" />
-              Nuevo
-            </CButton>
+            {useHasPermission('providers', 'create') && (
+              <CButton
+                color="primary"
+                className="text-light fw-semibold align-content-center d-flex"
+                onClick={() => setVisible(!visible)}
+              >
+                <CIcon icon={cilPlus} size="xl" className="me-1" />
+                Nuevo
+              </CButton>
+            )}
             <CButton
               color="info"
               className="text-light align-content-center d-flex"

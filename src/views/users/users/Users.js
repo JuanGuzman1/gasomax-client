@@ -18,6 +18,7 @@ import { AppPagination } from 'src/components/app'
 import { getUsers } from 'src/actions/user'
 import UserTable from 'src/components/users/users/UserTable'
 import UserModalForm from 'src/components/users/users/UserModalForm'
+import { useHasPermission } from 'src/utils/functions'
 
 const Users = () => {
   const [visible, setVisible] = useState(false),
@@ -48,14 +49,16 @@ const Users = () => {
         <CCardHeader className="d-flex justify-content-between align-items-center">
           <h4>Listado de usuarios</h4>
           <div className="d-flex gap-2">
-            <CButton
-              color="primary"
-              className="text-light fw-semibold align-content-center d-flex"
-              onClick={() => setVisible(!visible)}
-            >
-              <CIcon icon={cilPlus} size="xl" className="me-1" />
-              Nuevo
-            </CButton>
+            {useHasPermission('users', 'create') && (
+              <CButton
+                color="primary"
+                className="text-light fw-semibold align-content-center d-flex"
+                onClick={() => setVisible(!visible)}
+              >
+                <CIcon icon={cilPlus} size="xl" className="me-1" />
+                Nuevo
+              </CButton>
+            )}
           </div>
         </CCardHeader>
         <CCardBody>

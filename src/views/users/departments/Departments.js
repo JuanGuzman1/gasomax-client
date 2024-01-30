@@ -18,6 +18,7 @@ import { AppPagination } from 'src/components/app'
 import { getDepartments } from 'src/actions/department'
 import DepartmentTable from 'src/components/users/departments/DepartmentTable'
 import DepartmentModalForm from 'src/components/users/departments/DepartmentModalForm'
+import { useHasPermission } from 'src/utils/functions'
 
 const Departments = () => {
   const [visible, setVisible] = useState(false),
@@ -48,14 +49,16 @@ const Departments = () => {
         <CCardHeader className="d-flex justify-content-between align-items-center">
           <h4>Listado de departamentos</h4>
           <div className="d-flex gap-2">
-            <CButton
-              color="primary"
-              className="text-light fw-semibold align-content-center d-flex"
-              onClick={() => setVisible(!visible)}
-            >
-              <CIcon icon={cilPlus} size="xl" className="me-1" />
-              Nuevo
-            </CButton>
+            {useHasPermission('departments', 'create') && (
+              <CButton
+                color="primary"
+                className="text-light fw-semibold align-content-center d-flex"
+                onClick={() => setVisible(!visible)}
+              >
+                <CIcon icon={cilPlus} size="xl" className="me-1" />
+                Nuevo
+              </CButton>
+            )}
           </div>
         </CCardHeader>
         <CCardBody>

@@ -19,6 +19,7 @@ import PurchaseRequestModalForm from 'src/components/payments/purchaseRequest/Pu
 import { useDispatch, useSelector } from 'react-redux'
 import { getPurchaseRequests } from 'src/actions/purchaseRequest'
 import { AppPagination } from 'src/components/app'
+import { useHasPermission } from 'src/utils/functions'
 
 const PurchaseRequest = () => {
   const [visible, setVisible] = useState(false),
@@ -50,14 +51,16 @@ const PurchaseRequest = () => {
         <CCardHeader className="d-flex justify-content-between align-items-center">
           <h4>Listado de solicitudes</h4>
           <div className="d-flex gap-2">
-            <CButton
-              color="primary"
-              className="text-light fw-semibold align-content-center d-flex"
-              onClick={() => setVisible(!visible)}
-            >
-              <CIcon icon={cilPlus} size="xl" className="me-1" />
-              Nuevo
-            </CButton>
+            {useHasPermission('purchaseRequest', 'create') && (
+              <CButton
+                color="primary"
+                className="text-light fw-semibold align-content-center d-flex"
+                onClick={() => setVisible(!visible)}
+              >
+                <CIcon icon={cilPlus} size="xl" className="me-1" />
+                Nuevo
+              </CButton>
+            )}
             <CButton color="info" className="text-light align-content-center d-flex">
               <CIcon icon={cilCloudDownload} size="xl" />
             </CButton>

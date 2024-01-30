@@ -26,6 +26,7 @@ import {
   formatTimezoneToDate,
   statusPurchaseRequest,
   statusPurchaseRequestColors,
+  useHasPermission,
 } from 'src/utils/functions'
 import { deletePurchaseRequest, getPurchaseRequestPDF } from 'src/actions/purchaseRequest'
 import { setToast } from 'src/actions/toast'
@@ -36,7 +37,9 @@ const PurchaseRequestTable = ({ data }) => {
     [visibleObs, setVisibleObs] = useState(false),
     [purchaseData, setPurchaseData] = useState(null),
     [viewModalMode, setViewModalMode] = useState(false),
-    dispatch = useDispatch()
+    dispatch = useDispatch(),
+    hasDeletePermission = useHasPermission('purchaseRequest', 'delete'),
+    hasEditPermission = useHasPermission('purchaseRequest', 'edit')
 
   const onDelete = (id) => {
     Swal.fire({
@@ -131,18 +134,22 @@ const PurchaseRequestTable = ({ data }) => {
                     >
                       Ver solicitud
                     </CDropdownItem>
-                    <CDropdownItem
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => {
-                        setPurchaseData(pr)
-                        setVisible(!visible)
-                      }}
-                    >
-                      Editar
-                    </CDropdownItem>
-                    <CDropdownItem style={{ cursor: 'pointer' }} onClick={() => onDelete(pr.id)}>
-                      Eliminar
-                    </CDropdownItem>
+                    {hasEditPermission && (
+                      <CDropdownItem
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => {
+                          setPurchaseData(pr)
+                          setVisible(!visible)
+                        }}
+                      >
+                        Editar
+                      </CDropdownItem>
+                    )}
+                    {hasDeletePermission && (
+                      <CDropdownItem style={{ cursor: 'pointer' }} onClick={() => onDelete(pr.id)}>
+                        Eliminar
+                      </CDropdownItem>
+                    )}
                     <CDropdownItem
                       style={{ cursor: 'pointer' }}
                       onClick={() => {

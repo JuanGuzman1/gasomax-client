@@ -31,7 +31,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { fileTags } from 'src/utils/fileTags'
 import { FileCard, AppToast } from '../../app'
 import Swal from 'sweetalert2'
-import { formatNumber, movementTypes } from 'src/utils/functions'
+import { formatNumber, movementTypes, useHasPermission } from 'src/utils/functions'
 import { selectProviders } from 'src/actions/provider'
 import {
   addPurchaseRequest,
@@ -66,7 +66,10 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
     dispatch = useDispatch(),
     { progress } = useSelector((state) => state.file),
     { loading, providers } = useSelector((state) => state.provider),
-    { pendingPayments } = useSelector((state) => state.purchaseRequest)
+    { pendingPayments } = useSelector((state) => state.purchaseRequest),
+    hasPayPermission = useHasPermission('purchaseRequest', 'pay'),
+    hasRejectPermission = useHasPermission('purchaseRequest', 'reject'),
+    hasAuthorizePermission = useHasPermission('purchaseRequest', 'authorize')
 
   useEffect(() => {
     dispatch(selectProviders())
@@ -676,19 +679,21 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
         </CButton>
         {view && (
           <>
-            {purchaseData.status !== 'approved' && (
+            {purchaseData.status !== 'approved' && hasAuthorizePermission && (
               <CButton color="success" className="text-light fw-semibold" onClick={onApprove}>
                 Autorizar
               </CButton>
             )}
-            {purchaseData.status === 'approved' && (
+            {purchaseData.status === 'approved' && hasPayPermission && (
               <CButton color="info" className="text-light fw-semibold">
                 Pagar
               </CButton>
             )}
-            <CButton color="danger" className="text-light fw-semibold" onClick={onReject}>
-              Rechazar
-            </CButton>
+            {hasRejectPermission && (
+              <CButton color="danger" className="text-light fw-semibold" onClick={onReject}>
+                Rechazar
+              </CButton>
+            )}
           </>
         )}
       </CModalFooter>

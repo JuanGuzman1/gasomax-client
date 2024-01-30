@@ -18,6 +18,7 @@ import CIcon from '@coreui/icons-react'
 import { cilPlus } from '@coreui/icons'
 import { getBanks } from 'src/actions/bank'
 import { AppPagination } from 'src/components/app'
+import { useHasPermission } from 'src/utils/functions'
 
 const Banks = () => {
   const [visible, setVisible] = useState(false),
@@ -48,14 +49,16 @@ const Banks = () => {
         <CCardHeader className="d-flex justify-content-between align-items-center">
           <h4>Listado de Bancos</h4>
           <div className="d-flex gap-2">
-            <CButton
-              color="primary"
-              className="text-light fw-semibold align-content-center d-flex"
-              onClick={() => setVisible(!visible)}
-            >
-              <CIcon icon={cilPlus} size="xl" className="me-1" />
-              Nuevo
-            </CButton>
+            {useHasPermission('banks', 'create') && (
+              <CButton
+                color="primary"
+                className="text-light fw-semibold align-content-center d-flex"
+                onClick={() => setVisible(!visible)}
+              >
+                <CIcon icon={cilPlus} size="xl" className="me-1" />
+                Nuevo
+              </CButton>
+            )}
           </div>
         </CCardHeader>
         <CCardBody>
@@ -103,7 +106,7 @@ const Banks = () => {
           />
         </CCardFooter>
       </CCard>
-      <BankModalForm visible={visible} onClose={() => setVisible(false)} />
+      {visible && <BankModalForm visible={visible} onClose={() => setVisible(false)} />}
     </>
   )
 }

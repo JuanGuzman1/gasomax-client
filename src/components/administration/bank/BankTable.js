@@ -19,11 +19,14 @@ import BankModalForm from './BankModalForm'
 import { deleteBank } from 'src/actions/bank'
 import { setToast } from 'src/actions/toast'
 import { AppToast } from 'src/components/app'
+import { useHasPermission } from 'src/utils/functions'
 
 const BankTable = ({ data }) => {
   const [visible, setVisible] = useState(false),
     [bankData, setBankData] = useState(null),
-    dispatch = useDispatch()
+    dispatch = useDispatch(),
+    hasDeletePermission = useHasPermission('banks', 'delete'),
+    hasEditPermission = useHasPermission('banks', 'edit')
 
   const onDelete = (id) => {
     Swal.fire({
@@ -93,18 +96,25 @@ const BankTable = ({ data }) => {
                     <CIcon icon={cilOptions} title="Opciones" size="lg" />
                   </CDropdownToggle>
                   <CDropdownMenu className="position-fixed">
-                    <CDropdownItem
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => {
-                        setVisible(!visible)
-                        setBankData(bank)
-                      }}
-                    >
-                      Editar
-                    </CDropdownItem>
-                    <CDropdownItem style={{ cursor: 'pointer' }} onClick={() => onDelete(bank.id)}>
-                      Eliminar
-                    </CDropdownItem>
+                    {hasEditPermission && (
+                      <CDropdownItem
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => {
+                          setVisible(!visible)
+                          setBankData(bank)
+                        }}
+                      >
+                        Editar
+                      </CDropdownItem>
+                    )}
+                    {hasDeletePermission && (
+                      <CDropdownItem
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => onDelete(bank.id)}
+                      >
+                        Eliminar
+                      </CDropdownItem>
+                    )}
                   </CDropdownMenu>
                 </CDropdown>
               </CTableDataCell>

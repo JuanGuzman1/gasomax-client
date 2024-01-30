@@ -19,11 +19,14 @@ import { setToast } from 'src/actions/toast'
 import { AppToast } from 'src/components/app'
 import DepartmentModalForm from './DepartmentModalForm'
 import { deleteDepartment } from 'src/actions/department'
+import { useHasPermission } from 'src/utils/functions'
 
 const DepartmentTable = ({ data }) => {
   const [visible, setVisible] = useState(false),
     [departmentData, setDepartmentData] = useState(null),
-    dispatch = useDispatch()
+    dispatch = useDispatch(),
+    hasDeletePermission = useHasPermission('departments', 'delete'),
+    hasEditPermission = useHasPermission('departments', 'edit')
 
   const onDelete = (id) => {
     Swal.fire({
@@ -93,21 +96,25 @@ const DepartmentTable = ({ data }) => {
                     <CIcon icon={cilOptions} title="Opciones" size="lg" />
                   </CDropdownToggle>
                   <CDropdownMenu className="position-fixed">
-                    <CDropdownItem
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => {
-                        setVisible(!visible)
-                        setDepartmentData(department)
-                      }}
-                    >
-                      Editar
-                    </CDropdownItem>
-                    <CDropdownItem
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => onDelete(department.id)}
-                    >
-                      Eliminar
-                    </CDropdownItem>
+                    {hasEditPermission && (
+                      <CDropdownItem
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => {
+                          setVisible(!visible)
+                          setDepartmentData(department)
+                        }}
+                      >
+                        Editar
+                      </CDropdownItem>
+                    )}
+                    {hasDeletePermission && (
+                      <CDropdownItem
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => onDelete(department.id)}
+                      >
+                        Eliminar
+                      </CDropdownItem>
+                    )}
                   </CDropdownMenu>
                 </CDropdown>
               </CTableDataCell>

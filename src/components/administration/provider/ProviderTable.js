@@ -22,11 +22,14 @@ import { deleteFilesByModel, downloadFile } from 'src/actions/file'
 import { modelTypes } from 'src/utils/modelTypes'
 import { setToast } from 'src/actions/toast'
 import { AppToast } from 'src/components/app'
+import { useHasPermission } from 'src/utils/functions'
 
 const ProviderTable = ({ data }) => {
   const [visible, setVisible] = useState(false),
     [providerData, setProviderData] = useState(null),
-    dispatch = useDispatch()
+    dispatch = useDispatch(),
+    hasDeletePermission = useHasPermission('providers', 'delete'),
+    hasEditPermission = useHasPermission('providers', 'edit')
 
   const onDelete = (id) => {
     Swal.fire({
@@ -116,21 +119,25 @@ const ProviderTable = ({ data }) => {
                     <CIcon icon={cilOptions} title="Opciones" size="lg" />
                   </CDropdownToggle>
                   <CDropdownMenu className="position-fixed">
-                    <CDropdownItem
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => {
-                        setVisible(!visible)
-                        setProviderData(provider)
-                      }}
-                    >
-                      Editar
-                    </CDropdownItem>
-                    <CDropdownItem
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => onDelete(provider.id)}
-                    >
-                      Eliminar
-                    </CDropdownItem>
+                    {hasEditPermission && (
+                      <CDropdownItem
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => {
+                          setVisible(!visible)
+                          setProviderData(provider)
+                        }}
+                      >
+                        Editar
+                      </CDropdownItem>
+                    )}
+                    {hasDeletePermission && (
+                      <CDropdownItem
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => onDelete(provider.id)}
+                      >
+                        Eliminar
+                      </CDropdownItem>
+                    )}
                     <CDropdownItem
                       style={{ cursor: 'pointer' }}
                       onClick={() => onDownload(provider.files)}

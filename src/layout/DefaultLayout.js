@@ -6,6 +6,7 @@ import { getUser } from 'src/actions/auth'
 const DefaultLayout = () => {
   const dispatch = useDispatch()
   const user = useSelector((state) => state.auth.user)
+  const permissions = useSelector((state) => state.auth.permissions)
 
   useEffect(() => {
     dispatch(getUser())
