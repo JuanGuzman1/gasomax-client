@@ -39,7 +39,8 @@ const PurchaseRequestTable = ({ data }) => {
     [viewModalMode, setViewModalMode] = useState(false),
     dispatch = useDispatch(),
     hasDeletePermission = useHasPermission('purchaseRequest', 'delete'),
-    hasEditPermission = useHasPermission('purchaseRequest', 'edit')
+    hasEditPermission = useHasPermission('purchaseRequest', 'edit'),
+    hasShowPermission = useHasPermission('purchaseRequest', 'show')
 
   const onDelete = (id) => {
     Swal.fire({
@@ -59,18 +60,18 @@ const PurchaseRequestTable = ({ data }) => {
                 setToast(
                   AppToast({
                     msg: 'Solicitud eliminada correctamente.',
-                    title: 'Solicitudes de compra',
+                    title: 'Solicitudes de pago',
                     type: 'success',
                   }),
                 ),
               )
-              dispatch(deleteFilesByModel(id, modelTypes.provider))
+              dispatch(deleteFilesByModel(id, modelTypes.purchaseRequest))
             } else {
               dispatch(
                 setToast(
                   AppToast({
                     msg: 'Ha ocurrido un error.',
-                    title: 'Solicitudes de compra',
+                    title: 'Solicitudes de pago',
                     type: 'error',
                   }),
                 ),
@@ -117,6 +118,11 @@ const PurchaseRequestTable = ({ data }) => {
                 <CBadge color={statusPurchaseRequestColors[pr.status]}>
                   {statusPurchaseRequest[pr.status]}
                 </CBadge>
+                {!pr.files.find((file) => file.tag === 'receipt') && pr.status === 'paid' && (
+                  <CBadge color={statusPurchaseRequestColors['pending']}>
+                    Falta comprobante de pago
+                  </CBadge>
+                )}
               </CTableDataCell>
               <CTableDataCell className="text-center overflow-visible">
                 <CDropdown variant="dropdown">
@@ -124,17 +130,19 @@ const PurchaseRequestTable = ({ data }) => {
                     <CIcon icon={cilOptions} title="Opciones" size="lg" />
                   </CDropdownToggle>
                   <CDropdownMenu className="position-fixed">
-                    <CDropdownItem
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => {
-                        setPurchaseData(pr)
-                        setViewModalMode(true)
-                        setVisible(!visible)
-                      }}
-                    >
-                      Ver solicitud
-                    </CDropdownItem>
-                    {hasEditPermission && (
+                    {hasShowPermission && (
+                      <CDropdownItem
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => {
+                          setPurchaseData(pr)
+                          setViewModalMode(true)
+                          setVisible(!visible)
+                        }}
+                      >
+                        Ver solicitud
+                      </CDropdownItem>
+                    )}
+                    {hasEditPermission && pr.status !== 'approved' && pr.status !== 'paid' && (
                       <CDropdownItem
                         style={{ cursor: 'pointer' }}
                         onClick={() => {
@@ -145,7 +153,7 @@ const PurchaseRequestTable = ({ data }) => {
                         Editar
                       </CDropdownItem>
                     )}
-                    {hasDeletePermission && (
+                    {hasDeletePermission && pr.status !== 'approved' && pr.status !== 'paid' && (
                       <CDropdownItem style={{ cursor: 'pointer' }} onClick={() => onDelete(pr.id)}>
                         Eliminar
                       </CDropdownItem>

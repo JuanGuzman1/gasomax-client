@@ -290,3 +290,31 @@ export const approvePurchaseRequest = (data, id, cb) => async (dispatch) => {
     })
   }
 }
+
+export const payPurchaseRequest = (data, id, cb) => async (dispatch) => {
+  try {
+    const res = await axios.put(`${config.instance.baseURL}/api/pay/purchaseRequest/${id}`, data, {
+      headers: {
+        ...config.instance.headers,
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
+    })
+    dispatch({
+      type: UPDATE_PURCHASE_REQUEST,
+      payload: res.data.data,
+    })
+    cb(res.data)
+  } catch (err) {
+    dispatch({
+      type: PURCHASE_REQUEST_ERROR,
+      payload: {
+        msg: err.response.statusText,
+        status: err.response.status,
+      },
+    })
+    cb({
+      success: false,
+      message: err.message,
+    })
+  }
+}

@@ -4,6 +4,7 @@ import { cilTrash, cilFile } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import { useDispatch } from 'react-redux'
 import { deleteFile, downloadFile } from 'src/actions/file'
+import { fileTagsName } from 'src/utils/fileTags'
 
 const FileCard = ({ file, onDelete }) => {
   const dispatch = useDispatch()
@@ -13,6 +14,10 @@ const FileCard = ({ file, onDelete }) => {
   }
 
   const onDeletePress = () => {
+    if (!file.id) {
+      onDelete(null)
+      return
+    }
     dispatch(
       deleteFile(file.id, () => {
         onDelete(file.id)
@@ -21,7 +26,7 @@ const FileCard = ({ file, onDelete }) => {
   }
 
   return (
-    <CCard style={{ width: '12rem' }} key={file.tag}>
+    <CCard style={{ width: '12rem' }} key={file.tag} className="me-2">
       <CIcon
         icon={cilFile}
         style={{ alignSelf: 'center', marginTop: 15 }}
@@ -29,16 +34,18 @@ const FileCard = ({ file, onDelete }) => {
         className="text-dark"
       />
       <CCardBody className="w-100">
-        <CCardTitle className="fs-6">{file.name}</CCardTitle>
-
+        <CCardTitle className="fs-6 text-center">{file.localName}</CCardTitle>
+        <CCardTitle className="fs-6 fw-light text-center">{fileTagsName[file.tag]}</CCardTitle>
         <div className="dp-flex mt-2">
-          <CButton
-            className="text-white fw-semibold me-1"
-            title="Descargar"
-            onClick={onDownloadPress}
-          >
-            Descargar
-          </CButton>
+          {file.id && (
+            <CButton
+              className="text-white fw-semibold me-1"
+              title="Descargar"
+              onClick={onDownloadPress}
+            >
+              Descargar
+            </CButton>
+          )}
 
           <CButton color="danger" variant="outline" title="Eliminar" onClick={onDeletePress}>
             <CIcon icon={cilTrash} />

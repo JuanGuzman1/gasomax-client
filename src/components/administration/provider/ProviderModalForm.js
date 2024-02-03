@@ -322,13 +322,14 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
 
               <div className="mb-3 d-flex">
                 <div className="flex-fill me-2">
-                  <CFormLabel htmlFor="phone">Teléfono</CFormLabel>
+                  <CFormLabel htmlFor="phone">Teléfono (10 Dig.)</CFormLabel>
                   <CFormInput
-                    type="number"
+                    type="text"
                     id="phone"
                     placeholder="teléfono"
                     onChange={(e) => setPhone(e.target.value)}
                     value={phone}
+                    maxLength={10}
                   />
                 </div>
                 <div className="flex-fill">

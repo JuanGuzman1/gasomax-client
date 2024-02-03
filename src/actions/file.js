@@ -9,6 +9,7 @@ export const uploadFile = (file, tag, model_id, model_type, cb) => async (dispat
     const formData = new FormData()
     formData.append('file', file)
     formData.append('tag', tag)
+    formData.append('localName', file.name)
     formData.append('fileable_id', model_id)
     formData.append('fileable_type', model_type)
     const res = await axios.post(`${config.instance.baseURL}/api/file`, formData, {

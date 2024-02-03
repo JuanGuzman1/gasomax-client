@@ -35,7 +35,8 @@ export const statusPurchaseRequestColors = {
 }
 
 export const permissions = {
-  index: 'Lectura',
+  index: 'Listar',
+  show: 'Ver',
   create: 'Crear',
   edit: 'Editar',
   delete: 'Eliminar',

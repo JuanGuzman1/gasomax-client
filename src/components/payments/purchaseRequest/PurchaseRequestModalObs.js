@@ -28,7 +28,8 @@ import { formatTimezoneToDateTime } from 'src/utils/functions'
 const PurchaseRequestModalObs = ({ visible, onClose, purchaseRequestID }) => {
   const dispatch = useDispatch(),
     [message, setMessage] = useState(''),
-    { observations, loadingObservations } = useSelector((state) => state.purchaseRequest)
+    { observations, loadingObservations } = useSelector((state) => state.purchaseRequest),
+    user = useSelector((state) => state.auth.user)?.data?.user
 
   useEffect(() => {
     dispatch(getPurchaseRequestObservations(purchaseRequestID))
@@ -43,7 +44,7 @@ const PurchaseRequestModalObs = ({ visible, onClose, purchaseRequestID }) => {
       }
       let data = {
         message,
-        user_id: 1,
+        user_id: user.id,
         purchase_request_id: purchaseRequestID,
       }
       dispatch(
