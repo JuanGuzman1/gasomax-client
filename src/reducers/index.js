@@ -5,6 +5,8 @@ import sidebar from './sidebar'
 import toast from './toast'
 import file from './file'
 import bank from './bank'
+import quote from './quote'
+import quoteConcept from './quoteConcept'
 import purchaseRequest from './purchaseRequest'
 import pendingPayments from './pendingPayments'
 import department from './department'
@@ -18,6 +20,8 @@ export default combineReducers({
   toast,
   file,
   bank,
+  quote,
+  quoteConcept,
   purchaseRequest,
   pendingPayments,
   department,

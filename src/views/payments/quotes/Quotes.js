@@ -14,14 +14,14 @@ import {
 } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
 import { cilPlus, cilCloudDownload } from '@coreui/icons'
-import PurchaseRequestTable from 'src/components/payments/purchaseRequest/PurchaseRequestTable'
-import PurchaseRequestModalForm from 'src/components/payments/purchaseRequest/PurchaseRequestModalForm'
 import { useDispatch, useSelector } from 'react-redux'
-import { getPurchaseRequests } from 'src/actions/purchaseRequest'
 import { AppPagination } from 'src/components/app'
 import { useHasPermission } from 'src/utils/functions'
+import QuoteModalForm from 'src/components/payments/quotes/QuoteModalForm'
+import QuoteTable from 'src/components/payments/quotes/QuoteTable'
+import { getQuotes } from 'src/actions/quote'
 
-const PurchaseRequest = () => {
+const Quotes = () => {
   const [visible, setVisible] = useState(false),
     [caseFilter, setCaseFilter] = useState('provider'),
     [filterValue, setFilterValue] = useState(''),
@@ -30,12 +30,12 @@ const PurchaseRequest = () => {
     {
       currentPage: currentPageState,
       last_page,
-      data: purchaseRequests,
-    } = useSelector((state) => state.purchaseRequest.purchaseRequests),
-    loading = useSelector((state) => state.purchaseRequest.loading)
+      data: quotes,
+    } = useSelector((state) => state.quote.quotes),
+    loading = useSelector((state) => state.quote.loading)
 
   useEffect(() => {
-    dispatch(getPurchaseRequests(currentPage, caseFilter, filterValue))
+    dispatch(getQuotes(currentPage, caseFilter, filterValue))
   }, [currentPage, dispatch])
 
   useEffect(() => {
@@ -49,9 +49,9 @@ const PurchaseRequest = () => {
     <>
       <CCard>
         <CCardHeader className="d-flex justify-content-between align-items-center">
-          <h4>Solicitudes de pago</h4>
+          <h4>Solicitudes de compra</h4>
           <div className="d-flex gap-2">
-            {useHasPermission('purchaseRequest', 'create') && (
+            {useHasPermission('quotes', 'create') && (
               <CButton
                 color="primary"
                 className="text-light fw-semibold align-content-center d-flex"
@@ -109,7 +109,7 @@ const PurchaseRequest = () => {
             <CButton
               type="button"
               className="text-light fw-semibold"
-              onClick={() => dispatch(getPurchaseRequests(currentPage, caseFilter, filterValue))}
+              onClick={() => dispatch(getQuotes(currentPage, caseFilter, filterValue))}
             >
               Buscar
             </CButton>
@@ -119,7 +119,7 @@ const PurchaseRequest = () => {
               <CSpinner color="primary" variant="grow" />
             </div>
           ) : (
-            <PurchaseRequestTable data={purchaseRequests} />
+            <QuoteTable data={quotes} />
           )}
         </CCardBody>
         <CCardFooter>
@@ -130,9 +130,9 @@ const PurchaseRequest = () => {
           />
         </CCardFooter>
       </CCard>
-      <PurchaseRequestModalForm visible={visible} onClose={() => setVisible(false)} />
+      {visible && <QuoteModalForm visible={visible} onClose={() => setVisible(false)} />}
     </>
   )
 }
 
-export default PurchaseRequest
+export default Quotes

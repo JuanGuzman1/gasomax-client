@@ -24,6 +24,7 @@ const UserModulesModalForm = ({ visible, onClose, userData }) => {
     [userID, setUserID] = useState(),
     [banks, setBanks] = useState(false),
     [providers, setProviders] = useState(false),
+    [quotes, setQuotes] = useState(false),
     [purchaseRequest, setPurchaseRequest] = useState(false),
     [pendingPayments, setPendingPayments] = useState(false),
     [departments, setDepartments] = useState(false),
@@ -62,6 +63,9 @@ const UserModulesModalForm = ({ visible, onClose, userData }) => {
     }
     if (module === 'providers') {
       setProviders(checked)
+    }
+    if (module === 'quotes') {
+      setQuotes(checked)
     }
     if (module === 'purchaseRequest') {
       setPurchaseRequest(checked)
@@ -146,8 +150,16 @@ const UserModulesModalForm = ({ visible, onClose, userData }) => {
                 <div className="row row-cols-3">
                   <div className="col">
                     <CFormCheck
-                      id={'purchaseRequest'}
+                      id={'quotes'}
                       label={'Solicitud de compra'}
+                      checked={quotes}
+                      onChange={(e) => onAddModules(e.target.checked, 'quotes')}
+                    />
+                  </div>
+                  <div className="col">
+                    <CFormCheck
+                      id={'purchaseRequest'}
+                      label={'Solicitud de pago'}
                       checked={purchaseRequest}
                       onChange={(e) => onAddModules(e.target.checked, 'purchaseRequest')}
                     />

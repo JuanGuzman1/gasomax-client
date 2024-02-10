@@ -79,7 +79,7 @@ const UserPermissionsModalForm = ({ visible, onClose, userData }) => {
   }
 
   return (
-    <CModal visible={visible} onClose={onClose} aria-labelledby="UserPermissionsModal" size="lg">
+    <CModal visible={visible} onClose={onClose} aria-labelledby="UserPermissionsModal" size="xl">
       <CModalHeader onClose={onClose}>
         <CModalTitle id="UserPermissionsModal">{`Editar permisos a ${userData.name}`}</CModalTitle>
       </CModalHeader>
@@ -106,10 +106,10 @@ const UserPermissionsModalForm = ({ visible, onClose, userData }) => {
             <CTabPane role="tabpanel" aria-labelledby="data-tab-pane" visible={activeKey === 1}>
               <CForm className="mt-3">
                 {/* Administration Submodules */}
-                <div className="row row-cols-3 mb-3">
+                <div className="row row-cols-5">
                   {/* banks permissions */}
                   {userData.modules.find((m) => m.module.submodule === 'banks') && (
-                    <div className="col">
+                    <div className="col mb-3">
                       <h5>Bancos</h5>
                       {permissions?.map((permission) => {
                         if (permission.module.submodule === 'banks') {
@@ -130,7 +130,7 @@ const UserPermissionsModalForm = ({ visible, onClose, userData }) => {
                   )}
                   {/* providers permissions */}
                   {userData.modules.find((m) => m.module.submodule === 'providers') && (
-                    <div className="col">
+                    <div className="col mb-3">
                       <h5>Proveedores</h5>
                       {permissions.map((permission) => {
                         if (permission.module.submodule === 'providers') {
@@ -149,9 +149,30 @@ const UserPermissionsModalForm = ({ visible, onClose, userData }) => {
                       })}
                     </div>
                   )}
+                  {/* quotes permissions */}
+                  {userData.modules.find((m) => m.module.submodule === 'quotes') && (
+                    <div className="col mb-3">
+                      <h5>Solicitudes de compra</h5>
+                      {permissions.map((permission) => {
+                        if (permission.module.submodule === 'quotes') {
+                          return (
+                            <div key={permission.id}>
+                              <CFormCheck
+                                id={permission.name}
+                                label={permissionsLabel[permission.name]}
+                                checked={selectedPermissions.find((p) => p === permission.id)}
+                                onChange={(e) => onAddPermissions(e.target.checked, permission.id)}
+                              />
+                            </div>
+                          )
+                        }
+                        return <></>
+                      })}
+                    </div>
+                  )}
                   {/* purchaseRequest permissions */}
                   {userData.modules.find((m) => m.module.submodule === 'purchaseRequest') && (
-                    <div className="col">
+                    <div className="col mb-3">
                       <h5>Solicitudes de pago</h5>
                       {permissions.map((permission) => {
                         if (permission.module.submodule === 'purchaseRequest') {
@@ -172,7 +193,7 @@ const UserPermissionsModalForm = ({ visible, onClose, userData }) => {
                   )}
                   {/* pendingPayments permissions */}
                   {userData.modules.find((m) => m.module.submodule === 'pendingPayments') && (
-                    <div className="col">
+                    <div className="col mb-3">
                       <h5>Pagos pendientes</h5>
                       {permissions.map((permission) => {
                         if (permission.module.submodule === 'pendingPayments') {
@@ -193,7 +214,7 @@ const UserPermissionsModalForm = ({ visible, onClose, userData }) => {
                   )}
                   {/* departments permissions */}
                   {userData.modules.find((m) => m.module.submodule === 'departments') && (
-                    <div className="col">
+                    <div className="col mb-3">
                       <h5>Departamentos</h5>
                       {permissions.map((permission) => {
                         if (permission.module.submodule === 'departments') {
@@ -214,7 +235,7 @@ const UserPermissionsModalForm = ({ visible, onClose, userData }) => {
                   )}
                   {/* Users permissions */}
                   {userData.modules.find((m) => m.module.submodule === 'users') && (
-                    <div className="col">
+                    <div className="col mb-3">
                       <h5>Usuarios</h5>
                       {permissions.map((permission) => {
                         if (permission.module.submodule === 'users') {
