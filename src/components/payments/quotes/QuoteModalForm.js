@@ -45,7 +45,8 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
     [charge, setCharge] = useState(''),
     [quoteConceptID, setQuoteConceptID] = useState(''),
     [description, setDescription] = useState(''),
-    [files, setFiles] = useState([]),
+    [imgFiles, setImgFiles] = useState([]),
+    [quoteFiles, setQuoteFiles] = useState([]),
     [numProviders, setNumProviders] = useState(0),
     [recommendedProviders, setRecommendedProviders] = useState([]),
     [line, setLine] = useState(''),
@@ -59,10 +60,11 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
     dispatch = useDispatch(),
     { progress } = useSelector((state) => state.file),
     { loading, providers } = useSelector((state) => state.provider),
-    inputFile = useRef(),
     hasPayPermission = useHasPermission('quote', 'pay'),
     hasRejectPermission = useHasPermission('quote', 'reject'),
     hasAuthorizePermission = useHasPermission('quote', 'authorize'),
+    inputImgFile = useRef(),
+    inputQuoteFile = useRef(),
     user = useSelector((state) => state.auth.user)?.data?.user,
     charges = useSelector((state) => state.quoteConcept.charges),
     concepts = useSelector((state) => state.quoteConcept.concepts)
@@ -84,7 +86,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
       return
     }
 
-    setFiles(quoteData.files)
+    setImgFiles(quoteData.images)
   }, [quoteData])
 
   const onApprove = (e) => {
@@ -136,12 +138,18 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
       localName: e.target.files[0].name,
       file: e.target.files[0],
     }
-    setFiles([...files, data])
-    inputFile.current.value = ''
+    if (inputImgFile.current.value) {
+      setImgFiles([...imgFiles, data])
+      inputImgFile.current.value = ''
+    }
+    if (inputQuoteFile.current.value) {
+      setQuoteFiles([...quoteFiles, data])
+      inputQuoteFile.current.value = ''
+    }
   }
 
   const clearGeneralInputs = useCallback(() => {
-    setFiles([])
+    setImgFiles([])
   }, [])
 
   const onSave = (e) => {
@@ -163,19 +171,13 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
     }
   }
 
-  const onUploadFile = (quotationRes) => {
-    if (files) {
+  const onUploadImageFile = (quotationRes) => {
+    if (imgFiles) {
       Promise.all(
-        files.map((file) => {
+        imgFiles.map((file) => {
           if (!file.id) {
             return dispatch(
-              uploadFile(
-                file.file,
-                file.tag,
-                quotationRes.id,
-                modelTypes.purchaseRequest,
-                () => {},
-              ),
+              uploadFile(file.file, file.tag, quotationRes.id, modelTypes.quote, () => {}),
             )
           }
         }),
@@ -203,7 +205,12 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
         </CModalTitle>
       </CModalHeader>
       <CModalBody>
-        {files.length > 0 && files.some((file) => !file.id) && (
+        {imgFiles.length > 0 && imgFiles.some((file) => !file.id) && (
+          <CProgress value={progress} className="mb-2">
+            {progress}%
+          </CProgress>
+        )}
+        {quoteFiles.length > 0 && quoteFiles.some((file) => !file.id) && (
           <CProgress value={progress} className="mb-2">
             {progress}%
           </CProgress>
@@ -238,8 +245,17 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
           {/* purchase request data */}
           <CTabPane role="tabpanel" aria-labelledby="data-tab-pane" visible={activeKey === 1}>
             <CForm className="mt-3">
+              <div className="mb-3">
+                <CFormLabel>Titulo</CFormLabel>
+                <CFormInput
+                  type="text"
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+              </div>
               <div className="mb-3 d-flex">
-                <div className="flex-fill me-2">
+                <div className="flex-md-fill me-2">
                   <CFormLabel>Cargo</CFormLabel>
                   <CFormSelect
                     aria-label="charge"
@@ -254,7 +270,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                     ))}
                   </CFormSelect>
                 </div>
-                <div className="flex-fill me-2">
+                <div className="flex-md-fill me-2">
                   <CFormLabel>Concepto</CFormLabel>
                   <CFormSelect
                     aria-label="concept"
@@ -285,12 +301,27 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                   Sube <b>imágenes</b> para la solicitud (opcional)
                 </CFormLabel>
                 <CFormInput
-                  ref={inputFile}
+                  ref={inputImgFile}
                   type="file"
-                  id="csfFile"
+                  id="imgFile"
                   onChange={onAddFiles}
                   text="Archivos permitidos jpg, png, jpeg (10 MB)"
                 />
+              </div>
+              <div className="mb-3 d-flex">
+                {imgFiles.map((file, index) => {
+                  return (
+                    <FileCard
+                      file={file}
+                      key={file.tag}
+                      onDelete={(id) => {
+                        return file.id
+                          ? setImgFiles(imgFiles.filter((f) => f.id !== id))
+                          : setImgFiles(imgFiles.filter((f, i) => index !== i))
+                      }}
+                    />
+                  )
+                })}
               </div>
               <div className="mb-3 d-flex">
                 <div className="flex-fill">
@@ -341,7 +372,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
               </CFormLabel>
               <div className="mb-3">
                 <CFormInput
-                  ref={inputFile}
+                  ref={inputQuoteFile}
                   type="file"
                   id="csfFile"
                   onChange={onAddFiles}
@@ -349,15 +380,15 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                 />
               </div>
               <div className="mb-3 d-flex">
-                {files.map((file, index) => {
+                {quoteFiles.map((file, index) => {
                   return (
                     <FileCard
                       file={file}
                       key={file.tag}
                       onDelete={(id) => {
                         return file.id
-                          ? setFiles(files.filter((f) => f.id !== id))
-                          : setFiles(files.filter((f, i) => index !== i))
+                          ? setQuoteFiles(quoteFiles.filter((f) => f.id !== id))
+                          : setQuoteFiles(quoteFiles.filter((f, i) => index !== i))
                       }}
                     />
                   )
