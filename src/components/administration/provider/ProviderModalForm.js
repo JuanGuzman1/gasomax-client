@@ -125,7 +125,7 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
   const onUploadFile = (providerRes) => {
     if (csfFile) {
       dispatch(
-        uploadFile(csfFile, fileTags.csf, providerRes.id, modelTypes.provider, () => {
+        uploadFile(csfFile, fileTags.csf, null, providerRes.id, modelTypes.provider, () => {
           dispatch(getProviders(providers.current_page, filters.filter, filters.value))
         }),
       )

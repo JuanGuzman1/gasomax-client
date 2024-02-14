@@ -37,6 +37,8 @@ import { setToast } from 'src/actions/toast'
 import { uploadFile } from 'src/actions/file'
 import { modelTypes } from 'src/utils/modelTypes'
 import { getCharges, getConceptsByCharge } from 'src/actions/quoteConcept'
+import { addQuote, getQuotes, updateQuote } from 'src/actions/quote'
+import { getLines, getUnitsByLine } from 'src/actions/unit'
 
 const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
   const [activeKey, setActiveKey] = useState(1),
@@ -47,8 +49,10 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
     [description, setDescription] = useState(''),
     [imgFiles, setImgFiles] = useState([]),
     [quoteFiles, setQuoteFiles] = useState([]),
+    [descriptionQuote, setDescriptionQuote] = useState(''),
     [numProviders, setNumProviders] = useState(0),
     [recommendedProviders, setRecommendedProviders] = useState([]),
+    [recommendedProvidersInput, setRecommendedProvidersInput] = useState([]),
     [line, setLine] = useState(''),
     [unit, setUnit] = useState(''),
     [rejectQuotes, setRejectQuotes] = useState(false),
@@ -59,15 +63,18 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
     [observation, setObservation] = useState(''),
     dispatch = useDispatch(),
     { progress } = useSelector((state) => state.file),
-    { loading, providers } = useSelector((state) => state.provider),
-    hasPayPermission = useHasPermission('quote', 'pay'),
-    hasRejectPermission = useHasPermission('quote', 'reject'),
-    hasAuthorizePermission = useHasPermission('quote', 'authorize'),
+    { providers } = useSelector((state) => state.provider),
+    hasPayPermission = useHasPermission('quotes', 'pay'),
+    hasRejectPermission = useHasPermission('quotes', 'reject'),
+    hasAuthorizePermission = useHasPermission('quotes', 'authorize'),
     inputImgFile = useRef(),
     inputQuoteFile = useRef(),
     user = useSelector((state) => state.auth.user)?.data?.user,
     charges = useSelector((state) => state.quoteConcept.charges),
-    concepts = useSelector((state) => state.quoteConcept.concepts)
+    concepts = useSelector((state) => state.quoteConcept.concepts),
+    lines = useSelector((state) => state.unit.lines),
+    units = useSelector((state) => state.unit.units),
+    { quotes, filters } = useSelector((state) => state.quote)
 
   useEffect(() => {
     dispatch(selectProviders())
@@ -75,27 +82,57 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
 
   useEffect(() => {
     dispatch(getCharges())
+    dispatch(getLines())
   }, [dispatch])
 
   useEffect(() => {
+    if (!line) {
+      return
+    }
+    dispatch(getUnitsByLine(line))
+  }, [dispatch, line])
+
+  useEffect(() => {
+    if (!charge) {
+      return
+    }
     dispatch(getConceptsByCharge(charge))
   }, [dispatch, charge])
+
+  useEffect(() => {
+    let array = []
+    for (let i = 0; i < numProviders; i++) {
+      array.push(i)
+    }
+    setRecommendedProvidersInput(array)
+  }, [numProviders])
 
   useEffect(() => {
     if (!quoteData) {
       return
     }
-
-    setImgFiles(quoteData.images)
+    setQuoteID(quoteData.id)
+    setTitle(quoteData.title)
+    setDescription(quoteData.description)
+    setCharge(quoteData.quote_concept.charge)
+    setQuoteConceptID(quoteData.quote_concept.id)
+    setLine(quoteData.line)
+    setUnit(quoteData.unit)
+    setNumProviders(quoteData.numProviders)
+    setRecommendedProviders(JSON.parse(quoteData.recommendedProviders))
+    setImgFiles(quoteData.files?.filter((f) => f.tag === fileTags.img))
+    setQuoteFiles(quoteData.files?.filter((f) => f.tag === fileTags.quotation))
   }, [quoteData])
 
-  const onApprove = (e) => {
-    e.preventDefault()
-    try {
-    } catch (error) {
-      console.log(error)
+  const onSelectRecommendedProvider = (e, i) => {
+    if (e.target.value === '') {
+      setRecommendedProviders(recommendedProviders.filter((v, index) => index !== i))
+      return
     }
-    onClose()
+    let newArr = [...recommendedProviders]
+    newArr[i] = e.target.value ? e.target.value : ''
+
+    setRecommendedProviders(newArr)
   }
 
   const onPay = () => {
@@ -139,12 +176,24 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
       file: e.target.files[0],
     }
     if (inputImgFile.current.value) {
-      setImgFiles([...imgFiles, data])
+      setImgFiles([...imgFiles, { ...data, tag: fileTags.img }])
       inputImgFile.current.value = ''
     }
+  }
+
+  const onAddQuoteFiles = () => {
     if (inputQuoteFile.current.value) {
-      setQuoteFiles([...quoteFiles, data])
+      setQuoteFiles([
+        ...quoteFiles,
+        {
+          localName: inputQuoteFile.current.files[0].name,
+          file: inputQuoteFile.current.files[0],
+          tag: fileTags.quotation,
+          description: descriptionQuote,
+        },
+      ])
       inputQuoteFile.current.value = ''
+      setDescriptionQuote('')
     }
   }
 
@@ -155,36 +204,163 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
   const onSave = (e) => {
     e.preventDefault()
     try {
-      if (!providerID || providerID === '') {
+      if (!title || title === '') {
         dispatch(
           setToast(
             AppToast({
-              msg: 'Falta seleccionar un proveedor',
+              msg: 'Falta agregar un titulo',
               type: 'error',
             }),
           ),
         )
         return
       }
+
+      let data = {
+        title,
+        provider_id: providerID,
+        petitioner_id: user.id,
+        quote_concept_id: quoteConceptID,
+        description,
+        numProviders,
+        recommendedProviders: JSON.stringify(recommendedProviders),
+        line,
+        unit,
+      }
+      dispatch(
+        quoteData
+          ? updateQuote(data, quoteID, (quoteRes) => {
+              if (quoteRes.success) {
+                dispatch(
+                  setToast(
+                    AppToast({
+                      msg: 'Solicitud actualizada correctamente.',
+                      title: 'Solicitudes de compra',
+                      type: 'success',
+                    }),
+                  ),
+                )
+                onUploadImgFile(quoteRes.data)
+              } else {
+                dispatch(
+                  setToast(
+                    AppToast({
+                      msg: 'Ha ocurrido un error.',
+                      title: 'Solicitudes de compra',
+                      type: 'error',
+                    }),
+                  ),
+                )
+              }
+            })
+          : addQuote(data, (quoteRes) => {
+              if (quoteRes.success) {
+                dispatch(
+                  setToast(
+                    AppToast({
+                      msg: 'Solicitud realizada correctamente.',
+                      title: 'Solicitudes de compra',
+                      type: 'success',
+                    }),
+                  ),
+                )
+                onUploadImgFile(quoteRes.data)
+              } else {
+                dispatch(
+                  setToast(
+                    AppToast({
+                      msg: 'Ha ocurrido un error.',
+                      title: 'Solicitudes de compra',
+                      type: 'error',
+                    }),
+                  ),
+                )
+              }
+            }),
+      )
     } catch (error) {
       console.log(error)
     }
   }
 
-  const onUploadImageFile = (quotationRes) => {
-    if (imgFiles) {
+  const onUploadImgFile = (quoteRes) => {
+    if (imgFiles.length > 0) {
       Promise.all(
         imgFiles.map((file) => {
           if (!file.id) {
             return dispatch(
-              uploadFile(file.file, file.tag, quotationRes.id, modelTypes.quote, () => {}),
+              uploadFile(file.file, file.tag, null, quoteRes.id, modelTypes.quote, () => {}),
+            )
+          } else {
+            onClose()
+            clearGeneralInputs()
+          }
+        }),
+      ).finally(() => {
+        dispatch(getQuotes(quotes.current_page, filters.filter, filters.value))
+      })
+    } else {
+      onClose()
+      clearGeneralInputs()
+    }
+  }
+
+  const onUploadQuoteFile = (e) => {
+    e.preventDefault()
+    try {
+      dispatch(
+        updateQuote({ status: 'inprogress' }, quoteID, (quoteRes) => {
+          if (quoteRes.success) {
+            dispatch(
+              setToast(
+                AppToast({
+                  msg: 'Solicitud actualizada correctamente.',
+                  title: 'Solicitudes de compra',
+                  type: 'success',
+                }),
+              ),
+            )
+            if (quoteFiles.length > 0) {
+              Promise.all(
+                quoteFiles.map((file) => {
+                  if (!file.id) {
+                    return dispatch(
+                      uploadFile(
+                        file.file,
+                        file.tag,
+                        file.description,
+                        quoteID,
+                        modelTypes.quote,
+                        () => {},
+                      ),
+                    )
+                  } else {
+                    onClose()
+                    clearGeneralInputs()
+                  }
+                }),
+              ).finally(() => {
+                dispatch(getQuotes(quotes.current_page, filters.filter, filters.value))
+              })
+            } else {
+              onClose()
+              clearGeneralInputs()
+            }
+          } else {
+            dispatch(
+              setToast(
+                AppToast({
+                  msg: 'Ha ocurrido un error.',
+                  title: 'Solicitudes de compra',
+                  type: 'error',
+                }),
+              ),
             )
           }
         }),
       )
-    } else {
-      onClose()
-      clearGeneralInputs()
+    } catch (error) {
+      console.log(error)
     }
   }
 
@@ -201,7 +377,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
     <CModal visible={visible} onClose={onClose} aria-labelledby="ModalForm" size="xl">
       <CModalHeader onClose={onClose}>
         <CModalTitle id="ModalForm">
-          {quoteData ? `Editar solicitud` : 'Nueva solicitud'}
+          {quoteData ? `${view ? '' : 'Editar'} solicitud ${quoteData.title}` : 'Nueva solicitud'}
         </CModalTitle>
       </CModalHeader>
       <CModalBody>
@@ -228,28 +404,31 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
               General
             </CNavLink>
           </CNavItem>
-          <CNavItem role="presentation">
-            <CNavLink
-              active={activeKey === 3}
-              component="button"
-              role="tab"
-              aria-controls="account-tab-pane"
-              aria-selected={activeKey === 3}
-              onClick={() => setActiveKey(3)}
-            >
-              Cotizaciónes
-            </CNavLink>
-          </CNavItem>
+          {view && (
+            <CNavItem role="presentation">
+              <CNavLink
+                active={activeKey === 2}
+                component="button"
+                role="tab"
+                aria-controls="account-tab-pane"
+                aria-selected={activeKey === 2}
+                onClick={() => setActiveKey(2)}
+              >
+                Cotizaciónes
+              </CNavLink>
+            </CNavItem>
+          )}
         </CNav>
         <CTabContent>
           {/* purchase request data */}
           <CTabPane role="tabpanel" aria-labelledby="data-tab-pane" visible={activeKey === 1}>
             <CForm className="mt-3">
               <div className="mb-3">
-                <CFormLabel>Titulo</CFormLabel>
+                <CFormLabel>Título</CFormLabel>
                 <CFormInput
                   type="text"
                   id="title"
+                  placeholder="Título de la solicitud"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                 />
@@ -305,6 +484,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                   type="file"
                   id="imgFile"
                   onChange={onAddFiles}
+                  accept="image/*"
                   text="Archivos permitidos jpg, png, jpeg (10 MB)"
                 />
               </div>
@@ -327,29 +507,32 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                 <div className="flex-fill">
                   <CFormLabel>Giro</CFormLabel>
                   <CFormSelect
-                    aria-label="station"
-                    options={[
-                      { label: 'Guerra', value: 'guerra' },
-                      { label: 'Servicio el milagro', value: 'milagro' },
-                      { label: 'Estadio', value: 'estadio' },
-                    ]}
+                    aria-label="line"
                     onChange={(e) => setLine(e.target.value)}
                     value={line}
-                  />
+                  >
+                    <option value={''}>Selecciona...</option>
+                    {lines.map((l) => (
+                      <option value={l.line} key={l.line}>
+                        {l.line}
+                      </option>
+                    ))}
+                  </CFormSelect>
                 </div>
                 <div className="flex-fill mx-2">
                   <CFormLabel>Unidad</CFormLabel>
                   <CFormSelect
-                    aria-label="business"
-                    options={[
-                      { label: 'Gasolinera', value: 'gasStation' },
-                      { label: 'Max store', value: 'store' },
-                      { label: 'Restaurante', value: 'restaurant' },
-                      { label: 'Pension', value: 'pension' },
-                    ]}
+                    aria-label="unit"
                     onChange={(e) => setUnit(e.target.value)}
                     value={unit}
-                  />
+                  >
+                    <option value={''}>Selecciona...</option>
+                    {units.data.map(({ id, unit }) => (
+                      <option key={id} value={unit}>
+                        {unit}
+                      </option>
+                    ))}
+                  </CFormSelect>
                 </div>
                 <div className="flex-fill">
                   <CFormLabel htmlFor="recommendedProviders">Cotizaciónes requeridas</CFormLabel>
@@ -359,41 +542,89 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                     placeholder="No Cotizaciónes"
                     onChange={(e) => setNumProviders(e.target.value)}
                     value={numProviders}
+                    max={5}
+                    min={0}
                   />
                 </div>
               </div>
+              {recommendedProvidersInput.map((x, i) => (
+                <div className="mb-3" key={x}>
+                  <CFormLabel>Proveedor recomendado {x + 1}</CFormLabel>
+                  <CFormSelect
+                    aria-label="charge"
+                    onChange={(e) => onSelectRecommendedProvider(e, i)}
+                    value={recommendedProviders[i]}
+                  >
+                    <option value={''}>Selecciona...</option>
+                    {providers.data.map(({ id, name }) => (
+                      <option key={id} value={name}>
+                        {name}
+                      </option>
+                    ))}
+                  </CFormSelect>
+                </div>
+              ))}
             </CForm>
           </CTabPane>
           {/* quotes files request */}
-          <CTabPane role="tabpanel" aria-labelledby="data-tab-pane" visible={activeKey === 3}>
+          <CTabPane role="tabpanel" aria-labelledby="data-tab-pane" visible={activeKey === 2}>
             <CForm className="mt-3">
               <CFormLabel className="fs-5">
-                Sube las <b>Cotizaciónes</b> para la solicitud
+                Añade las <b>Cotizaciónes</b> para la solicitud
               </CFormLabel>
               <div className="mb-3">
                 <CFormInput
                   ref={inputQuoteFile}
                   type="file"
-                  id="csfFile"
-                  onChange={onAddFiles}
+                  id="quoteFile"
                   text="Archivos permitidos jpg, pdf, png, xlxs (10 MB)"
                 />
               </div>
-              <div className="mb-3 d-flex">
-                {quoteFiles.map((file, index) => {
-                  return (
-                    <FileCard
-                      file={file}
-                      key={file.tag}
-                      onDelete={(id) => {
-                        return file.id
-                          ? setQuoteFiles(quoteFiles.filter((f) => f.id !== id))
-                          : setQuoteFiles(quoteFiles.filter((f, i) => index !== i))
-                      }}
-                    />
-                  )
-                })}
+
+              <div className="mb-3">
+                <CFormTextarea
+                  id="desc"
+                  label="Descripción "
+                  rows={2}
+                  text="Debe tener entre 5 y 10 palabras."
+                  value={descriptionQuote}
+                  onChange={(e) => setDescriptionQuote(e.target.value)}
+                ></CFormTextarea>
               </div>
+              <CButton
+                color="primary"
+                className="text-light fw-semibold me-2"
+                onClick={onAddQuoteFiles}
+              >
+                <CIcon icon={cilPlus} className="me-1" />
+                Añadir a la solicitud
+              </CButton>
+              <CTable striped responsive>
+                <CTableHead>
+                  <CTableRow>
+                    <CTableHeaderCell scope="col">Descripción</CTableHeaderCell>
+                    <CTableHeaderCell scope="col">Archivo Cotización</CTableHeaderCell>
+                  </CTableRow>
+                </CTableHead>
+                <CTableBody>
+                  {quoteFiles.map((file, index) => (
+                    <CTableRow key={file.name}>
+                      <CTableDataCell>{file.description}</CTableDataCell>
+                      <CTableDataCell>
+                        <FileCard
+                          file={file}
+                          key={file.name}
+                          onDelete={(id) => {
+                            return file.id
+                              ? setQuoteFiles(quoteFiles.filter((f) => f.id !== id))
+                              : setQuoteFiles(quoteFiles.filter((f, i) => index !== i))
+                          }}
+                        />
+                      </CTableDataCell>
+                    </CTableRow>
+                  ))}
+                </CTableBody>
+              </CTable>
             </CForm>
           </CTabPane>
         </CTabContent>
@@ -402,18 +633,21 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
         <CButton color="secondary" onClick={onClose}>
           Cerrar
         </CButton>
-        <CButton color="primary" className="text-light fw-semibold" onClick={onSave}>
+        <CButton
+          color="primary"
+          className="text-light fw-semibold"
+          onClick={(e) => {
+            if (view) {
+              onUploadQuoteFile(e)
+            } else {
+              onSave(e)
+            }
+          }}
+        >
           Guardar
         </CButton>
         {view && (
           <>
-            {quoteData.status !== 'paid' &&
-              quoteData.status !== 'approved' &&
-              hasAuthorizePermission && (
-                <CButton color="success" className="text-light fw-semibold" onClick={onApprove}>
-                  Autorizar
-                </CButton>
-              )}
             {quoteData.status === 'approved' && hasPayPermission && (
               <CButton color="info" className="text-light fw-semibold" onClick={onPay}>
                 Pagar

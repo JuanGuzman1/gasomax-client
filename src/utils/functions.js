@@ -19,12 +19,26 @@ export const movementTypes = {
   settlement: 'Liquidación',
   payment: 'Abono a cuenta',
 }
-
-export const statusPurchaseRequest = {
-  pending: 'Cotización completa',
+//////////////////////////// status QUOTE ////////////////////
+export const statusQuote = {
+  inprogress: 'Cotizaciónes disponibles',
   approved: 'Cotización aprobada',
-  paid: 'Cotización pagada',
-  rejected: 'Cotización rechazada',
+  sent: 'Solicitud enviada',
+  rejected: 'Cotizaciónes rechazadas',
+}
+
+export const statusQuoteColors = {
+  inprogress: 'warning',
+  approved: 'success',
+  sent: 'info',
+  rejected: 'danger',
+}
+////////////////////// status purchaseRequest (Update payments) //////////////
+export const statusPurchaseRequest = {
+  pending: 'Solicitud pendiente de aprobación',
+  approved: 'Solicitud aprobada',
+  paid: 'Pagado',
+  rejected: 'Solicitud rechazada',
 }
 
 export const statusPurchaseRequestColors = {

@@ -363,7 +363,7 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
         pettyCash,
         details,
         provider_id: providerID,
-        petitioner_id: 1,
+        petitioner_id: user.id,
       }
       dispatch(
         purchaseData
@@ -430,6 +430,7 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
               uploadFile(
                 file.file,
                 file.tag,
+                null,
                 purchaseRequestRes.id,
                 modelTypes.purchaseRequest,
                 () => {},

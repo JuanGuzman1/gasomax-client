@@ -3,6 +3,7 @@ export const fileTags = {
   quotation: 'quotation', //cotizacion
   invoice: 'invoice', //factura
   receipt: 'receipt', //comprobante de pago
+  img: 'img',
 }
 
 export const fileTagsName = {
@@ -10,4 +11,5 @@ export const fileTagsName = {
   quotation: 'Cotización',
   invoice: 'Factura',
   receipt: 'Comprobante de pago',
+  img: 'Imagen',
 }

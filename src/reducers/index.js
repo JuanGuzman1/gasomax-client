@@ -12,6 +12,7 @@ import pendingPayments from './pendingPayments'
 import department from './department'
 import user from './user'
 import permission from './permission'
+import unit from './unit'
 
 export default combineReducers({
   auth,
@@ -27,4 +28,5 @@ export default combineReducers({
   department,
   user,
   permission,
+  unit,
 })

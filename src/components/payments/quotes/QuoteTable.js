@@ -16,21 +16,20 @@ import CIcon from '@coreui/icons-react'
 import { cilOptions } from '@coreui/icons'
 import { useDispatch } from 'react-redux'
 import Swal from 'sweetalert2'
-import { fileTags } from 'src/utils/fileTags'
-import { deleteFilesByModel, downloadFile } from 'src/actions/file'
+import { deleteFilesByModel } from 'src/actions/file'
 import { modelTypes } from 'src/utils/modelTypes'
 import {
   formatNumber,
   formatTimezoneToDate,
-  statusPurchaseRequest,
-  statusPurchaseRequestColors,
+  statusQuote,
+  statusQuoteColors,
   useHasPermission,
 } from 'src/utils/functions'
-import { deletePurchaseRequest, getPurchaseRequestPDF } from 'src/actions/purchaseRequest'
 import { setToast } from 'src/actions/toast'
 import { AppToast } from 'src/components/app'
 import QuoteModalForm from './QuoteModalForm'
 import QuoteModalObs from './QuoteModalObs'
+import { deleteQuote } from 'src/actions/quote'
 
 const QuoteTable = ({ data }) => {
   const [visible, setVisible] = useState(false),
@@ -38,9 +37,9 @@ const QuoteTable = ({ data }) => {
     [quoteData, setQuoteData] = useState(null),
     [viewModalMode, setViewModalMode] = useState(false),
     dispatch = useDispatch(),
-    hasDeletePermission = useHasPermission('quote', 'delete'),
-    hasEditPermission = useHasPermission('quote', 'edit'),
-    hasShowPermission = useHasPermission('quote', 'show')
+    hasDeletePermission = useHasPermission('quotes', 'delete'),
+    hasEditPermission = useHasPermission('quotes', 'edit'),
+    hasShowPermission = useHasPermission('quotes', 'show')
 
   const onDelete = (id) => {
     Swal.fire({
@@ -54,24 +53,24 @@ const QuoteTable = ({ data }) => {
     }).then((result) => {
       if (result.isConfirmed) {
         dispatch(
-          deletePurchaseRequest(id, (dataRes) => {
+          deleteQuote(id, (dataRes) => {
             if (dataRes.success) {
               dispatch(
                 setToast(
                   AppToast({
                     msg: 'Solicitud eliminada correctamente.',
-                    title: 'Solicitudes de pago',
+                    title: 'Solicitudes de compra',
                     type: 'success',
                   }),
                 ),
               )
-              dispatch(deleteFilesByModel(id, modelTypes.purchaseRequest))
+              dispatch(deleteFilesByModel(id, modelTypes.quote))
             } else {
               dispatch(
                 setToast(
                   AppToast({
                     msg: 'Ha ocurrido un error.',
-                    title: 'Solicitudes de pago',
+                    title: 'Solicitudes de compra',
                     type: 'error',
                   }),
                 ),
@@ -111,9 +110,7 @@ const QuoteTable = ({ data }) => {
               <CTableDataCell>{quote.title}</CTableDataCell>
               <CTableDataCell>{formatTimezoneToDate(quote.created_at)}</CTableDataCell>
               <CTableDataCell>
-                <CBadge color={statusPurchaseRequestColors[quote.status]}>
-                  {statusPurchaseRequest[quote.status]}
-                </CBadge>
+                <CBadge color={statusQuoteColors[quote.status]}>{statusQuote[quote.status]}</CBadge>
               </CTableDataCell>
               <CTableDataCell className="text-center overflow-visible">
                 <CDropdown variant="dropdown">
@@ -135,7 +132,7 @@ const QuoteTable = ({ data }) => {
                     )}
                     {hasEditPermission &&
                       quote.status !== 'approved' &&
-                      quote.status !== 'paid' && (
+                      quote.status !== 'inprogress' && (
                         <CDropdownItem
                           style={{ cursor: 'pointer' }}
                           onClick={() => {
@@ -148,7 +145,7 @@ const QuoteTable = ({ data }) => {
                       )}
                     {hasDeletePermission &&
                       quote.status !== 'approved' &&
-                      quote.status !== 'paid' && (
+                      quote.status !== 'inprogress' && (
                         <CDropdownItem
                           style={{ cursor: 'pointer' }}
                           onClick={() => onDelete(quote.id)}

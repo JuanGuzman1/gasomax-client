@@ -38,7 +38,7 @@ export default function (state = initialState, action) {
         loading: false,
       }
     case UPDATE_QUOTE: {
-      let index = state.quotes.data.findIndex((pr) => pr.id === payload.id)
+      let index = state.quotes.data.findIndex((q) => q.id === payload.id)
       state.quotes.data[index] = { ...state.quotes.data[index], ...payload }
       return {
         ...state,
@@ -50,7 +50,7 @@ export default function (state = initialState, action) {
       return {
         ...state,
         quotes: {
-          data: state.quotes.data.filter((pr) => pr.id !== payload),
+          data: state.quotes.data.filter((q) => q.id !== payload),
         },
         loading: false,
       }

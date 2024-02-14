@@ -4,47 +4,50 @@ import { UPLOAD_FILE, FILE_ERROR, UPLOAD_FILE_PROGRESS, DOWNLOAD_FILE, DELETE_FI
 import { setToast } from './toast'
 import { AppToast } from 'src/components/app'
 
-export const uploadFile = (file, tag, model_id, model_type, cb) => async (dispatch) => {
-  try {
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('tag', tag)
-    formData.append('localName', file.name)
-    formData.append('fileable_id', model_id)
-    formData.append('fileable_type', model_type)
-    const res = await axios.post(`${config.instance.baseURL}/api/file`, formData, {
-      headers: {
-        ...config.instance.headersFormData,
-        Authorization: 'Bearer ' + localStorage.getItem('token'),
-      },
-      onUploadProgress: (progressEvent) => {
-        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
-        dispatch({
-          type: UPLOAD_FILE_PROGRESS,
-          payload: percentCompleted,
-        })
-      },
-    })
-    dispatch({
-      type: UPLOAD_FILE,
-      payload: res.data,
-    })
-    cb(res.data)
-    dispatch(setToast(AppToast({ msg: 'Archivo subido correctamente.', title: 'Archivos' })))
-  } catch (err) {
-    console.log(err)
-    dispatch({
-      type: FILE_ERROR,
-      payload: {
-        msg: err.response.statusText,
-        status: err.response.status,
-      },
-    })
-    dispatch(
-      setToast(AppToast({ msg: 'Ha ocurrido un error al subir archivo.', title: 'Archivos' })),
-    )
+export const uploadFile =
+  (file, tag, description = null, model_id, model_type, cb) =>
+  async (dispatch) => {
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('tag', tag)
+      formData.append('description', description)
+      formData.append('localName', file.name)
+      formData.append('fileable_id', model_id)
+      formData.append('fileable_type', model_type)
+      const res = await axios.post(`${config.instance.baseURL}/api/file`, formData, {
+        headers: {
+          ...config.instance.headersFormData,
+          Authorization: 'Bearer ' + localStorage.getItem('token'),
+        },
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total)
+          dispatch({
+            type: UPLOAD_FILE_PROGRESS,
+            payload: percentCompleted,
+          })
+        },
+      })
+      dispatch({
+        type: UPLOAD_FILE,
+        payload: res.data,
+      })
+      cb(res.data)
+      dispatch(setToast(AppToast({ msg: 'Archivo subido correctamente.', title: 'Archivos' })))
+    } catch (err) {
+      console.log(err)
+      dispatch({
+        type: FILE_ERROR,
+        payload: {
+          msg: err.response.statusText,
+          status: err.response.status,
+        },
+      })
+      dispatch(
+        setToast(AppToast({ msg: 'Ha ocurrido un error al subir archivo.', title: 'Archivos' })),
+      )
+    }
   }
-}
 
 export const downloadFile = (id) => async (dispatch) => {
   try {
