@@ -20,16 +20,21 @@ export const movementTypes = {
   payment: 'Abono a cuenta',
 }
 //////////////////////////// status QUOTE ////////////////////
-export const statusQuote = {
-  inprogress: 'Cotizaciónes disponibles',
-  approved: 'Cotización aprobada',
-  sent: 'Solicitud enviada',
-  rejected: 'Cotizaciónes rechazadas',
+export const statusQuote = (status, uploadQuotePermission = false, petitioner_id) => {
+  let statusQuoteLetter = {
+    inprogress: uploadQuotePermission ? 'Cotizaciónes enviadas' : 'Cotizaciónes disponibles',
+    approved: 'Cotización aprobada',
+    ok: 'Cotización VoBo',
+    sent: uploadQuotePermission ? 'Solicitud nueva' : 'Solicitud enviada',
+    rejected: 'Cotizaciónes rechazadas',
+  }
+  return statusQuoteLetter[status]
 }
 
 export const statusQuoteColors = {
   inprogress: 'warning',
   approved: 'success',
+  ok: 'info',
   sent: 'info',
   rejected: 'danger',
 }
@@ -57,8 +62,10 @@ export const permissions = {
   reject: 'Rechazar',
   pay: 'Pagar',
   authorize: 'Autorizar',
+  'authorize.ok': 'Autorizar > $5,000',
   modules: 'Asignar modulos',
   permissions: 'Asignar permisos',
+  'upload.quote': 'Subir cotizaciónes',
 }
 
 export const useHasPermission = (submodule, permission) => {

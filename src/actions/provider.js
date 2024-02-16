@@ -7,6 +7,7 @@ import {
   UPDATE_PROVIDER,
   EXPORT_PROVIDER_EXCEL,
   SELECT_PROVIDERS,
+  SELECT_ACCOUNT_PROVIDERS,
 } from './types'
 import config from '../server.config'
 
@@ -168,6 +169,29 @@ export const selectProviders = () => async (dispatch) => {
     })
     dispatch({
       type: SELECT_PROVIDERS,
+      payload: res.data,
+    })
+  } catch (err) {
+    dispatch({
+      type: PROVIDER_ERROR,
+      payload: {
+        msg: err.response.statusText,
+        status: err.response.status,
+      },
+    })
+  }
+}
+
+export const selectAccountsByProvider = (id) => async (dispatch) => {
+  try {
+    const res = await axios.get(`${config.instance.baseURL}/api/select/account/provider/${id}`, {
+      headers: {
+        ...config.instance.headers,
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
+    })
+    dispatch({
+      type: SELECT_ACCOUNT_PROVIDERS,
       payload: res.data,
     })
   } catch (err) {

@@ -6,7 +6,7 @@ import { useDispatch } from 'react-redux'
 import { deleteFile, downloadFile } from 'src/actions/file'
 import { fileTagsName } from 'src/utils/fileTags'
 
-const FileCard = ({ file, onDelete }) => {
+const FileCard = ({ file, onDelete, viewMode = false }) => {
   const dispatch = useDispatch()
 
   const onDownloadPress = () => {
@@ -46,10 +46,11 @@ const FileCard = ({ file, onDelete }) => {
               Descargar
             </CButton>
           )}
-
-          <CButton color="danger" variant="outline" title="Eliminar" onClick={onDeletePress}>
-            <CIcon icon={cilTrash} />
-          </CButton>
+          {!viewMode && (
+            <CButton color="danger" variant="outline" title="Eliminar" onClick={onDeletePress}>
+              <CIcon icon={cilTrash} />
+            </CButton>
+          )}
         </div>
       </CCardBody>
     </CCard>

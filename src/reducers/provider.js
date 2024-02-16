@@ -6,6 +6,7 @@ import {
   UPDATE_PROVIDER,
   EXPORT_PROVIDER_EXCEL,
   SELECT_PROVIDERS,
+  SELECT_ACCOUNT_PROVIDERS,
 } from 'src/actions/types'
 
 const initialState = {
@@ -14,7 +15,9 @@ const initialState = {
     current_page: 1,
   },
   filters: {},
+  accounts: [],
   loading: true,
+  loadingAccounts: true,
   error: {},
 }
 
@@ -57,6 +60,12 @@ export default function (state = initialState, action) {
         ...state,
         providers: { data: payload },
         loading: false,
+      }
+    case SELECT_ACCOUNT_PROVIDERS:
+      return {
+        ...state,
+        accounts: { data: payload },
+        loadingAccounts: false,
       }
     case PROVIDER_ERROR:
       return {

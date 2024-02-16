@@ -17,13 +17,10 @@ import {
   CSpinner,
 } from '@coreui/react'
 import { useDispatch, useSelector } from 'react-redux'
-import {
-  addPurchaseRequestObservation,
-  getPurchaseRequestObservations,
-} from 'src/actions/purchaseRequest'
 import { setToast } from 'src/actions/toast'
 import { AppToast } from 'src/components/app'
 import { formatTimezoneToDateTime } from 'src/utils/functions'
+import { addQuoteObservation, getQuoteObservations } from 'src/actions/quote'
 
 const QuoteModalObs = ({ visible, onClose, quoteID }) => {
   const dispatch = useDispatch(),
@@ -32,7 +29,7 @@ const QuoteModalObs = ({ visible, onClose, quoteID }) => {
     user = useSelector((state) => state.auth.user)?.data?.user
 
   useEffect(() => {
-    //dispatch(getPurchaseRequestObservations(purchaseRequestID))
+    dispatch(getQuoteObservations(quoteID))
   }, [dispatch, quoteID])
 
   const onSave = (e) => {
@@ -47,6 +44,27 @@ const QuoteModalObs = ({ visible, onClose, quoteID }) => {
         user_id: user.id,
         quote_id: quoteID,
       }
+      dispatch(
+        addQuoteObservation(data, (quoteObservationRes) => {
+          if (quoteObservationRes.success) {
+            dispatch(
+              setToast(
+                AppToast({
+                  msg: 'Mensaje guardado con exito',
+                  title: 'Observacion',
+                  type: 'success',
+                }),
+              ),
+            )
+          } else {
+            dispatch(
+              setToast(
+                AppToast({ msg: 'Ha ocurrido un error', title: 'Observacion', type: 'error' }),
+              ),
+            )
+          }
+        }),
+      )
     } catch (error) {
       console.log(error)
     }
@@ -54,9 +72,9 @@ const QuoteModalObs = ({ visible, onClose, quoteID }) => {
   }
 
   return (
-    <CModal visible={visible} onClose={onClose} aria-labelledby="ModalForm">
+    <CModal visible={visible} onClose={onClose} aria-labelledby="ModalObsForm">
       <CModalHeader onClose={onClose}>
-        <CModalTitle id="ModalForm">Observaciones</CModalTitle>
+        <CModalTitle id="ModalObsForm">Observaciones</CModalTitle>
       </CModalHeader>
       <CModalBody>
         {loadingObservations ? (

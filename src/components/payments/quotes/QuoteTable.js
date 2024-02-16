@@ -39,7 +39,8 @@ const QuoteTable = ({ data }) => {
     dispatch = useDispatch(),
     hasDeletePermission = useHasPermission('quotes', 'delete'),
     hasEditPermission = useHasPermission('quotes', 'edit'),
-    hasShowPermission = useHasPermission('quotes', 'show')
+    hasShowPermission = useHasPermission('quotes', 'show'),
+    hasUploadQuotePermission = useHasPermission('quotes', 'upload.quote')
 
   const onDelete = (id) => {
     Swal.fire({
@@ -95,7 +96,7 @@ const QuoteTable = ({ data }) => {
             <CTableHeaderCell scope="col">Folio</CTableHeaderCell>
             <CTableHeaderCell scope="col">Solicitante</CTableHeaderCell>
             <CTableHeaderCell scope="col">Titulo</CTableHeaderCell>
-            <CTableHeaderCell scope="col">Fecha</CTableHeaderCell>
+            <CTableHeaderCell scope="col">Fecha de solicitud</CTableHeaderCell>
             <CTableHeaderCell scope="col">Status</CTableHeaderCell>
             <CTableHeaderCell scope="col" className="text-center">
               Opciones
@@ -110,7 +111,9 @@ const QuoteTable = ({ data }) => {
               <CTableDataCell>{quote.title}</CTableDataCell>
               <CTableDataCell>{formatTimezoneToDate(quote.created_at)}</CTableDataCell>
               <CTableDataCell>
-                <CBadge color={statusQuoteColors[quote.status]}>{statusQuote[quote.status]}</CBadge>
+                <CBadge color={statusQuoteColors[quote.status]}>
+                  {statusQuote(quote.status, hasUploadQuotePermission)}
+                </CBadge>
               </CTableDataCell>
               <CTableDataCell className="text-center overflow-visible">
                 <CDropdown variant="dropdown">

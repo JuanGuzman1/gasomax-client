@@ -177,6 +177,7 @@ const ProviderModalForm = ({ visible, onClose, providerData }) => {
     setAccountingAccount('')
     setCsfFile(null)
     setActiveKey(1)
+    setBankAccounts([])
   }, [])
 
   useEffect(() => {

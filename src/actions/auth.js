@@ -14,11 +14,12 @@ export const login = (data, cb) => async (dispatch) => {
     })
     cb(res.data)
   } catch (err) {
+    console.log(err)
     dispatch({
       type: AUTH_ERROR,
       payload: {
-        msg: err.response.statusText,
-        status: err.response.status,
+        msg: err?.response?.statusText,
+        status: err?.response?.status,
       },
     })
     cb({

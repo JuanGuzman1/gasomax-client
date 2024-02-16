@@ -32,13 +32,14 @@ import { fileTags } from 'src/utils/fileTags'
 import { FileCard, AppToast } from '../../app'
 import Swal from 'sweetalert2'
 import { formatNumber, movementTypes, useHasPermission } from 'src/utils/functions'
-import { selectProviders } from 'src/actions/provider'
+import { selectAccountsByProvider, selectProviders } from 'src/actions/provider'
 import { setToast } from 'src/actions/toast'
 import { uploadFile } from 'src/actions/file'
 import { modelTypes } from 'src/utils/modelTypes'
 import { getCharges, getConceptsByCharge } from 'src/actions/quoteConcept'
 import { addQuote, getQuotes, updateQuote } from 'src/actions/quote'
 import { getLines, getUnitsByLine } from 'src/actions/unit'
+import QuoteModalObs from './QuoteModalObs'
 
 const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
   const [activeKey, setActiveKey] = useState(1),
@@ -63,10 +64,12 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
     [observation, setObservation] = useState(''),
     dispatch = useDispatch(),
     { progress } = useSelector((state) => state.file),
-    { providers } = useSelector((state) => state.provider),
+    { providers, accounts } = useSelector((state) => state.provider),
     hasPayPermission = useHasPermission('quotes', 'pay'),
     hasRejectPermission = useHasPermission('quotes', 'reject'),
     hasAuthorizePermission = useHasPermission('quotes', 'authorize'),
+    hasAuthorizeOKPermission = useHasPermission('quotes', 'authorize.ok'),
+    hasUploadQuotePermission = useHasPermission('quotes', 'upload.quote'),
     inputImgFile = useRef(),
     inputQuoteFile = useRef(),
     user = useSelector((state) => state.auth.user)?.data?.user,
@@ -74,7 +77,8 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
     concepts = useSelector((state) => state.quoteConcept.concepts),
     lines = useSelector((state) => state.unit.lines),
     units = useSelector((state) => state.unit.units),
-    { quotes, filters } = useSelector((state) => state.quote)
+    { quotes, filters } = useSelector((state) => state.quote),
+    [visibleObs, setVisibleObs] = useState(false)
 
   useEffect(() => {
     dispatch(selectProviders())
@@ -100,6 +104,13 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
   }, [dispatch, charge])
 
   useEffect(() => {
+    if (!providerID) {
+      return
+    }
+    dispatch(selectAccountsByProvider(providerID))
+  }, [dispatch, providerID])
+
+  useEffect(() => {
     let array = []
     for (let i = 0; i < numProviders; i++) {
       array.push(i)
@@ -122,6 +133,8 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
     setRecommendedProviders(JSON.parse(quoteData.recommendedProviders))
     setImgFiles(quoteData.files?.filter((f) => f.tag === fileTags.img))
     setQuoteFiles(quoteData.files?.filter((f) => f.tag === fileTags.quotation))
+    setRejectQuotes(quoteData.rejectQuotes)
+    setApprovedAmount(quoteData.approvedAmount)
   }, [quoteData])
 
   const onSelectRecommendedProvider = (e, i) => {
@@ -215,6 +228,17 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
         )
         return
       }
+      let status
+
+      if (rejectQuotes) {
+        status = 'rejected'
+      } else if (approvedAmount > 0 && approvedAmount <= 5000) {
+        status = 'approved'
+      } else if (approvedAmount > 5000) {
+        status = 'ok'
+      } else {
+        status = 'sent'
+      }
 
       let data = {
         title,
@@ -226,6 +250,10 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
         recommendedProviders: JSON.stringify(recommendedProviders),
         line,
         unit,
+        rejectQuotes,
+        approvedAmount,
+        observation,
+        status,
       }
       dispatch(
         quoteData
@@ -309,7 +337,70 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
     e.preventDefault()
     try {
       dispatch(
-        updateQuote({ status: 'inprogress' }, quoteID, (quoteRes) => {
+        updateQuote(
+          { status: 'inprogress', rejectQuotes: false, approvedAmount: 0 },
+          quoteID,
+          (quoteRes) => {
+            if (quoteRes.success) {
+              dispatch(
+                setToast(
+                  AppToast({
+                    msg: 'Solicitud actualizada correctamente.',
+                    title: 'Solicitudes de compra',
+                    type: 'success',
+                  }),
+                ),
+              )
+              if (quoteFiles.length > 0) {
+                Promise.all(
+                  quoteFiles.map((file) => {
+                    if (!file.id) {
+                      return dispatch(
+                        uploadFile(
+                          file.file,
+                          file.tag,
+                          file.description,
+                          quoteID,
+                          modelTypes.quote,
+                          () => {},
+                        ),
+                      )
+                    } else {
+                      onClose()
+                      clearGeneralInputs()
+                    }
+                  }),
+                ).finally(() => {
+                  dispatch(getQuotes(quotes.current_page, filters.filter, filters.value))
+                })
+              } else {
+                onClose()
+                clearGeneralInputs()
+              }
+            } else {
+              dispatch(
+                setToast(
+                  AppToast({
+                    msg: 'Ha ocurrido un error.',
+                    title: 'Solicitudes de compra',
+                    type: 'error',
+                  }),
+                ),
+              )
+            }
+          },
+        ),
+      )
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  const onAuthorize = (e) => {
+    e.preventDefault()
+    try {
+      dispatch(
+        updateQuote({ status: 'approved' }, quoteID, (quoteRes) => {
           if (quoteRes.success) {
             dispatch(
               setToast(
@@ -320,32 +411,9 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                 }),
               ),
             )
-            if (quoteFiles.length > 0) {
-              Promise.all(
-                quoteFiles.map((file) => {
-                  if (!file.id) {
-                    return dispatch(
-                      uploadFile(
-                        file.file,
-                        file.tag,
-                        file.description,
-                        quoteID,
-                        modelTypes.quote,
-                        () => {},
-                      ),
-                    )
-                  } else {
-                    onClose()
-                    clearGeneralInputs()
-                  }
-                }),
-              ).finally(() => {
-                dispatch(getQuotes(quotes.current_page, filters.filter, filters.value))
-              })
-            } else {
-              onClose()
-              clearGeneralInputs()
-            }
+
+            onClose()
+            clearGeneralInputs()
           } else {
             dispatch(
               setToast(
@@ -373,290 +441,480 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
     }
   }, [progress, onClose, clearGeneralInputs])
 
+  useEffect(() => {
+    if (rejectQuotes) {
+      setApprovedAmount(0)
+    }
+  }, [rejectQuotes])
+
   return (
-    <CModal visible={visible} onClose={onClose} aria-labelledby="ModalForm" size="xl">
-      <CModalHeader onClose={onClose}>
-        <CModalTitle id="ModalForm">
-          {quoteData ? `${view ? '' : 'Editar'} solicitud ${quoteData.title}` : 'Nueva solicitud'}
-        </CModalTitle>
-      </CModalHeader>
-      <CModalBody>
-        {imgFiles.length > 0 && imgFiles.some((file) => !file.id) && (
-          <CProgress value={progress} className="mb-2">
-            {progress}%
-          </CProgress>
-        )}
-        {quoteFiles.length > 0 && quoteFiles.some((file) => !file.id) && (
-          <CProgress value={progress} className="mb-2">
-            {progress}%
-          </CProgress>
-        )}
-        <CNav variant="tabs" role="tablist" className="mt-1">
-          <CNavItem role="presentation">
-            <CNavLink
-              active={activeKey === 1}
-              component="button"
-              role="tab"
-              aria-controls="data-tab-pane"
-              aria-selected={activeKey === 1}
-              onClick={() => setActiveKey(1)}
-            >
-              General
-            </CNavLink>
-          </CNavItem>
-          {view && (
+    <>
+      <CModal visible={visible} onClose={onClose} aria-labelledby="ModalForm" size="xl">
+        <CModalHeader onClose={onClose}>
+          <CModalTitle id="ModalForm">
+            {quoteData ? `${view ? '' : 'Editar'} Solicitud ${quoteData.title}` : 'Nueva Solicitud'}
+          </CModalTitle>
+        </CModalHeader>
+        <CModalBody>
+          {imgFiles.length > 0 && imgFiles.some((file) => !file.id) && (
+            <CProgress value={progress} className="mb-2">
+              {progress}%
+            </CProgress>
+          )}
+          {quoteFiles.length > 0 && quoteFiles.some((file) => !file.id) && (
+            <CProgress value={progress} className="mb-2">
+              {progress}%
+            </CProgress>
+          )}
+          <CNav variant="tabs" role="tablist" className="mt-1">
             <CNavItem role="presentation">
               <CNavLink
-                active={activeKey === 2}
+                active={activeKey === 1}
                 component="button"
                 role="tab"
-                aria-controls="account-tab-pane"
-                aria-selected={activeKey === 2}
-                onClick={() => setActiveKey(2)}
+                aria-controls="data-tab-pane"
+                aria-selected={activeKey === 1}
+                onClick={() => setActiveKey(1)}
               >
-                Cotizaciónes
+                General
               </CNavLink>
             </CNavItem>
-          )}
-        </CNav>
-        <CTabContent>
-          {/* purchase request data */}
-          <CTabPane role="tabpanel" aria-labelledby="data-tab-pane" visible={activeKey === 1}>
-            <CForm className="mt-3">
-              <div className="mb-3">
-                <CFormLabel>Título</CFormLabel>
-                <CFormInput
-                  type="text"
-                  id="title"
-                  placeholder="Título de la solicitud"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                />
-              </div>
-              <div className="mb-3 d-flex">
-                <div className="flex-md-fill me-2">
-                  <CFormLabel>Cargo</CFormLabel>
-                  <CFormSelect
-                    aria-label="charge"
-                    onChange={(e) => setCharge(e.target.value)}
-                    value={charge}
-                  >
-                    <option value={''}>Selecciona...</option>
-                    {charges.map(({ charge }) => (
-                      <option key={charge} value={charge}>
-                        {charge}
-                      </option>
-                    ))}
-                  </CFormSelect>
-                </div>
-                <div className="flex-md-fill me-2">
-                  <CFormLabel>Concepto</CFormLabel>
-                  <CFormSelect
-                    aria-label="concept"
-                    onChange={(e) => setQuoteConceptID(e.target.value)}
-                    value={quoteConceptID}
-                  >
-                    <option value={''}>Selecciona...</option>
-                    {concepts.data.map(({ id, concept }) => (
-                      <option key={id} value={id}>
-                        {concept}
-                      </option>
-                    ))}
-                  </CFormSelect>
-                </div>
-              </div>
-              <div className="mb-3">
-                <CFormTextarea
-                  id="desc"
-                  label="Descripción "
-                  rows={2}
-                  text="Debe tener entre 5 y 10 palabras."
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                ></CFormTextarea>
-              </div>
-              <div className="mb-3">
-                <CFormLabel>
-                  Sube <b>imágenes</b> para la solicitud (opcional)
-                </CFormLabel>
-                <CFormInput
-                  ref={inputImgFile}
-                  type="file"
-                  id="imgFile"
-                  onChange={onAddFiles}
-                  accept="image/*"
-                  text="Archivos permitidos jpg, png, jpeg (10 MB)"
-                />
-              </div>
-              <div className="mb-3 d-flex">
-                {imgFiles.map((file, index) => {
-                  return (
-                    <FileCard
-                      file={file}
-                      key={file.tag}
-                      onDelete={(id) => {
-                        return file.id
-                          ? setImgFiles(imgFiles.filter((f) => f.id !== id))
-                          : setImgFiles(imgFiles.filter((f, i) => index !== i))
-                      }}
-                    />
-                  )
-                })}
-              </div>
-              <div className="mb-3 d-flex">
-                <div className="flex-fill">
-                  <CFormLabel>Giro</CFormLabel>
-                  <CFormSelect
-                    aria-label="line"
-                    onChange={(e) => setLine(e.target.value)}
-                    value={line}
-                  >
-                    <option value={''}>Selecciona...</option>
-                    {lines.map((l) => (
-                      <option value={l.line} key={l.line}>
-                        {l.line}
-                      </option>
-                    ))}
-                  </CFormSelect>
-                </div>
-                <div className="flex-fill mx-2">
-                  <CFormLabel>Unidad</CFormLabel>
-                  <CFormSelect
-                    aria-label="unit"
-                    onChange={(e) => setUnit(e.target.value)}
-                    value={unit}
-                  >
-                    <option value={''}>Selecciona...</option>
-                    {units.data.map(({ id, unit }) => (
-                      <option key={id} value={unit}>
-                        {unit}
-                      </option>
-                    ))}
-                  </CFormSelect>
-                </div>
-                <div className="flex-fill">
-                  <CFormLabel htmlFor="recommendedProviders">Cotizaciónes requeridas</CFormLabel>
+            {view && (
+              <CNavItem role="presentation">
+                <CNavLink
+                  active={activeKey === 2}
+                  component="button"
+                  role="tab"
+                  aria-controls="account-tab-pane"
+                  aria-selected={activeKey === 2}
+                  onClick={() => setActiveKey(2)}
+                >
+                  Cotizaciónes
+                </CNavLink>
+              </CNavItem>
+            )}
+            {view && quoteData.status === 'approved' && hasPayPermission && (
+              <CNavItem role="presentation">
+                <CNavLink
+                  active={activeKey === 3}
+                  component="button"
+                  role="tab"
+                  aria-controls="account-tab-pane"
+                  aria-selected={activeKey === 3}
+                  onClick={() => setActiveKey(3)}
+                >
+                  Selección de cuenta y proveedor
+                </CNavLink>
+              </CNavItem>
+            )}
+          </CNav>
+          <CTabContent>
+            {/* Quote data */}
+            <CTabPane role="tabpanel" aria-labelledby="data-tab-pane" visible={activeKey === 1}>
+              <CForm className="mt-3">
+                <div className="mb-3">
+                  <CFormLabel>Título</CFormLabel>
                   <CFormInput
-                    type="number"
-                    id="recommendedProviders"
-                    placeholder="No Cotizaciónes"
-                    onChange={(e) => setNumProviders(e.target.value)}
-                    value={numProviders}
-                    max={5}
-                    min={0}
+                    type="text"
+                    id="title"
+                    placeholder="Título de la solicitud"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    disabled={view}
                   />
                 </div>
-              </div>
-              {recommendedProvidersInput.map((x, i) => (
-                <div className="mb-3" key={x}>
-                  <CFormLabel>Proveedor recomendado {x + 1}</CFormLabel>
-                  <CFormSelect
-                    aria-label="charge"
-                    onChange={(e) => onSelectRecommendedProvider(e, i)}
-                    value={recommendedProviders[i]}
-                  >
-                    <option value={''}>Selecciona...</option>
-                    {providers.data.map(({ id, name }) => (
-                      <option key={id} value={name}>
-                        {name}
-                      </option>
-                    ))}
-                  </CFormSelect>
+                <div className="mb-3 d-flex">
+                  <div className="flex-md-fill me-2">
+                    <CFormLabel>Cargo</CFormLabel>
+                    <CFormSelect
+                      aria-label="charge"
+                      onChange={(e) => setCharge(e.target.value)}
+                      value={charge}
+                      disabled={view}
+                    >
+                      <option value={''}>Selecciona...</option>
+                      {charges.map(({ charge }) => (
+                        <option key={charge} value={charge}>
+                          {charge}
+                        </option>
+                      ))}
+                    </CFormSelect>
+                  </div>
+                  <div className="flex-md-fill me-2">
+                    <CFormLabel>Concepto</CFormLabel>
+                    <CFormSelect
+                      aria-label="concept"
+                      onChange={(e) => setQuoteConceptID(e.target.value)}
+                      value={quoteConceptID}
+                      disabled={view}
+                    >
+                      <option value={''}>Selecciona...</option>
+                      {concepts.data.map(({ id, concept }) => (
+                        <option key={id} value={id}>
+                          {concept}
+                        </option>
+                      ))}
+                    </CFormSelect>
+                  </div>
                 </div>
-              ))}
-            </CForm>
-          </CTabPane>
-          {/* quotes files request */}
-          <CTabPane role="tabpanel" aria-labelledby="data-tab-pane" visible={activeKey === 2}>
-            <CForm className="mt-3">
-              <CFormLabel className="fs-5">
-                Añade las <b>Cotizaciónes</b> para la solicitud
-              </CFormLabel>
-              <div className="mb-3">
-                <CFormInput
-                  ref={inputQuoteFile}
-                  type="file"
-                  id="quoteFile"
-                  text="Archivos permitidos jpg, pdf, png, xlxs (10 MB)"
-                />
-              </div>
+                <div className="mb-3">
+                  <CFormTextarea
+                    id="desc"
+                    label="Descripción "
+                    rows={2}
+                    text="Debe tener entre 5 y 10 palabras."
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    disabled={view}
+                  ></CFormTextarea>
+                </div>
+                {!view && (
+                  <div className="mb-3">
+                    <CFormLabel>
+                      Sube <b>imágenes</b> para la solicitud (opcional)
+                    </CFormLabel>
+                    <CFormInput
+                      ref={inputImgFile}
+                      type="file"
+                      id="imgFile"
+                      onChange={onAddFiles}
+                      accept="image/*"
+                      text="Archivos permitidos jpg, png, jpeg (10 MB)"
+                    />
+                  </div>
+                )}
+                <div className="mb-3 d-flex">
+                  {imgFiles.map((file, index) => {
+                    return (
+                      <FileCard
+                        file={file}
+                        key={file.tag}
+                        onDelete={(id) => {
+                          return file.id
+                            ? setImgFiles(imgFiles.filter((f) => f.id !== id))
+                            : setImgFiles(imgFiles.filter((f, i) => index !== i))
+                        }}
+                        viewMode={view}
+                      />
+                    )
+                  })}
+                </div>
+                <div className="mb-3 d-flex">
+                  <div className="flex-fill">
+                    <CFormLabel>Giro</CFormLabel>
+                    <CFormSelect
+                      aria-label="line"
+                      onChange={(e) => setLine(e.target.value)}
+                      value={line}
+                      disabled={view}
+                    >
+                      <option value={''}>Selecciona...</option>
+                      {lines.map((l) => (
+                        <option value={l.line} key={l.line}>
+                          {l.line}
+                        </option>
+                      ))}
+                    </CFormSelect>
+                  </div>
+                  <div className="flex-fill mx-2">
+                    <CFormLabel>Unidad</CFormLabel>
+                    <CFormSelect
+                      aria-label="unit"
+                      onChange={(e) => setUnit(e.target.value)}
+                      value={unit}
+                      disabled={view}
+                    >
+                      <option value={''}>Selecciona...</option>
+                      {units.data.map(({ id, unit }) => (
+                        <option key={id} value={unit}>
+                          {unit}
+                        </option>
+                      ))}
+                    </CFormSelect>
+                  </div>
+                  <div className="flex-fill">
+                    <CFormLabel htmlFor="recommendedProviders">Cotizaciónes requeridas</CFormLabel>
+                    <CFormInput
+                      type="number"
+                      id="recommendedProviders"
+                      placeholder="No Cotizaciónes"
+                      onChange={(e) => setNumProviders(e.target.value)}
+                      value={numProviders}
+                      max={5}
+                      min={0}
+                      disabled={view}
+                    />
+                  </div>
+                </div>
+                {recommendedProvidersInput.map((x, i) => (
+                  <div className="mb-3" key={x}>
+                    <CFormLabel>Proveedor recomendado {x + 1}</CFormLabel>
+                    <CFormSelect
+                      aria-label="charge"
+                      onChange={(e) => onSelectRecommendedProvider(e, i)}
+                      value={recommendedProviders[i]}
+                      disabled={view}
+                    >
+                      <option value={''}>Selecciona...</option>
+                      {providers.data.map(({ id, name }) => (
+                        <option key={id} value={name}>
+                          {name}
+                        </option>
+                      ))}
+                    </CFormSelect>
+                  </div>
+                ))}
+              </CForm>
+            </CTabPane>
+            {/* Quote files */}
+            <CTabPane role="tabpanel" aria-labelledby="data-tab-pane" visible={activeKey === 2}>
+              <CForm className="mt-3">
+                {hasUploadQuotePermission && (
+                  <>
+                    <CFormLabel className="fs-5">
+                      Añade las <b>Cotizaciónes</b> para la solicitud
+                    </CFormLabel>
+                    <div className="mb-3">
+                      <CFormInput
+                        ref={inputQuoteFile}
+                        type="file"
+                        id="quoteFile"
+                        text="Archivos permitidos jpg, pdf, png, xlxs (10 MB)"
+                      />
+                    </div>
 
-              <div className="mb-3">
-                <CFormTextarea
-                  id="desc"
-                  label="Descripción "
-                  rows={2}
-                  text="Debe tener entre 5 y 10 palabras."
-                  value={descriptionQuote}
-                  onChange={(e) => setDescriptionQuote(e.target.value)}
-                ></CFormTextarea>
-              </div>
-              <CButton
-                color="primary"
-                className="text-light fw-semibold me-2"
-                onClick={onAddQuoteFiles}
-              >
-                <CIcon icon={cilPlus} className="me-1" />
-                Añadir a la solicitud
-              </CButton>
-              <CTable striped responsive>
-                <CTableHead>
-                  <CTableRow>
-                    <CTableHeaderCell scope="col">Descripción</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">Archivo Cotización</CTableHeaderCell>
-                  </CTableRow>
-                </CTableHead>
-                <CTableBody>
-                  {quoteFiles.map((file, index) => (
-                    <CTableRow key={file.name}>
-                      <CTableDataCell>{file.description}</CTableDataCell>
-                      <CTableDataCell>
-                        <FileCard
-                          file={file}
-                          key={file.name}
-                          onDelete={(id) => {
-                            return file.id
-                              ? setQuoteFiles(quoteFiles.filter((f) => f.id !== id))
-                              : setQuoteFiles(quoteFiles.filter((f, i) => index !== i))
-                          }}
-                        />
-                      </CTableDataCell>
-                    </CTableRow>
-                  ))}
-                </CTableBody>
-              </CTable>
-            </CForm>
-          </CTabPane>
-        </CTabContent>
-      </CModalBody>
-      <CModalFooter>
-        <CButton color="secondary" onClick={onClose}>
-          Cerrar
-        </CButton>
-        <CButton
-          color="primary"
-          className="text-light fw-semibold"
-          onClick={(e) => {
-            if (view) {
-              onUploadQuoteFile(e)
-            } else {
-              onSave(e)
-            }
-          }}
-        >
-          Guardar
-        </CButton>
-        {view && (
-          <>
-            {quoteData.status === 'approved' && hasPayPermission && (
-              <CButton color="info" className="text-light fw-semibold" onClick={onPay}>
-                Pagar
-              </CButton>
-            )}
-          </>
-        )}
-      </CModalFooter>
-    </CModal>
+                    <div className="mb-3">
+                      <CFormTextarea
+                        id="desc"
+                        label="Descripción "
+                        rows={2}
+                        text="Debe tener entre 5 y 10 palabras."
+                        value={descriptionQuote}
+                        onChange={(e) => setDescriptionQuote(e.target.value)}
+                      ></CFormTextarea>
+                    </div>
+                    <CButton
+                      color="primary"
+                      className="text-light fw-semibold me-2"
+                      onClick={onAddQuoteFiles}
+                    >
+                      <CIcon icon={cilPlus} className="me-1" />
+                      Añadir a la solicitud
+                    </CButton>
+                  </>
+                )}
+                {quoteFiles.length > 0 ? (
+                  <>
+                    <CTable striped responsive>
+                      <CTableHead>
+                        <CTableRow>
+                          <CTableHeaderCell scope="col">Descripción</CTableHeaderCell>
+                          <CTableHeaderCell scope="col">Archivo Cotización</CTableHeaderCell>
+                        </CTableRow>
+                      </CTableHead>
+                      <CTableBody>
+                        {quoteFiles.map((file, index) => (
+                          <CTableRow key={file.name}>
+                            <CTableDataCell>{file.description}</CTableDataCell>
+                            <CTableDataCell>
+                              <FileCard
+                                file={file}
+                                key={file.name}
+                                onDelete={(id) => {
+                                  return file.id
+                                    ? setQuoteFiles(quoteFiles.filter((f) => f.id !== id))
+                                    : setQuoteFiles(quoteFiles.filter((f, i) => index !== i))
+                                }}
+                                viewMode={view && !hasUploadQuotePermission}
+                              />
+                            </CTableDataCell>
+                          </CTableRow>
+                        ))}
+                      </CTableBody>
+                    </CTable>
+                    {(hasAuthorizePermission ||
+                      quoteData.status === 'approved' ||
+                      quoteData.status === 'ok') &&
+                      view && (
+                        <>
+                          <div className="mb-3">
+                            <CFormCheck
+                              id="rejectQuotes"
+                              label="Se descartan todas las cotizaciónes"
+                              checked={rejectQuotes}
+                              onChange={(e) => setRejectQuotes(e.target.checked)}
+                              disabled={
+                                quoteData.status === 'approved' || quoteData.status === 'ok'
+                              }
+                            />
+                          </div>
+                          <div className="mb-3">
+                            <CFormLabel htmlFor="approvedAmount">
+                              Monto de cotización aprobada ($)
+                            </CFormLabel>
+                            <CFormInput
+                              type="number"
+                              id="approvedAmount"
+                              placeholder="Importe"
+                              onChange={(e) => setApprovedAmount(e.target.value)}
+                              value={approvedAmount}
+                              disabled={
+                                rejectQuotes ||
+                                quoteData.status === 'approved' ||
+                                quoteData.status === 'ok'
+                              }
+                            />
+                          </div>
+                          {quoteData.status === 'rejected' ||
+                          quoteData.status === 'approved' ||
+                          quoteData.status === 'ok' ? (
+                            <CButton
+                              color="primary"
+                              className="text-white"
+                              onClick={() => setVisibleObs(true)}
+                            >
+                              Ver observaciones
+                            </CButton>
+                          ) : (
+                            <div className="mb-3">
+                              <CFormTextarea
+                                id="obs"
+                                label="Observación"
+                                rows={2}
+                                text="Debe tener entre 5 y 10 palabras."
+                                value={observation}
+                                onChange={(e) => setObservation(e.target.value)}
+                              ></CFormTextarea>
+                            </div>
+                          )}
+                        </>
+                      )}
+                  </>
+                ) : (
+                  !hasUploadQuotePermission && (
+                    <h3 className="text-center text-primary font-monospace">
+                      No hay cotizaciónes disponibles
+                    </h3>
+                  )
+                )}
+              </CForm>
+            </CTabPane>
+            {/* Provider selection */}
+            <CTabPane role="tabpanel" aria-labelledby="data-tab-pane" visible={activeKey === 3}>
+              <CForm className="mt-3">
+                <div className="mb-3 d-flex">
+                  <div className="flex-md-fill me-2">
+                    <CFormLabel>Proveedor</CFormLabel>
+                    <CFormSelect
+                      aria-label="provider"
+                      onChange={(e) => setProviderID(e.target.value)}
+                      value={providerID}
+                    >
+                      <option value={''}>Selecciona...</option>
+                      {providers.data.map(({ id, name }) => (
+                        <option key={id} value={id}>
+                          {name}
+                        </option>
+                      ))}
+                    </CFormSelect>
+                  </div>
+                  <div className="flex-md-fill me-2">
+                    <CFormLabel>Cuenta</CFormLabel>
+                    <CFormSelect
+                      aria-label="providerAccount"
+                      onChange={(e) => setProviderAccountID(e.target.value)}
+                      value={providerAccountID}
+                    >
+                      <option value={''}>Selecciona...</option>
+                      {accounts?.data?.map(({ id, clabe, bank }) => (
+                        <option key={id} value={id}>
+                          {bank.name} - {clabe}
+                        </option>
+                      ))}
+                    </CFormSelect>
+                  </div>
+                </div>
+                <div className="mb-3">
+                  <CFormLabel>
+                    Sube la <b>factura</b> para la solicitud de pago
+                  </CFormLabel>
+                  <CFormInput
+                    type="file"
+                    id="imgFile"
+                    // onChange={onAddFiles}
+                    text="Archivos permitidos jpg, pdf, jpeg (10 MB)"
+                  />
+                </div>
+                {/* <div className="mb-3 d-flex">
+                  {imgFiles.map((file, index) => {
+                    return (
+                      <FileCard
+                        file={file}
+                        key={file.tag}
+                        onDelete={(id) => {
+                          return file.id
+                            ? setImgFiles(imgFiles.filter((f) => f.id !== id))
+                            : setImgFiles(imgFiles.filter((f, i) => index !== i))
+                        }}
+                        viewMode={view}
+                      />
+                    )
+                  })}
+                </div> */}
+                <div className="mb-3">
+                  <CFormCheck
+                    id="rejectQuotes"
+                    label="Tramitar pago sin factura"
+                    checked={rejectQuotes}
+                    onChange={(e) => setRejectQuotes(e.target.checked)}
+                  />
+                </div>
+              </CForm>
+            </CTabPane>
+          </CTabContent>
+        </CModalBody>
+        <CModalFooter>
+          <CButton color="secondary" onClick={onClose}>
+            Cerrar
+          </CButton>
+          {view && quoteData.status === 'approved' && hasPayPermission ? (
+            <CButton color="info" className="text-light fw-semibold" onClick={onPay}>
+              Enviar a pago
+            </CButton>
+          ) : (
+            <CButton
+              color="primary"
+              className="text-light fw-semibold"
+              onClick={(e) => {
+                if (view) {
+                  if (user.id !== quoteData.petitioner_id) {
+                    onUploadQuoteFile(e)
+                  } else {
+                    onSave(e)
+                  }
+                } else {
+                  onSave(e)
+                }
+              }}
+            >
+              Guardar
+            </CButton>
+          )}
+          {hasAuthorizeOKPermission && view && quoteData.status === 'ok' && (
+            <CButton color="info" className="text-light fw-semibold" onClick={onAuthorize}>
+              Autorizar
+            </CButton>
+          )}
+        </CModalFooter>
+      </CModal>
+      {visibleObs && (
+        <QuoteModalObs
+          quoteID={quoteData?.id}
+          visible={visibleObs}
+          onClose={() => setVisibleObs(false)}
+        />
+      )}
+    </>
   )
 }
 
