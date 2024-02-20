@@ -54,6 +54,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
     [numProviders, setNumProviders] = useState(0),
     [recommendedProviders, setRecommendedProviders] = useState([]),
     [recommendedProvidersInput, setRecommendedProvidersInput] = useState([]),
+    [suggestedProvider, setSuggestedProvider] = useState(''),
     [line, setLine] = useState(''),
     [unit, setUnit] = useState(''),
     [rejectQuotes, setRejectQuotes] = useState(false),
@@ -61,6 +62,8 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
     [providerID, setProviderID] = useState(''),
     [providerAccountID, setProviderAccountID] = useState(''),
     [paymentWithoutInvoice, setPaymentWithoutInvoice] = useState(false),
+    [onePayment, setOnePayment] = useState(false),
+    [multiplePayments, setMultiplePayments] = useState(false),
     [observation, setObservation] = useState(''),
     dispatch = useDispatch(),
     { progress } = useSelector((state) => state.file),
@@ -117,6 +120,18 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
     }
     setRecommendedProvidersInput(array)
   }, [numProviders])
+
+  useEffect(() => {
+    if (onePayment) {
+      setMultiplePayments(false)
+    }
+  }, [onePayment])
+
+  useEffect(() => {
+    if (multiplePayments) {
+      setOnePayment(false)
+    }
+  }, [multiplePayments])
 
   useEffect(() => {
     if (!quoteData) {
@@ -599,6 +614,24 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                     )
                   })}
                 </div>
+                <div className="mb-3">
+                  <CFormCheck
+                    id="onePayment"
+                    label="Pago en una sola exhibición"
+                    checked={onePayment}
+                    onChange={(e) => setOnePayment(e.target.checked)}
+                    disabled={view}
+                  />
+                </div>
+                <div className="mb-3">
+                  <CFormCheck
+                    id="multiplePayments"
+                    label="Múltiples pagos"
+                    checked={multiplePayments}
+                    onChange={(e) => setMultiplePayments(e.target.checked)}
+                    disabled={view}
+                  />
+                </div>
                 <div className="mb-3 d-flex">
                   <div className="flex-fill">
                     <CFormLabel>Giro</CFormLabel>
@@ -664,6 +697,19 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                     </CFormSelect>
                   </div>
                 ))}
+                {numProviders > 0 && (
+                  <div className="mb-3">
+                    <CFormLabel>Proveedor sugerido</CFormLabel>
+                    <CFormInput
+                      type="text"
+                      id="suggestedProvider"
+                      placeholder="Proveedor sugerido"
+                      value={suggestedProvider}
+                      onChange={(e) => setSuggestedProvider(e.target.value)}
+                      disabled={view}
+                    />
+                  </div>
+                )}
               </CForm>
             </CTabPane>
             {/* Quote files */}
