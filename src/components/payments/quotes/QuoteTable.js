@@ -16,10 +16,7 @@ import CIcon from '@coreui/icons-react'
 import { cilOptions } from '@coreui/icons'
 import { useDispatch } from 'react-redux'
 import Swal from 'sweetalert2'
-import { deleteFilesByModel } from 'src/actions/file'
-import { modelTypes } from 'src/utils/modelTypes'
 import {
-  formatNumber,
   formatTimezoneToDate,
   statusQuote,
   statusQuoteColors,
@@ -29,7 +26,7 @@ import { setToast } from 'src/actions/toast'
 import { AppToast } from 'src/components/app'
 import QuoteModalForm from './QuoteModalForm'
 import QuoteModalObs from './QuoteModalObs'
-import { deleteQuote } from 'src/actions/quote'
+import { deleteFilesByQuote, deleteQuote } from 'src/actions/quote'
 
 const QuoteTable = ({ data }) => {
   const [visible, setVisible] = useState(false),
@@ -65,7 +62,7 @@ const QuoteTable = ({ data }) => {
                   }),
                 ),
               )
-              dispatch(deleteFilesByModel(id, modelTypes.quote))
+              dispatch(deleteFilesByQuote(id))
             } else {
               dispatch(
                 setToast(
@@ -97,6 +94,7 @@ const QuoteTable = ({ data }) => {
             <CTableHeaderCell scope="col">Solicitante</CTableHeaderCell>
             <CTableHeaderCell scope="col">Titulo</CTableHeaderCell>
             <CTableHeaderCell scope="col">Fecha de solicitud</CTableHeaderCell>
+            <CTableHeaderCell scope="col">Giro</CTableHeaderCell>
             <CTableHeaderCell scope="col">Status</CTableHeaderCell>
             <CTableHeaderCell scope="col" className="text-center">
               Opciones
@@ -110,6 +108,7 @@ const QuoteTable = ({ data }) => {
               <CTableDataCell>{quote.petitioner.name}</CTableDataCell>
               <CTableDataCell>{quote.title}</CTableDataCell>
               <CTableDataCell>{formatTimezoneToDate(quote.created_at)}</CTableDataCell>
+              <CTableDataCell>{quote.line}</CTableDataCell>
               <CTableDataCell>
                 <CBadge color={statusQuoteColors[quote.status]}>
                   {statusQuote(quote.status, hasUploadQuotePermission)}

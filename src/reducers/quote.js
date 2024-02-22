@@ -6,6 +6,7 @@ import {
   QUOTE_ERROR,
   GET_QUOTE_OBSERVATIONS,
   ADD_QUOTE_OBSERVATION,
+  UPLOAD_QUOTE_FILE_PROGRESS,
 } from 'src/actions/types'
 
 const initialState = {
@@ -18,6 +19,7 @@ const initialState = {
   error: {},
   loadingObservations: false,
   observations: [],
+  progress: 0,
 }
 
 // eslint-disable-next-line import/no-anonymous-default-export
@@ -65,6 +67,11 @@ export default function (state = initialState, action) {
         ...state,
         observations: [...state.observations, payload],
         loadingObservations: false,
+      }
+    case UPLOAD_QUOTE_FILE_PROGRESS:
+      return {
+        ...state,
+        progress: payload,
       }
     case QUOTE_ERROR:
       return {

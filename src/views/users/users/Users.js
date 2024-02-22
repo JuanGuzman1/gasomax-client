@@ -106,7 +106,7 @@ const Users = () => {
           />
         </CCardFooter>
       </CCard>
-      <UserModalForm visible={visible} onClose={() => setVisible(false)} />
+      {visible && <UserModalForm visible={visible} onClose={() => setVisible(false)} />}
     </>
   )
 }

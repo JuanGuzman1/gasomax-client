@@ -22,6 +22,8 @@ import { AppToast } from 'src/components/app'
 import { addUser, updateUser } from 'src/actions/user'
 import CIcon from '@coreui/icons-react'
 import { cilX, cilCheckAlt } from '@coreui/icons'
+import { selectDepartments } from 'src/actions/department'
+import { selectRoles } from 'src/actions/role'
 
 const UserModalForm = ({ visible, onClose, userData }) => {
   const [activeKey, setActiveKey] = useState(1),
@@ -29,7 +31,7 @@ const UserModalForm = ({ visible, onClose, userData }) => {
     [user, setUser] = useState(''),
     [email, setEmail] = useState(''),
     [departmentID, setDepartmentID] = useState(''),
-    [role, setRole] = useState(''),
+    [roleID, setRoleID] = useState(''),
     [password, setPassword] = useState(''),
     [confirmPassword, setConfirmPassword] = useState(''),
     [nss, setNss] = useState(''),
@@ -42,7 +44,13 @@ const UserModalForm = ({ visible, onClose, userData }) => {
       symbol: false,
     }),
     dispatch = useDispatch(),
-    loading = useSelector((state) => state.user.loading)
+    roles = useSelector((state) => state.role.roles),
+    departments = useSelector((state) => state.department.departments)
+
+  useEffect(() => {
+    dispatch(selectDepartments())
+    dispatch(selectRoles())
+  }, [dispatch])
 
   const onSave = (e) => {
     e.preventDefault()
@@ -72,7 +80,7 @@ const UserModalForm = ({ visible, onClose, userData }) => {
       email,
       password,
       nss,
-      role,
+      role_id: roleID,
       payrollNumber,
     }
     dispatch(
@@ -127,7 +135,7 @@ const UserModalForm = ({ visible, onClose, userData }) => {
     setEmail('')
     setPassword('')
     setConfirmPassword('')
-    setRole('')
+    setRoleID('')
     setNss('')
     setPayrollNumber('')
     setDepartmentID('')
@@ -142,7 +150,8 @@ const UserModalForm = ({ visible, onClose, userData }) => {
     setUserID(userData.id)
     setUser(userData.name)
     setEmail(userData.email)
-    setRole(userData.role)
+    setRoleID(userData.role_id)
+    setDepartmentID(userData.department_id)
     setPayrollNumber(userData.payrollNumber)
     setNss(userData.nss)
   }, [userData])
@@ -256,34 +265,31 @@ const UserModalForm = ({ visible, onClose, userData }) => {
                   <CFormLabel>Departamento</CFormLabel>
                   <CFormSelect
                     aria-label="charge"
-                    options={[
-                      { label: 'Seleccione...', value: '' },
-                      { label: 'Direccion', value: 'Direccion' },
-                      {
-                        label: 'Sistemas',
-                        value: 'Sistemas',
-                      },
-                    ]}
                     onChange={(e) => setDepartmentID(e.target.value)}
                     value={departmentID}
-                  />
+                  >
+                    <option value={''}>Seleccione...</option>
+                    {departments?.data.map((department) => (
+                      <option value={department.id} key={department.id}>
+                        {department.name}
+                      </option>
+                    ))}
+                  </CFormSelect>
                 </div>
                 <div className="flex-fill me-2">
                   <CFormLabel>Rol</CFormLabel>
                   <CFormSelect
                     aria-label="role"
-                    options={[
-                      { label: 'Seleccione...', value: '' },
-                      {
-                        label: 'Director',
-                        value: 'Director',
-                      },
-                      { label: 'Jefe Dpto', value: 'Jefe Dpto' },
-                      { label: 'Colaborador', value: 'Colaborador' },
-                    ]}
-                    onChange={(e) => setRole(e.target.value)}
-                    value={role}
-                  />
+                    onChange={(e) => setRoleID(e.target.value)}
+                    value={roleID}
+                  >
+                    <option value={''}>Seleccione...</option>
+                    {roles?.data.map((role) => (
+                      <option value={role.id} key={role.id}>
+                        {role.name}
+                      </option>
+                    ))}
+                  </CFormSelect>
                 </div>
               </div>
             </CForm>

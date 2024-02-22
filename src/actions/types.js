@@ -43,6 +43,9 @@ export const QUOTE_ERROR = 'QUOTE_ERROR'
 export const GET_QUOTE_OBSERVATIONS = 'GET_QUOTE_OBSERVATIONS'
 export const ADD_QUOTE_OBSERVATION = 'ADD_QUOTE_OBSERVATION'
 
+// QuoteFiles
+export const UPLOAD_QUOTE_FILE_PROGRESS = 'UPLOAD_QUOTE_FILE_PROGRESS'
+
 //quoteConcepts
 export const GET_QUOTE_CHARGES = 'GET_QUOTE_CHARGES'
 export const GET_QUOTE_CONCEPTS = 'GET_QUOTE_CONCEPTS'
@@ -90,3 +93,8 @@ export const USER_ERROR = 'USER_ERROR'
 // permissions
 export const GET_PERMISSIONS = 'GET_PERMISSIONS'
 export const PERMISSION_ERROR = 'PERMISSION_ERROR'
+
+// roles
+export const GET_ROLES = 'GET_ROLES'
+export const ROLE_ERROR = 'ROLE_ERROR'
+export const SELECT_ROLES = 'SELECT_ROLES'

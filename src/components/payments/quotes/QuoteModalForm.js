@@ -37,15 +37,17 @@ import { setToast } from 'src/actions/toast'
 import { uploadFile } from 'src/actions/file'
 import { modelTypes } from 'src/utils/modelTypes'
 import { getCharges, getConceptsByCharge } from 'src/actions/quoteConcept'
-import { addQuote, getQuotes, updateQuote } from 'src/actions/quote'
+import { addQuote, getQuotes, updateQuote, uploadQuoteFile } from 'src/actions/quote'
 import { getLines, getUnitsByLine } from 'src/actions/unit'
 import QuoteModalObs from './QuoteModalObs'
+import { selectDepartments } from 'src/actions/department'
 
 const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
   const [activeKey, setActiveKey] = useState(1),
     [quoteID, setQuoteID] = useState(''),
     [title, setTitle] = useState(''),
     [charge, setCharge] = useState(''),
+    [departmentID, setDepartmentID] = useState(''),
     [quoteConceptID, setQuoteConceptID] = useState(''),
     [description, setDescription] = useState(''),
     [imgFiles, setImgFiles] = useState([]),
@@ -57,10 +59,14 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
     [suggestedProvider, setSuggestedProvider] = useState(''),
     [line, setLine] = useState(''),
     [unit, setUnit] = useState(''),
+    [selectedQuoteID, setSelectedQuoteID] = useState(''),
     [rejectQuotes, setRejectQuotes] = useState(false),
     [approvedAmount, setApprovedAmount] = useState(0),
     [providerID, setProviderID] = useState(''),
     [providerAccountID, setProviderAccountID] = useState(''),
+    [quoteProvider, setQuoteProvider] = useState(''),
+    [quoteAmount, setQuoteAmount] = useState(0),
+    [deliveryDate, setDeliveryDate] = useState(''),
     [paymentWithoutInvoice, setPaymentWithoutInvoice] = useState(false),
     [onePayment, setOnePayment] = useState(false),
     [multiplePayments, setMultiplePayments] = useState(false),
@@ -78,9 +84,10 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
     user = useSelector((state) => state.auth.user)?.data?.user,
     charges = useSelector((state) => state.quoteConcept.charges),
     concepts = useSelector((state) => state.quoteConcept.concepts),
+    departments = useSelector((state) => state.department.departments),
     lines = useSelector((state) => state.unit.lines),
     units = useSelector((state) => state.unit.units),
-    { quotes, filters } = useSelector((state) => state.quote),
+    { quotes, filters, progress: progressQuoteFile } = useSelector((state) => state.quote),
     [visibleObs, setVisibleObs] = useState(false)
 
   useEffect(() => {
@@ -88,8 +95,8 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
   }, [dispatch])
 
   useEffect(() => {
-    dispatch(getCharges())
     dispatch(getLines())
+    dispatch(selectDepartments())
   }, [dispatch])
 
   useEffect(() => {
@@ -98,6 +105,13 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
     }
     dispatch(getUnitsByLine(line))
   }, [dispatch, line])
+
+  useEffect(() => {
+    if (!departmentID) {
+      return
+    }
+    dispatch(getCharges(departmentID))
+  }, [dispatch, departmentID])
 
   useEffect(() => {
     if (!charge) {
@@ -140,16 +154,21 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
     setQuoteID(quoteData.id)
     setTitle(quoteData.title)
     setDescription(quoteData.description)
+    setDepartmentID(quoteData.quote_concept.department_id)
     setCharge(quoteData.quote_concept.charge)
     setQuoteConceptID(quoteData.quote_concept.id)
     setLine(quoteData.line)
     setUnit(quoteData.unit)
     setNumProviders(quoteData.numProviders)
     setRecommendedProviders(JSON.parse(quoteData.recommendedProviders))
-    setImgFiles(quoteData.files?.filter((f) => f.tag === fileTags.img))
-    setQuoteFiles(quoteData.files?.filter((f) => f.tag === fileTags.quotation))
+    setImgFiles(quoteData.images)
+    setQuoteFiles(quoteData.files)
+    setSelectedQuoteID(quoteData.files.find((file) => file.selectedQuoteFile)?.id)
     setRejectQuotes(quoteData.rejectQuotes)
     setApprovedAmount(quoteData.approvedAmount)
+    setOnePayment(quoteData.onePayment)
+    setMultiplePayments(quoteData.multiplePayments)
+    setSuggestedProvider(quoteData.suggestedProvider)
   }, [quoteData])
 
   const onSelectRecommendedProvider = (e, i) => {
@@ -218,10 +237,16 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
           file: inputQuoteFile.current.files[0],
           tag: fileTags.quotation,
           description: descriptionQuote,
+          provider: quoteProvider,
+          amount: quoteAmount,
+          deliveryDate,
         },
       ])
       inputQuoteFile.current.value = ''
       setDescriptionQuote('')
+      setQuoteProvider('')
+      setQuoteAmount(0)
+      setDeliveryDate('')
     }
   }
 
@@ -268,6 +293,9 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
         rejectQuotes,
         approvedAmount,
         observation,
+        onePayment,
+        multiplePayments,
+        suggestedProvider,
         status,
       }
       dispatch(
@@ -370,16 +398,16 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                 Promise.all(
                   quoteFiles.map((file) => {
                     if (!file.id) {
-                      return dispatch(
-                        uploadFile(
-                          file.file,
-                          file.tag,
-                          file.description,
-                          quoteID,
-                          modelTypes.quote,
-                          () => {},
-                        ),
-                      )
+                      let data = {
+                        file: file.file,
+                        tag: file.tag,
+                        description: file.description,
+                        provider: file.provider,
+                        amount: file.amount,
+                        deliveryDate: file.deliveryDate,
+                        quote_id: quoteID,
+                      }
+                      return dispatch(uploadQuoteFile(data, () => {}))
                     } else {
                       onClose()
                       clearGeneralInputs()
@@ -457,6 +485,15 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
   }, [progress, onClose, clearGeneralInputs])
 
   useEffect(() => {
+    if (progressQuoteFile === 100) {
+      setTimeout(() => {
+        onClose()
+        clearGeneralInputs()
+      }, 3000)
+    }
+  }, [progressQuoteFile, onClose, clearGeneralInputs])
+
+  useEffect(() => {
     if (rejectQuotes) {
       setApprovedAmount(0)
     }
@@ -477,8 +514,8 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
             </CProgress>
           )}
           {quoteFiles.length > 0 && quoteFiles.some((file) => !file.id) && (
-            <CProgress value={progress} className="mb-2">
-              {progress}%
+            <CProgress value={progressQuoteFile} className="mb-2">
+              {progressQuoteFile}%
             </CProgress>
           )}
           <CNav variant="tabs" role="tablist" className="mt-1">
@@ -539,6 +576,22 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                   />
                 </div>
                 <div className="mb-3 d-flex">
+                  <div className="flex-md-fill me-2">
+                    <CFormLabel>Departamento</CFormLabel>
+                    <CFormSelect
+                      aria-label="department"
+                      onChange={(e) => setDepartmentID(e.target.value)}
+                      value={departmentID}
+                      disabled={view}
+                    >
+                      <option value={''}>Selecciona...</option>
+                      {departments.data.map(({ id, name }) => (
+                        <option key={name} value={id}>
+                          {name}
+                        </option>
+                      ))}
+                    </CFormSelect>
+                  </div>
                   <div className="flex-md-fill me-2">
                     <CFormLabel>Cargo</CFormLabel>
                     <CFormSelect
@@ -728,6 +781,37 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                         text="Archivos permitidos jpg, pdf, png, xlxs (10 MB)"
                       />
                     </div>
+                    <div className="d-flex mb-3">
+                      <div className="flex-fill">
+                        <CFormLabel>Proveedor</CFormLabel>
+                        <CFormInput
+                          type="text"
+                          id="quoteProvider"
+                          placeholder="Proveedor"
+                          value={quoteProvider}
+                          onChange={(e) => setQuoteProvider(e.target.value)}
+                        />
+                      </div>
+                      <div className="flex-fill mx-2">
+                        <CFormLabel>Monto</CFormLabel>
+                        <CFormInput
+                          type="number"
+                          id="amount"
+                          placeholder="0"
+                          value={quoteAmount}
+                          onChange={(e) => setQuoteAmount(e.target.value)}
+                        />
+                      </div>
+                      <div className="flex-fill">
+                        <CFormLabel>Tiempo de entrega</CFormLabel>
+                        <CFormInput
+                          type="date"
+                          id="deliveryDate"
+                          value={deliveryDate}
+                          onChange={(e) => setDeliveryDate(e.target.value)}
+                        />
+                      </div>
+                    </div>
 
                     <div className="mb-3">
                       <CFormTextarea
@@ -754,13 +838,26 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                     <CTable striped responsive>
                       <CTableHead>
                         <CTableRow>
+                          <CTableHeaderCell scope="col">Datos</CTableHeaderCell>
                           <CTableHeaderCell scope="col">Descripción</CTableHeaderCell>
                           <CTableHeaderCell scope="col">Archivo Cotización</CTableHeaderCell>
+                          <CTableHeaderCell scope="col">Aprobada</CTableHeaderCell>
                         </CTableRow>
                       </CTableHead>
                       <CTableBody>
                         {quoteFiles.map((file, index) => (
                           <CTableRow key={file.name}>
+                            <CTableDataCell>
+                              <p>
+                                <b>Monto: </b>${formatNumber(file.amount)}
+                              </p>
+                              <p>
+                                <b>Proveedor: </b> {file.provider}
+                              </p>
+                              <p>
+                                <b>Tiempo de entrega: </b> {file.deliveryDate}
+                              </p>
+                            </CTableDataCell>
                             <CTableDataCell>{file.description}</CTableDataCell>
                             <CTableDataCell>
                               <FileCard
@@ -772,6 +869,22 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                                     : setQuoteFiles(quoteFiles.filter((f, i) => index !== i))
                                 }}
                                 viewMode={view && !hasUploadQuotePermission}
+                              />
+                            </CTableDataCell>
+                            <CTableDataCell>
+                              <CFormCheck
+                                id="selectedQuoteID"
+                                checked={file.id === selectedQuoteID}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedQuoteID(file.id)
+                                  } else {
+                                    setSelectedQuoteID('')
+                                  }
+                                }}
+                                disabled={
+                                  quoteData.status === 'approved' || quoteData.status === 'ok'
+                                }
                               />
                             </CTableDataCell>
                           </CTableRow>
@@ -886,7 +999,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                   </CFormLabel>
                   <CFormInput
                     type="file"
-                    id="imgFile"
+                    id="invoiceFile"
                     // onChange={onAddFiles}
                     text="Archivos permitidos jpg, pdf, jpeg (10 MB)"
                   />
@@ -909,10 +1022,10 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                 </div> */}
                 <div className="mb-3">
                   <CFormCheck
-                    id="rejectQuotes"
+                    id="paymentWithoutInvoice"
                     label="Tramitar pago sin factura"
-                    checked={rejectQuotes}
-                    onChange={(e) => setRejectQuotes(e.target.checked)}
+                    checked={paymentWithoutInvoice}
+                    onChange={(e) => setPaymentWithoutInvoice(e.target.checked)}
                   />
                 </div>
               </CForm>

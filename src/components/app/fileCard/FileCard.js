@@ -5,8 +5,9 @@ import CIcon from '@coreui/icons-react'
 import { useDispatch } from 'react-redux'
 import { deleteFile, downloadFile } from 'src/actions/file'
 import { fileTagsName } from 'src/utils/fileTags'
+import { deleteQuoteFile } from 'src/actions/quote'
 
-const FileCard = ({ file, onDelete, viewMode = false }) => {
+const FileCard = ({ file, onDelete, viewMode = false, quoteFile }) => {
   const dispatch = useDispatch()
 
   const onDownloadPress = () => {
@@ -18,11 +19,19 @@ const FileCard = ({ file, onDelete, viewMode = false }) => {
       onDelete(null)
       return
     }
-    dispatch(
-      deleteFile(file.id, () => {
-        onDelete(file.id)
-      }),
-    )
+    if (quoteFile) {
+      dispatch(
+        deleteQuoteFile(file.id, () => {
+          onDelete(file.id)
+        }),
+      )
+    } else {
+      dispatch(
+        deleteFile(file.id, () => {
+          onDelete(file.id)
+        }),
+      )
+    }
   }
 
   return (
