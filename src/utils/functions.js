@@ -24,8 +24,10 @@ export const statusQuote = (status, uploadQuotePermission = false, petitioner_id
   let statusQuoteLetter = {
     inprogress: uploadQuotePermission ? 'Cotizaciónes enviadas' : 'Cotizaciónes disponibles',
     approved: 'Cotización aprobada',
+    authorized: 'Cotización autorizada',
     ok: 'Cotización VoBo',
     sent: uploadQuotePermission ? 'Solicitud nueva' : 'Solicitud enviada',
+    sentPay: 'Enviada a pago',
     rejected: 'Cotizaciónes rechazadas',
   }
   return statusQuoteLetter[status]
@@ -34,8 +36,10 @@ export const statusQuote = (status, uploadQuotePermission = false, petitioner_id
 export const statusQuoteColors = {
   inprogress: 'warning',
   approved: 'success',
+  authorized: 'success',
   ok: 'info',
   sent: 'info',
+  sentPay: 'info',
   rejected: 'danger',
 }
 ////////////////////// status purchaseRequest (Update payments) //////////////
@@ -61,8 +65,12 @@ export const permissions = {
   delete: 'Eliminar',
   reject: 'Rechazar',
   pay: 'Pagar',
+  approve: 'Aprobar',
   authorize: 'Autorizar',
-  'authorize.ok': 'Autorizar > $5,000',
+  'authorize.minor.1000': 'Autorizar < $1,000',
+  'authorize.mayor.1000': 'Autorizar > $1,000',
+  'authorize.minor.5000': 'Autorizar < $5,000',
+  'authorize.mayor.5000': 'Autorizar > $5,000',
   modules: 'Asignar modulos',
   permissions: 'Asignar permisos',
   'upload.quote': 'Subir cotizaciónes',

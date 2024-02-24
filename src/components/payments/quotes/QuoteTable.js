@@ -134,7 +134,8 @@ const QuoteTable = ({ data }) => {
                     )}
                     {hasEditPermission &&
                       quote.status !== 'approved' &&
-                      quote.status !== 'inprogress' && (
+                      quote.status !== 'inprogress' &&
+                      quote.status !== 'authorized' && (
                         <CDropdownItem
                           style={{ cursor: 'pointer' }}
                           onClick={() => {
@@ -147,7 +148,8 @@ const QuoteTable = ({ data }) => {
                       )}
                     {hasDeletePermission &&
                       quote.status !== 'approved' &&
-                      quote.status !== 'inprogress' && (
+                      quote.status !== 'inprogress' &&
+                      quote.status !== 'authorized' && (
                         <CDropdownItem
                           style={{ cursor: 'pointer' }}
                           onClick={() => onDelete(quote.id)}

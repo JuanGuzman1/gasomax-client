@@ -50,71 +50,42 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
   const [activeKey, setActiveKey] = useState(1),
     [purchaseRequestID, setPurchaseRequestID] = useState(''),
     [detailPendingID, setDetailPendingID] = useState(null),
-    [extraordinary, setExtraordinary] = useState(false),
-    [station, setStation] = useState('guerra'),
-    [business, setBusiness] = useState('gasStation'),
-    [providerID, setProviderID] = useState(''),
-    [paymentMethod, setPaymentMethod] = useState('cash'),
-    [pettyCash, setPettyCash] = useState(false),
-    [details, setDetails] = useState([]),
-    [charge, setCharge] = useState(''),
-    [concept, setConcept] = useState(''),
-    [movementType, setMovementType] = useState('advance'),
-    [observation, setObservation] = useState(''),
+    [title, setTitle] = useState(''),
     [totalAmount, setTotalAmount] = useState(0),
     [paymentAmount, setPaymentAmount] = useState(0),
+    [imgFiles, setImgFiles] = useState([]),
+    [totalPaymentApproved, setTotalPaymentApproved] = useState(false),
+    [totalPaymentModified, setTotalPaymentModified] = useState(false),
+    [paymentDate, setPaymentDate] = useState(''),
+    [quoteID, setQuoteID] = useState(''),
     [showPendingPayments, setShowPendingPayments] = useState(false),
-    [fileType, setFileType] = useState('quotation'),
     [files, setFiles] = useState([]),
     dispatch = useDispatch(),
     { progress } = useSelector((state) => state.file),
-    { loading, providers } = useSelector((state) => state.provider),
     { pendingPayments } = useSelector((state) => state.purchaseRequest),
     inputFile = useRef(),
     hasPayPermission = useHasPermission('purchaseRequest', 'pay'),
     hasRejectPermission = useHasPermission('purchaseRequest', 'reject'),
     hasAuthorizePermission = useHasPermission('purchaseRequest', 'authorize'),
-    user = useSelector((state) => state.auth.user)?.data?.user
+    user = useSelector((state) => state.auth.user)?.data?.user,
+    inputImgFile = useRef()
 
   useEffect(() => {
-    dispatch(selectProviders())
-  }, [dispatch])
-
-  useEffect(() => {
-    if (!providerID || providerID === '') {
+    if (!quoteID || quoteID === '') {
       return
     }
-    dispatch(getPendingPaymentsByProvider(providerID))
+    dispatch(getPendingPaymentsByProvider(quoteID))
     setShowPendingPayments(false)
-    if (!purchaseData) {
-      setDetails([])
-    }
-  }, [dispatch, providerID, purchaseData])
+  }, [dispatch, quoteID, purchaseData])
 
   useEffect(() => {
     if (!purchaseData) {
       return
     }
     setPurchaseRequestID(purchaseData.id)
-    setExtraordinary(purchaseData.extraordinary)
-    setStation(purchaseData.station)
-    setBusiness(purchaseData.business)
-    setProviderID(purchaseData.provider.id)
-    setPaymentMethod(purchaseData.paymentMethod)
-    setPettyCash(purchaseData.pettyCash)
-    setDetails(purchaseData.details)
+    setQuoteID(purchaseData.quote.id)
     setFiles(purchaseData.files)
   }, [purchaseData])
-
-  useEffect(() => {
-    setPettyCash(false)
-  }, [paymentMethod])
-
-  useEffect(() => {
-    if (movementType === 'settlement') {
-      setPaymentAmount(totalAmount)
-    }
-  }, [movementType, totalAmount])
 
   const onReject = () => {
     Swal.fire({
@@ -230,139 +201,30 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
     })
   }
 
-  const onAddDetail = () => {
-    if (charge === '') {
-      dispatch(setToast(AppToast({ msg: 'Selecciona un cargo', type: 'error' })))
-      return
-    }
-    if (concept === '') {
-      return
-    }
-    const data = {
-      charge,
-      concept,
-      movementType,
-      observation,
-      totalAmount,
-      paymentAmount,
-      purchase_detail_pending_id: detailPendingID,
-    }
-    setDetails([...details, data])
-    clearDetailInputs()
-  }
-
-  const onRemoveDetail = (index) => {
-    setDetails(details.filter((d, i) => i !== index))
-  }
-
   const onAddFiles = (e) => {
     if (!e.target.files[0]) {
       return
     }
     let data = {
       localName: e.target.files[0].name,
-      tag: fileType,
+      tag: fileTags.receipt,
       file: e.target.files[0],
     }
     setFiles([...files, data])
     inputFile.current.value = ''
   }
 
-  const onAddDetailPending = (detail) => {
-    setCharge(detail.charge)
-    setConcept(detail.concept)
-    setObservation(detail.observation)
-    setMovementType('settlement')
-    setTotalAmount(detail.balance)
-    setDetailPendingID(detail.id)
-    setShowPendingPayments(false)
-  }
-
-  const onRemoveDetailPending = () => {
-    clearDetailInputs()
-    setShowPendingPayments(false)
-  }
-
-  const clearDetailInputs = () => {
-    setCharge('')
-    setConcept('')
-    setMovementType('advance')
-    setObservation('')
-    setTotalAmount(0)
-    setPaymentAmount(0)
-    setDetailPendingID(null)
-  }
-
   const clearGeneralInputs = useCallback(() => {
     setPurchaseRequestID('')
-    setExtraordinary(false)
-    setStation('guerra')
-    setBusiness('gasStation')
-    setProviderID('')
-    setPaymentMethod('cash')
-    setPettyCash(false)
-    setDetails([])
+    setQuoteID('')
     setFiles([])
   }, [])
 
   const onSave = (e) => {
     e.preventDefault()
     try {
-      if (!providerID || providerID === '') {
-        dispatch(
-          setToast(
-            AppToast({
-              msg: 'Falta seleccionar un proveedor',
-              type: 'error',
-            }),
-          ),
-        )
-        return
-      }
-      if (details.length <= 0) {
-        dispatch(
-          setToast(
-            AppToast({
-              msg: 'Falta agregar detalles a la solicitud',
-              type: 'error',
-            }),
-          ),
-        )
-        return
-      }
-
-      if (!files.find((file) => file.tag === 'quotation')) {
-        dispatch(
-          setToast(
-            AppToast({
-              msg: 'Falta agregar cotización',
-              type: 'error',
-            }),
-          ),
-        )
-        return
-      }
-
-      if (!files.find((file) => file.tag === 'invoice')) {
-        dispatch(
-          setToast(
-            AppToast({
-              msg: 'Falta agregar factura',
-              type: 'error',
-            }),
-          ),
-        )
-        return
-      }
-
       let data = {
-        extraordinary,
-        station,
-        business,
-        paymentMethod,
-        pettyCash,
-        details,
-        provider_id: providerID,
+        quote_id: quoteID,
         petitioner_id: user.id,
       }
       dispatch(
@@ -454,6 +316,19 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
     }
   }, [progress, onClose, clearGeneralInputs])
 
+  useEffect(() => {
+    if (totalPaymentApproved) {
+      setTotalPaymentModified(false)
+      setPaymentAmount(totalAmount)
+    }
+  }, [totalPaymentApproved, totalAmount])
+
+  useEffect(() => {
+    if (totalPaymentModified) {
+      setTotalPaymentApproved(false)
+    }
+  }, [totalPaymentModified])
+
   return (
     <CModal visible={visible} onClose={onClose} aria-labelledby="ModalForm" size="xl">
       <CModalHeader onClose={onClose}>
@@ -480,6 +355,7 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
               General
             </CNavLink>
           </CNavItem>
+
           <CNavItem role="presentation">
             <CNavLink
               active={activeKey === 2}
@@ -489,19 +365,7 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
               aria-selected={activeKey === 2}
               onClick={() => setActiveKey(2)}
             >
-              Detalles
-            </CNavLink>
-          </CNavItem>
-          <CNavItem role="presentation">
-            <CNavLink
-              active={activeKey === 3}
-              component="button"
-              role="tab"
-              aria-controls="account-tab-pane"
-              aria-selected={activeKey === 3}
-              onClick={() => setActiveKey(3)}
-            >
-              Archivos
+              Tramite de pago
             </CNavLink>
           </CNavItem>
         </CNav>
@@ -510,283 +374,106 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
           <CTabPane role="tabpanel" aria-labelledby="data-tab-pane" visible={activeKey === 1}>
             <CForm className="mt-3">
               <div className="mb-3">
-                <CFormCheck
-                  id="extraordinary"
-                  label="Solicitud extraordinaria"
-                  checked={extraordinary}
-                  onChange={(e) => setExtraordinary(e.target.checked)}
-                  disabled={purchaseData?.status === 'paid'}
+                <CFormLabel>Título</CFormLabel>
+                <CFormInput
+                  type="text"
+                  id="title"
+                  placeholder="Título de la solicitud"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  disabled={view}
                 />
               </div>
-              <div className="mb-3 d-flex">
-                <div className="flex-fill me-2">
-                  <CFormLabel>Estación solicitante</CFormLabel>
-                  <CFormSelect
-                    aria-label="station"
-                    options={[
-                      { label: 'Guerra', value: 'guerra' },
-                      { label: 'Servicio el milagro', value: 'milagro' },
-                      { label: 'Estadio', value: 'estadio' },
-                    ]}
-                    onChange={(e) => setStation(e.target.value)}
-                    value={station}
-                    disabled={purchaseData?.status === 'paid'}
-                  />
-                </div>
-                <div className="flex-fill">
-                  <CFormLabel>Negocio</CFormLabel>
-                  <CFormSelect
-                    aria-label="business"
-                    options={[
-                      { label: 'Gasolinera', value: 'gasStation' },
-                      { label: 'Max store', value: 'store' },
-                      { label: 'Restaurante', value: 'restaurant' },
-                      { label: 'Pension', value: 'pension' },
-                    ]}
-                    onChange={(e) => setBusiness(e.target.value)}
-                    value={business}
-                    disabled={purchaseData?.status === 'paid'}
-                  />
-                </div>
-              </div>
-
               <div className="mb-3">
-                <CFormLabel>Proveedor (*)</CFormLabel>
-                <CFormSelect
-                  aria-label="provider"
-                  onChange={(e) => setProviderID(e.target.value)}
-                  value={providerID}
-                  disabled={view || purchaseData}
-                >
-                  <option>Seleccione...</option>
-                  {providers.data.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </CFormSelect>
-              </div>
-
-              <div className="mb-3">
-                <CFormLabel>Forma de pago</CFormLabel>
-                <CFormSelect
-                  aria-label="paymentMethod"
-                  options={[
-                    { label: 'Transferencia', value: 'transference' },
-                    { label: 'Cheque', value: 'check' },
-                    { label: 'Efectivo', value: 'cash' },
-                  ]}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                  value={paymentMethod}
-                  disabled={purchaseData?.status === 'paid'}
+                <CFormLabel>Monto</CFormLabel>
+                <CFormInput
+                  type="number"
+                  id="totalAmount"
+                  placeholder="0"
+                  value={totalAmount}
+                  onChange={(e) => setTotalAmount(e.target.value)}
+                  disabled={view}
                 />
               </div>
-              {paymentMethod === 'cash' && (
+              {!view && (
                 <div className="mb-3">
-                  <CFormCheck
-                    id="PCash"
-                    label="Caja chica"
-                    onChange={(e) => setPettyCash(e.target.checked)}
-                    checked={pettyCash}
-                    disabled={purchaseData?.status === 'paid'}
+                  <CFormLabel>
+                    Sube <b>imágenes</b> para la solicitud (opcional)
+                  </CFormLabel>
+                  <CFormInput
+                    ref={inputImgFile}
+                    type="file"
+                    id="imgFile"
+                    onChange={onAddFiles}
+                    accept="image/*"
+                    text="Archivos permitidos jpg, png, jpeg (10 MB)"
                   />
                 </div>
               )}
-            </CForm>
-          </CTabPane>
-          {/* Details */}
-          <CTabPane role="tabpanel" aria-labelledby="account-tab-pane" visible={activeKey === 2}>
-            <CForm className="mt-3">
-              {!showPendingPayments ? (
-                <>
-                  <div className="mb-3 d-flex">
-                    <div className="flex-fill me-2">
-                      <CFormLabel>Cargo</CFormLabel>
-                      <CFormSelect
-                        aria-label="charge"
-                        options={[
-                          { label: 'Seleccione...', value: '' },
-                          { label: 'ACTIVO FIJO', value: 'ACTIVO FIJO' },
-                          {
-                            label: 'GASTOS DIRECTOS DE OPERACIÓN',
-                            value: 'GASTOS DIRECTOS DE OPERACIÓN',
-                          },
-                        ]}
-                        onChange={(e) => setCharge(e.target.value)}
-                        value={charge}
-                        disabled={detailPendingID}
-                      />
-                    </div>
-                    <div className="flex-fill me-2">
-                      <CFormLabel>Concepto</CFormLabel>
-                      <CFormSelect
-                        aria-label="concept"
-                        options={[
-                          { label: 'Seleccione...', value: '' },
-                          {
-                            label: 'Equipo y software informático',
-                            value: 'Equipo y software informático',
-                          },
-                          { label: 'Vehículos', value: 'Vehículos' },
-                          { label: 'Honorarios', value: 'Honorarios' },
-                        ]}
-                        onChange={(e) => setConcept(e.target.value)}
-                        value={concept}
-                        disabled={detailPendingID}
-                      />
-                    </div>
-                    <div className="flex-fill">
-                      <CFormLabel>Tipo de movimiento</CFormLabel>
-                      <CFormSelect
-                        aria-label="movementType"
-                        onChange={(e) => setMovementType(e.target.value)}
-                        value={movementType}
-                      >
-                        {!detailPendingID && <option value={'advance'}>Anticipo</option>}
-                        <option value={'settlement'}>Liquidación</option>
-                        {detailPendingID && <option value={'payment'}>Abono a cuenta</option>}
-                      </CFormSelect>
-                    </div>
-                  </div>
-                  <div className="mb-3">
-                    <CFormTextarea
-                      id="obs"
-                      label="Observación"
-                      rows={2}
-                      text="Debe tener entre 5 y 10 palabras."
-                      value={observation}
-                      onChange={(e) => setObservation(e.target.value)}
-                    ></CFormTextarea>
-                  </div>
-                  <div className="mb-3 d-flex">
-                    <div className="flex-fill me-2">
-                      <CFormLabel htmlFor="totalAmount">Importe total ($)</CFormLabel>
-                      <CFormInput
-                        type="number"
-                        id="totalAmount"
-                        placeholder="Importe"
-                        onChange={(e) => setTotalAmount(e.target.value)}
-                        value={totalAmount}
-                        disabled={detailPendingID}
-                      />
-                    </div>
-                    <div className="flex-fill">
-                      <CFormLabel htmlFor="paymentAmount">Importe a pagar ($)</CFormLabel>
-                      <CFormInput
-                        type="number"
-                        id="paymentAmount"
-                        placeholder="Pago"
-                        onChange={(e) => setPaymentAmount(e.target.value)}
-                        value={paymentAmount}
-                        disabled={movementType === 'settlement'}
-                      />
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <ModalFormPendingPaymentsTable
-                  onAddDetailPending={(detail) => onAddDetailPending(detail)}
-                  onRemoveDetailPending={() => onRemoveDetailPending()}
-                  detailPendingID={detailPendingID}
-                  details={details}
-                />
-              )}
-              <div className="mb-3">
-                {!showPendingPayments && (
-                  <CButton
-                    color="primary"
-                    className="text-light fw-semibold me-2"
-                    onClick={onAddDetail}
-                    disabled={purchaseData?.status === 'paid'}
-                  >
-                    <CIcon icon={cilPlus} className="me-1" />
-                    Añadir a la solicitud
-                  </CButton>
-                )}
-                {pendingPayments.length > 0 && providerID && (
-                  <CButton
-                    color={showPendingPayments ? 'danger' : 'info'}
-                    className="text-light fw-semibold"
-                    onClick={() => setShowPendingPayments(!showPendingPayments)}
-                    disabled={purchaseData?.status === 'paid'}
-                  >
-                    <CIcon icon={cilDollar} className="me-1" />
-                    {showPendingPayments ? 'Ocultar' : 'Ver'} pagos pendientes
-                  </CButton>
-                )}
+              <div className="mb-3 d-flex">
+                {imgFiles.map((file, index) => {
+                  return (
+                    <FileCard
+                      file={file}
+                      key={file.tag}
+                      onDelete={(id) => {
+                        return file.id
+                          ? setImgFiles(imgFiles.filter((f) => f.id !== id))
+                          : setImgFiles(imgFiles.filter((f, i) => index !== i))
+                      }}
+                      viewMode={view}
+                    />
+                  )
+                })}
               </div>
-              <CTable striped responsive>
-                <CTableHead>
-                  <CTableRow>
-                    <CTableHeaderCell scope="col">Cargo</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">Concepto</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">Tipo Mov.</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">Obs.</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">Importe total</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">Pago</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">Saldo</CTableHeaderCell>
-                    <CTableHeaderCell scope="col">Opciones</CTableHeaderCell>
-                  </CTableRow>
-                </CTableHead>
-                <CTableBody>
-                  {details.map((detail, i) => (
-                    <CTableRow key={detail.concept}>
-                      <CTableDataCell>{detail.charge}</CTableDataCell>
-                      <CTableDataCell>{detail.concept}</CTableDataCell>
-                      <CTableDataCell>{movementTypes[detail.movementType]}</CTableDataCell>
-                      <CTableDataCell>{detail.observation}</CTableDataCell>
-                      <CTableDataCell>{formatNumber(detail.totalAmount)}</CTableDataCell>
-                      <CTableDataCell>{formatNumber(detail.paymentAmount)}</CTableDataCell>
-                      <CTableDataCell>
-                        {formatNumber(Math.round(detail.totalAmount - detail.paymentAmount))}
-                      </CTableDataCell>
-                      <CTableDataCell>
-                        <CButton
-                          color="danger"
-                          variant="outline"
-                          title="Eliminar"
-                          onClick={() => onRemoveDetail(i)}
-                          disabled={purchaseData?.status === 'paid'}
-                        >
-                          <CIcon icon={cilTrash} size="sm" />
-                        </CButton>
-                      </CTableDataCell>
-                    </CTableRow>
-                  ))}
-                  {details.length > 0 && (
-                    <CTableRow>
-                      <CTableDataCell colSpan={5}></CTableDataCell>
-                      <CTableDataCell scope="col" colSpan={3}>
-                        $
-                        {formatNumber(details.reduce((a, e) => a + parseFloat(e.paymentAmount), 0))}
-                      </CTableDataCell>
-                    </CTableRow>
-                  )}
-                </CTableBody>
-              </CTable>
-            </CForm>
-          </CTabPane>
-          {/* files purchase request */}
-          <CTabPane role="tabpanel" aria-labelledby="data-tab-pane" visible={activeKey === 3}>
-            <CForm className="mt-3">
-              <CFormLabel className="fs-5">
-                Selecciona el tipo de archivo según corresponda, es necesario tener{' '}
-                <b>Cotización</b> y <b>Factura</b> para la solicitud
-              </CFormLabel>
               <div className="mb-3">
-                <div className="mb-2">
-                  <CFormLabel className="fs-6">Tipo de archivo</CFormLabel>
-                  <CFormSelect
-                    aria-label="fileType"
-                    options={[
-                      { label: 'Cotización ', value: 'quotation' },
-                      { label: 'Factura', value: 'invoice' },
-                      { label: 'Comprobante de pago', value: 'receipt' },
-                    ]}
-                    onChange={(e) => setFileType(e.target.value)}
-                    value={fileType}
+                <CFormCheck
+                  id="totalPaymentApproved"
+                  label="Se aprueba monto de pago"
+                  checked={totalPaymentApproved}
+                  onChange={(e) => setTotalPaymentApproved(e.target.checked)}
+                  disabled={view}
+                />
+              </div>
+              <div className="mb-3">
+                <CFormCheck
+                  id="totalPaymentModified"
+                  label="Se modifica monto de pago"
+                  checked={totalPaymentModified}
+                  onChange={(e) => setTotalPaymentModified(e.target.checked)}
+                  disabled={view}
+                />
+              </div>
+              {totalPaymentModified && (
+                <div className="mb-3">
+                  <CFormLabel>Monto</CFormLabel>
+                  <CFormInput
+                    type="number"
+                    id="amount"
+                    placeholder="0"
+                    value={paymentAmount}
+                    onChange={(e) => setPaymentAmount(e.target.value)}
+                    disabled={view}
                   />
                 </div>
+              )}
+            </CForm>
+          </CTabPane>
+
+          {/* files purchase request */}
+          <CTabPane role="tabpanel" aria-labelledby="data-tab-pane" visible={activeKey === 2}>
+            <CForm className="mt-3">
+              <div className="mb-3">
+                <CFormLabel>Dia de pago</CFormLabel>
+                <CFormInput
+                  type="date"
+                  id="paymentDate"
+                  value={paymentDate}
+                  onChange={(e) => setPaymentDate(e.target.value)}
+                />
+              </div>
+              <div className="mb-3">
+                <CFormLabel>Adjuntar comprobante de pago</CFormLabel>
                 <CFormInput
                   ref={inputFile}
                   type="file"

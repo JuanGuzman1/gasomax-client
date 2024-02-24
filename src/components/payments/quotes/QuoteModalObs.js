@@ -109,7 +109,6 @@ const QuoteModalObs = ({ visible, onClose, quoteID }) => {
                   id="obs"
                   label="Observación"
                   rows={2}
-                  text="Debe tener entre 8 y 20 palabras."
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                 ></CFormTextarea>

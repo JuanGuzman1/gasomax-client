@@ -8,8 +8,9 @@ import {
   ADD_QUOTE_OBSERVATION,
   GET_QUOTE_OBSERVATIONS,
   UPLOAD_QUOTE_FILE_PROGRESS,
-  UPLOAD_FILE,
-  FILE_ERROR,
+  UPLOAD_QUOTE_FILE,
+  FILE_QUOTE_ERROR,
+  SEND_PAY_QUOTE,
 } from './types'
 import config from '../server.config'
 import { setToast } from './toast'
@@ -201,7 +202,7 @@ export const uploadQuoteFile = (data, cb) => async (dispatch) => {
       },
     })
     dispatch({
-      type: UPLOAD_FILE,
+      type: UPLOAD_QUOTE_FILE,
       payload: res.data,
     })
     cb(res.data)
@@ -209,7 +210,7 @@ export const uploadQuoteFile = (data, cb) => async (dispatch) => {
   } catch (err) {
     console.log(err)
     dispatch({
-      type: FILE_ERROR,
+      type: FILE_QUOTE_ERROR,
       payload: {
         msg: err.response.statusText,
         status: err.response.status,
@@ -249,7 +250,7 @@ export const downloadQuoteFile = (id) => async (dispatch) => {
     dispatch(setToast(AppToast({ msg: 'Descargando archivo.', title: 'Archivos' })))
   } catch (err) {
     dispatch({
-      type: FILE_ERROR,
+      type: FILE_QUOTE_ERROR,
       payload: {
         msg: err.response.statusText,
         status: err.response.status,
@@ -273,7 +274,7 @@ export const deleteQuoteFile = (id, cb) => async (dispatch) => {
     dispatch(setToast(AppToast({ msg: 'Archivo eliminado correctamente.', title: 'Archivos' })))
   } catch (err) {
     dispatch({
-      type: FILE_ERROR,
+      type: FILE_QUOTE_ERROR,
       payload: {
         msg: err.response.statusText,
         status: err.response.status,
@@ -293,7 +294,7 @@ export const deleteFilesByQuote = (quote_id) => async (dispatch) => {
     })
   } catch (err) {
     dispatch({
-      type: FILE_ERROR,
+      type: FILE_QUOTE_ERROR,
       payload: {
         msg: err.response.statusText,
         status: err.response.status,
@@ -302,5 +303,33 @@ export const deleteFilesByQuote = (quote_id) => async (dispatch) => {
     dispatch(
       setToast(AppToast({ msg: 'Ha ocurrido un error al eliminar archivo.', title: 'Archivos' })),
     )
+  }
+}
+
+export const sendPay = (data, id, cb) => async (dispatch) => {
+  try {
+    const res = await axios.post(`${config.instance.baseURL}/api/send/pay/quote/${id}`, data, {
+      headers: {
+        ...config.instance.headers,
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
+    })
+    dispatch({
+      type: SEND_PAY_QUOTE,
+      payload: res.data.data,
+    })
+    cb(res.data)
+  } catch (err) {
+    dispatch({
+      type: QUOTE_ERROR,
+      payload: {
+        msg: err.response.statusText,
+        status: err.response.status,
+      },
+    })
+    cb({
+      success: false,
+      message: err.message,
+    })
   }
 }

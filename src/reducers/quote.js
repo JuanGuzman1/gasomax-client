@@ -7,6 +7,9 @@ import {
   GET_QUOTE_OBSERVATIONS,
   ADD_QUOTE_OBSERVATION,
   UPLOAD_QUOTE_FILE_PROGRESS,
+  UPLOAD_QUOTE_FILE,
+  FILE_QUOTE_ERROR,
+  SEND_PAY_QUOTE,
 } from 'src/actions/types'
 
 const initialState = {
@@ -68,10 +71,30 @@ export default function (state = initialState, action) {
         observations: [...state.observations, payload],
         loadingObservations: false,
       }
+    case UPLOAD_QUOTE_FILE:
+      return {
+        ...state,
+        progress: 0,
+      }
     case UPLOAD_QUOTE_FILE_PROGRESS:
       return {
         ...state,
         progress: payload,
+      }
+    case SEND_PAY_QUOTE: {
+      let index = state.quotes.data.findIndex((q) => q.id === payload.quote.id)
+      state.quotes.data[index] = { ...state.quotes.data[index], ...payload.quote }
+      return {
+        ...state,
+        quotes: { data: [...state.quotes.data] },
+        loading: false,
+      }
+    }
+    case FILE_QUOTE_ERROR:
+      return {
+        ...state,
+        error: payload,
+        progress: 0,
       }
     case QUOTE_ERROR:
       return {

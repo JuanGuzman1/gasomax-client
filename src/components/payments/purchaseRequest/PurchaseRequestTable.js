@@ -95,9 +95,9 @@ const PurchaseRequestTable = ({ data }) => {
           <CTableRow>
             <CTableHeaderCell scope="col">Folio</CTableHeaderCell>
             <CTableHeaderCell scope="col">Solicitante</CTableHeaderCell>
-            <CTableHeaderCell scope="col">Proveedor</CTableHeaderCell>
-            <CTableHeaderCell scope="col">Importe</CTableHeaderCell>
-            <CTableHeaderCell scope="col">Fecha</CTableHeaderCell>
+            <CTableHeaderCell scope="col">Titulo</CTableHeaderCell>
+            <CTableHeaderCell scope="col">Fecha de solicitud</CTableHeaderCell>
+            <CTableHeaderCell scope="col">Monto</CTableHeaderCell>
             <CTableHeaderCell scope="col">Status</CTableHeaderCell>
             <CTableHeaderCell scope="col" className="text-center">
               Opciones
@@ -109,11 +109,9 @@ const PurchaseRequestTable = ({ data }) => {
             <CTableRow key={pr.id}>
               <CTableHeaderCell scope="row">{pr.id}</CTableHeaderCell>
               <CTableDataCell>{pr.petitioner.name}</CTableDataCell>
-              <CTableDataCell>{pr.provider.name}</CTableDataCell>
-              <CTableDataCell>
-                ${formatNumber(pr.details.reduce((a, d) => a + parseFloat(d.paymentAmount), 0))}
-              </CTableDataCell>
+              <CTableDataCell>{pr.title}</CTableDataCell>
               <CTableDataCell>{formatTimezoneToDate(pr.created_at)}</CTableDataCell>
+              <CTableDataCell>${formatNumber(pr.paymentAmount)}</CTableDataCell>
               <CTableDataCell>
                 <CBadge color={statusPurchaseRequestColors[pr.status]}>
                   {statusPurchaseRequest[pr.status]}
