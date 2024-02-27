@@ -92,6 +92,31 @@ export const downloadFile = (id) => async (dispatch) => {
   }
 }
 
+export const viewFile = (id) => async (dispatch) => {
+  try {
+    const res = await axios.get(`${config.instance.baseURL}/api/download/${id}`, {
+      headers: {
+        ...config.instance.headers,
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
+      responseType: 'blob',
+    })
+    const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }))
+    window.open(url)
+  } catch (err) {
+    dispatch({
+      type: FILE_ERROR,
+      payload: {
+        msg: err.response.statusText,
+        status: err.response.status,
+      },
+    })
+    dispatch(
+      setToast(AppToast({ msg: 'Ha ocurrido un error al descargar archivo.', title: 'Archivos' })),
+    )
+  }
+}
+
 export const deleteFile = (id, cb) => async (dispatch) => {
   try {
     await axios.delete(`${config.instance.baseURL}/api/file/${id}`, {

@@ -28,6 +28,7 @@ export const statusQuote = (status, uploadQuotePermission = false, petitioner_id
     ok: 'Cotización VoBo',
     sent: uploadQuotePermission ? 'Solicitud nueva' : 'Solicitud enviada',
     sentPay: 'Enviada a pago',
+    paid: 'Pagado',
     rejected: 'Cotizaciónes rechazadas',
   }
   return statusQuoteLetter[status]
@@ -40,6 +41,7 @@ export const statusQuoteColors = {
   ok: 'info',
   sent: 'info',
   sentPay: 'info',
+  paid: 'info',
   rejected: 'danger',
 }
 ////////////////////// status purchaseRequest (Update payments) //////////////

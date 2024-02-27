@@ -95,6 +95,7 @@ const QuoteTable = ({ data }) => {
             <CTableHeaderCell scope="col">Titulo</CTableHeaderCell>
             <CTableHeaderCell scope="col">Fecha de solicitud</CTableHeaderCell>
             <CTableHeaderCell scope="col">Giro</CTableHeaderCell>
+            <CTableHeaderCell scope="col">Unidad</CTableHeaderCell>
             <CTableHeaderCell scope="col">Status</CTableHeaderCell>
             <CTableHeaderCell scope="col" className="text-center">
               Opciones
@@ -109,6 +110,7 @@ const QuoteTable = ({ data }) => {
               <CTableDataCell>{quote.title}</CTableDataCell>
               <CTableDataCell>{formatTimezoneToDate(quote.created_at)}</CTableDataCell>
               <CTableDataCell>{quote.line}</CTableDataCell>
+              <CTableDataCell>{quote.unit}</CTableDataCell>
               <CTableDataCell>
                 <CBadge color={statusQuoteColors[quote.status]}>
                   {statusQuote(quote.status, hasUploadQuotePermission)}

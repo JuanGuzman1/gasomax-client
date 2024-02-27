@@ -232,6 +232,7 @@ export const downloadQuoteFile = (id) => async (dispatch) => {
       responseType: 'blob',
     })
     const url = window.URL.createObjectURL(new Blob([res.data]))
+
     const link = document.createElement('a')
     link.href = url
     // Extrae el nombre del archivo de la cabecera de respuesta o proporciona uno
@@ -248,6 +249,31 @@ export const downloadQuoteFile = (id) => async (dispatch) => {
     window.URL.revokeObjectURL(url)
 
     dispatch(setToast(AppToast({ msg: 'Descargando archivo.', title: 'Archivos' })))
+  } catch (err) {
+    dispatch({
+      type: FILE_QUOTE_ERROR,
+      payload: {
+        msg: err.response.statusText,
+        status: err.response.status,
+      },
+    })
+    dispatch(
+      setToast(AppToast({ msg: 'Ha ocurrido un error al descargar archivo.', title: 'Archivos' })),
+    )
+  }
+}
+
+export const viewQuoteFile = (id) => async (dispatch) => {
+  try {
+    const res = await axios.get(`${config.instance.baseURL}/api/quoteFileDownload/${id}`, {
+      headers: {
+        ...config.instance.headers,
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
+      responseType: 'blob',
+    })
+    const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }))
+    window.open(url)
   } catch (err) {
     dispatch({
       type: FILE_QUOTE_ERROR,

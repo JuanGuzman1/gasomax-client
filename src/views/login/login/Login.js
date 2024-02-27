@@ -34,7 +34,6 @@ const Login = () => {
     dispatch(
       login({ email, password }, (loginRes) => {
         if (loginRes.success) {
-          dispatch(setToast(AppToast({ msg: loginRes.message, type: 'success' })))
           navigate('/dashboard')
         } else {
           dispatch(setToast(AppToast({ msg: loginRes.message, type: 'error' })))

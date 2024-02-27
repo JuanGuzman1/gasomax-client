@@ -85,6 +85,11 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
     setPurchaseRequestID(purchaseData.id)
     setQuoteID(purchaseData.quote.id)
     setFiles(purchaseData.files)
+    setTitle(purchaseData.title)
+    setTotalAmount(purchaseData.totalAmount)
+    setPaymentAmount(purchaseData.paymentAmount)
+    setTotalPaymentApproved(!!purchaseData.totalPaymentApproved)
+    setTotalPaymentModified(!!purchaseData.totalPaymentModified)
   }, [purchaseData])
 
   const onReject = () => {
@@ -355,7 +360,6 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
               General
             </CNavLink>
           </CNavItem>
-
           <CNavItem role="presentation">
             <CNavLink
               active={activeKey === 2}
@@ -364,6 +368,18 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
               aria-controls="account-tab-pane"
               aria-selected={activeKey === 2}
               onClick={() => setActiveKey(2)}
+            >
+              Ver pagos pendientes
+            </CNavLink>
+          </CNavItem>
+          <CNavItem role="presentation">
+            <CNavLink
+              active={activeKey === 3}
+              component="button"
+              role="tab"
+              aria-controls="account-tab-pane"
+              aria-selected={activeKey === 3}
+              onClick={() => setActiveKey(3)}
             >
               Tramite de pago
             </CNavLink>
@@ -460,8 +476,15 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
             </CForm>
           </CTabPane>
 
+          {/* pending payments */}
+          <CTabPane
+            role="tabpanel"
+            aria-labelledby="data-tab-pane"
+            visible={activeKey === 2}
+          ></CTabPane>
+
           {/* files purchase request */}
-          <CTabPane role="tabpanel" aria-labelledby="data-tab-pane" visible={activeKey === 2}>
+          <CTabPane role="tabpanel" aria-labelledby="data-tab-pane" visible={activeKey === 3}>
             <CForm className="mt-3">
               <div className="mb-3">
                 <CFormLabel>Dia de pago</CFormLabel>

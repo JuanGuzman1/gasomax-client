@@ -72,7 +72,13 @@ const QuoteModalObs = ({ visible, onClose, quoteID }) => {
   }
 
   return (
-    <CModal visible={visible} onClose={onClose} aria-labelledby="ModalObsForm">
+    <CModal
+      visible={visible}
+      onClose={onClose}
+      aria-labelledby="ModalObsForm"
+      keyboard={false}
+      backdrop="static"
+    >
       <CModalHeader onClose={onClose}>
         <CModalTitle id="ModalObsForm">Observaciones</CModalTitle>
       </CModalHeader>
