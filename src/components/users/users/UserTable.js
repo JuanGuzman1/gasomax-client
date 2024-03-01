@@ -121,7 +121,7 @@ const UserTable = ({ data }) => {
                         Asignar modulos
                       </CDropdownItem>
                     )}
-                    {hasPermissionsPermission && user.modules.length > 0 && (
+                    {hasPermissionsPermission && user?.modules?.length > 0 && (
                       <CDropdownItem
                         style={{ cursor: 'pointer' }}
                         onClick={() => {

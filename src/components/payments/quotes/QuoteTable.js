@@ -112,7 +112,7 @@ const QuoteTable = ({ data }) => {
               <CTableDataCell>{quote.line}</CTableDataCell>
               <CTableDataCell>{quote.unit}</CTableDataCell>
               <CTableDataCell>
-                <CBadge color={statusQuoteColors[quote.status]}>
+                <CBadge style={{ backgroundColor: statusQuoteColors[quote.status] }}>
                   {statusQuote(quote.status, hasUploadQuotePermission)}
                 </CBadge>
               </CTableDataCell>
@@ -137,7 +137,9 @@ const QuoteTable = ({ data }) => {
                     {hasEditPermission &&
                       quote.status !== 'approved' &&
                       quote.status !== 'inprogress' &&
-                      quote.status !== 'authorized' && (
+                      quote.status !== 'authorized' &&
+                      quote.status !== 'sentPay' &&
+                      quote.status !== 'paid' && (
                         <CDropdownItem
                           style={{ cursor: 'pointer' }}
                           onClick={() => {
@@ -151,7 +153,9 @@ const QuoteTable = ({ data }) => {
                     {hasDeletePermission &&
                       quote.status !== 'approved' &&
                       quote.status !== 'inprogress' &&
-                      quote.status !== 'authorized' && (
+                      quote.status !== 'authorized' &&
+                      quote.status !== 'sentPay' &&
+                      quote.status !== 'paid' && (
                         <CDropdownItem
                           style={{ cursor: 'pointer' }}
                           onClick={() => onDelete(quote.id)}

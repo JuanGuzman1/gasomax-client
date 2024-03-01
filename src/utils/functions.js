@@ -35,28 +35,28 @@ export const statusQuote = (status, uploadQuotePermission = false, petitioner_id
 }
 
 export const statusQuoteColors = {
-  inprogress: 'warning',
-  approved: 'success',
-  authorized: 'success',
-  ok: 'info',
-  sent: 'info',
-  sentPay: 'info',
-  paid: 'info',
-  rejected: 'danger',
+  inprogress: '#00FFFF',
+  approved: '#00FF00',
+  authorized: '#0000FF',
+  ok: '#008000',
+  sent: '#FFA500',
+  sentPay: '#FFFF00',
+  paid: '#800080',
+  rejected: '#FF0000',
 }
 ////////////////////// status purchaseRequest (Update payments) //////////////
 export const statusPurchaseRequest = {
-  pending: 'Solicitud pendiente de aprobación',
+  pending: 'Pendiente de aprobación',
   approved: 'Solicitud aprobada',
   paid: 'Pagado',
   rejected: 'Solicitud rechazada',
 }
 
 export const statusPurchaseRequestColors = {
-  pending: 'warning',
-  approved: 'success',
-  paid: 'info',
-  rejected: 'danger',
+  pending: '#FFA500',
+  approved: '#00FF00',
+  paid: '#800080',
+  rejected: '#FF0000',
 }
 
 export const permissions = {

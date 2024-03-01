@@ -113,14 +113,9 @@ const PurchaseRequestTable = ({ data }) => {
               <CTableDataCell>{formatTimezoneToDate(pr.created_at)}</CTableDataCell>
               <CTableDataCell>${formatNumber(pr.paymentAmount)}</CTableDataCell>
               <CTableDataCell>
-                <CBadge color={statusPurchaseRequestColors[pr.status]}>
+                <CBadge style={{ backgroundColor: statusPurchaseRequestColors[pr.status] }}>
                   {statusPurchaseRequest[pr.status]}
                 </CBadge>
-                {!pr.files.find((file) => file.tag === 'receipt') && pr.status === 'paid' && (
-                  <CBadge color={statusPurchaseRequestColors['pending']}>
-                    Falta comprobante de pago
-                  </CBadge>
-                )}
               </CTableDataCell>
               <CTableDataCell className="text-center overflow-visible">
                 <CDropdown variant="dropdown">
@@ -151,11 +146,17 @@ const PurchaseRequestTable = ({ data }) => {
                         Editar
                       </CDropdownItem>
                     )}
-                    {hasDeletePermission && pr.status !== 'approved' && pr.status !== 'paid' && (
-                      <CDropdownItem style={{ cursor: 'pointer' }} onClick={() => onDelete(pr.id)}>
-                        Eliminar
-                      </CDropdownItem>
-                    )}
+                    {hasDeletePermission &&
+                      pr.status !== 'approved' &&
+                      pr.status !== 'paid' &&
+                      !pr.fromQuote && (
+                        <CDropdownItem
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => onDelete(pr.id)}
+                        >
+                          Eliminar
+                        </CDropdownItem>
+                      )}
                     <CDropdownItem
                       style={{ cursor: 'pointer' }}
                       onClick={() => {

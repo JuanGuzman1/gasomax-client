@@ -82,6 +82,11 @@ const Login = () => {
                         autoComplete="contraseña"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        onKeyUp={(e) => {
+                          if (e.key === 'Enter') {
+                            onLogin(e)
+                          }
+                        }}
                       />
                     </CInputGroup>
                     <CRow>

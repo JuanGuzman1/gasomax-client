@@ -25,7 +25,7 @@ import {
   CFormSelect,
   CProgress,
 } from '@coreui/react'
-import { cilPlus, cilTrash } from '@coreui/icons'
+import { cilPlus } from '@coreui/icons'
 import CIcon from '@coreui/icons-react'
 import { useDispatch, useSelector } from 'react-redux'
 import { fileTags } from 'src/utils/fileTags'
@@ -172,6 +172,9 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
     setOnePayment(quoteData.onePayment)
     setMultiplePayments(quoteData.multiplePayments)
     setSuggestedProvider(quoteData.suggestedProvider)
+    setProviderID(quoteData.provider_id)
+    setProviderAccountID(quoteData.provider_account_id)
+    setPaymentWithoutInvoice(quoteData.paymentWithoutInvoice)
   }, [quoteData])
 
   const onSelectRecommendedProvider = (e, i) => {
@@ -225,6 +228,8 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                     }),
                   ),
                 )
+                onClose()
+                clearGeneralInputs()
                 Swal.fire('Solicitud de pago enviada!', '', 'success')
               } else {
                 dispatch(
@@ -615,11 +620,15 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
   }, [selectedQuoteID, quoteData])
 
   useEffect(() => {
+    if (quoteData.status === 'paid') {
+      return
+    }
+
     if (paymentWithoutInvoice) {
       setInvoiceFile(null)
       inputInvoiceFile.current.value = ''
     }
-  }, [paymentWithoutInvoice])
+  }, [paymentWithoutInvoice, quoteData])
 
   return (
     <>
@@ -679,7 +688,9 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                 </CNavLink>
               </CNavItem>
             )}
-            {view && quoteData.status === 'authorized' && hasPayPermission && (
+            {((view && quoteData.status === 'authorized' && hasPayPermission) ||
+              quoteData.status === 'sentPay' ||
+              quoteData.status === 'paid') && (
               <CNavItem role="presentation">
                 <CNavLink
                   active={activeKey === 3}
@@ -903,7 +914,9 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
               <CForm className="mt-3">
                 {hasUploadQuotePermission &&
                   quoteData.status !== 'authorized' &&
-                  quoteData.status !== 'approved' && (
+                  quoteData.status !== 'approved' &&
+                  quoteData.status !== 'sentPay' &&
+                  quoteData.status !== 'paid' && (
                     <>
                       <CFormLabel className="fs-5">
                         Añade las <b>Cotizaciónes</b> para la solicitud
@@ -978,7 +991,9 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                           {(hasApprovePermission ||
                             hasAuthorizeMinor5000Permission ||
                             (hasPayPermission && quoteData.status === 'approved') ||
-                            (hasPayPermission && quoteData.status === 'authorized')) && (
+                            (hasPayPermission && quoteData.status === 'authorized') ||
+                            (hasPayPermission && quoteData.status === 'sentPay') ||
+                            quoteData.status === 'paid') && (
                             <CTableHeaderCell scope="col" className="text-center">
                               Aprobada
                             </CTableHeaderCell>
@@ -1012,14 +1027,17 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                                 }}
                                 viewMode={
                                   (view && !hasUploadQuotePermission) ||
-                                  quoteData.status === 'authorized'
+                                  quoteData.status === 'authorized' ||
+                                  quoteData.status === 'sentPay'
                                 }
                               />
                             </CTableDataCell>
                             {(hasApprovePermission ||
                               hasAuthorizeMinor5000Permission ||
                               (hasPayPermission && quoteData.status === 'approved') ||
-                              (hasPayPermission && quoteData.status === 'authorized')) && (
+                              (hasPayPermission && quoteData.status === 'authorized') ||
+                              (hasPayPermission && quoteData.status === 'sentPay') ||
+                              quoteData.status === 'paid') && (
                               <CTableDataCell className="text-center">
                                 <CFormCheck
                                   id="selectedQuoteID"
@@ -1034,7 +1052,9 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                                   disabled={
                                     quoteData.status === 'approved' ||
                                     quoteData.status === 'ok' ||
-                                    quoteData.status === 'authorized'
+                                    quoteData.status === 'authorized' ||
+                                    quoteData.status === 'sentPay' ||
+                                    quoteData.status === 'paid'
                                   }
                                 />
                               </CTableDataCell>
@@ -1046,7 +1066,9 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                     {(hasApprovePermission ||
                       quoteData.status === 'approved' ||
                       quoteData.status === 'ok' ||
-                      quoteData.status === 'authorized') &&
+                      quoteData.status === 'authorized' ||
+                      quoteData.status === 'sentPay' ||
+                      quoteData.status === 'paid') &&
                       view && (
                         <>
                           <div className="mb-3">
@@ -1058,7 +1080,9 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                               disabled={
                                 quoteData.status === 'approved' ||
                                 quoteData.status === 'ok' ||
-                                quoteData.status === 'authorized'
+                                quoteData.status === 'authorized' ||
+                                quoteData.status === 'sentPay' ||
+                                quoteData.status === 'paid'
                               }
                             />
                           </div>
@@ -1076,14 +1100,18 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                                 rejectQuotes ||
                                 quoteData.status === 'approved' ||
                                 quoteData.status === 'ok' ||
-                                quoteData.status === 'authorized'
+                                quoteData.status === 'authorized' ||
+                                quoteData.status === 'sentPay' ||
+                                quoteData.status === 'paid'
                               }
                             />
                           </div>
                           {quoteData.status === 'rejected' ||
                           quoteData.status === 'approved' ||
                           quoteData.status === 'ok' ||
-                          quoteData.status === 'authorized' ? (
+                          quoteData.status === 'authorized' ||
+                          quoteData.status === 'sentPay' ||
+                          quoteData.status === 'paid' ? (
                             <CButton
                               color="primary"
                               className="text-white"
@@ -1124,6 +1152,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                       aria-label="provider"
                       onChange={(e) => setProviderID(e.target.value)}
                       value={providerID}
+                      disabled={quoteData.status === 'sentPay' || quoteData.status === 'paid'}
                     >
                       <option value={''}>Selecciona...</option>
                       {providers.data.map(({ id, name }) => (
@@ -1139,6 +1168,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                       aria-label="providerAccount"
                       onChange={(e) => setProviderAccountID(e.target.value)}
                       value={providerAccountID}
+                      disabled={quoteData.status === 'sentPay' || quoteData.status === 'paid'}
                     >
                       <option value={''}>Selecciona...</option>
                       {accounts?.data?.map(({ id, clabe, bank }) => (
@@ -1149,25 +1179,27 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                     </CFormSelect>
                   </div>
                 </div>
-                <div className="mb-3">
-                  <CFormLabel>
-                    Sube la <b>factura</b> para la solicitud de pago
-                  </CFormLabel>
-                  <CFormInput
-                    ref={inputInvoiceFile}
-                    type="file"
-                    id="invoiceFile"
-                    onChange={(e) =>
-                      setInvoiceFile({
-                        tag: fileTags.invoice,
-                        file: e.target.files[0],
-                        localName: e.target.files[0].name,
-                      })
-                    }
-                    text="Archivos permitidos jpg, pdf, jpeg (10 MB)"
-                    disabled={paymentWithoutInvoice}
-                  />
-                </div>
+                {view && quoteData.status === 'authorized' && hasPayPermission && (
+                  <div className="mb-3">
+                    <CFormLabel>
+                      Sube la <b>factura</b> para la solicitud de pago
+                    </CFormLabel>
+                    <CFormInput
+                      ref={inputInvoiceFile}
+                      type="file"
+                      id="invoiceFile"
+                      onChange={(e) =>
+                        setInvoiceFile({
+                          tag: fileTags.invoice,
+                          file: e.target.files[0],
+                          localName: e.target.files[0].name,
+                        })
+                      }
+                      text="Archivos permitidos jpg, pdf, jpeg (10 MB)"
+                      disabled={paymentWithoutInvoice}
+                    />
+                  </div>
+                )}
                 {invoiceFile && (
                   <div className="mb-3 d-flex">
                     <FileCard
@@ -1185,6 +1217,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                     label="Tramitar pago sin factura"
                     checked={paymentWithoutInvoice}
                     onChange={(e) => setPaymentWithoutInvoice(e.target.checked)}
+                    disabled={quoteData.status === 'sentPay' || quoteData.status === 'paid'}
                   />
                 </div>
               </CForm>
@@ -1201,21 +1234,25 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
             </CButton>
           )}
 
-          {view && quoteData.status !== 'approved' && quoteData.status !== 'authorized' && (
-            <CButton
-              color="primary"
-              className="text-light fw-semibold"
-              onClick={(e) => {
-                if (user.id !== quoteData.petitioner_id && hasUploadQuotePermission) {
-                  onUploadQuoteFile(e)
-                } else {
-                  onSave(e) //for approve
-                }
-              }}
-            >
-              Guardar
-            </CButton>
-          )}
+          {view &&
+            quoteData.status !== 'approved' &&
+            quoteData.status !== 'authorized' &&
+            quoteData.status !== 'sentPay' &&
+            quoteData.status !== 'paid' && (
+              <CButton
+                color="primary"
+                className="text-light fw-semibold"
+                onClick={(e) => {
+                  if (user.id !== quoteData.petitioner_id && hasUploadQuotePermission) {
+                    onUploadQuoteFile(e)
+                  } else {
+                    onSave(e) //for approve
+                  }
+                }}
+              >
+                Guardar
+              </CButton>
+            )}
 
           {!view && (
             <CButton

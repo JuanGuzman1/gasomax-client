@@ -40,7 +40,7 @@ const Dashboard = () => {
         <CRow>
           <CCol sm={5}>
             <h4 id="traffic" className="card-title mb-0">
-              Solicitudes enviadas
+              Inicio
             </h4>
             <div className="small text-medium-emphasis">January - July 2021</div>
           </CCol>
@@ -48,23 +48,11 @@ const Dashboard = () => {
             <CButton color="primary" className="float-end">
               <CIcon icon={cilCloudDownload} />
             </CButton>
-            <CButtonGroup className="float-end me-3">
-              {['Dia', 'Mes', 'Year'].map((value) => (
-                <CButton
-                  color="outline-secondary"
-                  key={value}
-                  className="mx-0"
-                  active={value === 'Month'}
-                >
-                  {value}
-                </CButton>
-              ))}
-            </CButtonGroup>
           </CCol>
         </CRow>
         <div className="d-flex justify-content-around mt-3 align-items-center">
           <div className="">
-            <h2>Total de solicitudes</h2>
+            <h2>Solicitudes de compra</h2>
             <div>
               <h1 style={{ fontSize: 80 }}>30</h1>
             </div>
@@ -74,23 +62,28 @@ const Dashboard = () => {
               type="doughnut"
               data={{
                 labels: [
-                  'Enero',
-                  'Febrero',
-                  'Marzo',
-                  'Abril',
-                  'Mayo',
-                  'Junio',
-                  'Julio',
-                  'Agosto',
-                  'Septiembre',
-                  'Octubre',
-                  'Noviembre',
-                  'Diciembre',
+                  'Enviadas',
+                  'En proceso',
+                  'Aprobadas',
+                  'VoBo',
+                  'Autorizadas',
+                  'Rechazadas',
+                  'Por pagar',
+                  'Pagadas',
                 ],
                 datasets: [
                   {
-                    backgroundColor: ['#41B883', '#E46651', '#00D8FF', '#DD1B16'],
-                    data: [40, 20, 80, 10, 40, 20, 80, 10, 40, 20, 80, 10],
+                    backgroundColor: [
+                      '#FFA500',
+                      '#00FFFF',
+                      '#00FF00',
+                      '#008000',
+                      '#0000FF',
+                      '#FF0000',
+                      '#FFFF00',
+                      '#800080',
+                    ],
+                    data: [40, 20, 80, 10, 40, 20, 80, 10],
                   },
                 ],
               }}
@@ -107,19 +100,7 @@ const Dashboard = () => {
           </div>
         </div>
       </CCardBody>
-      <CCardFooter>
-        <CRow xs={{ cols: 1 }} md={{ cols: 5 }} className="text-center">
-          {progressExample.map((item, index) => (
-            <CCol className="mb-sm-2 mb-0" key={index}>
-              <div className="text-medium-emphasis">{item.title}</div>
-              <strong>
-                {item.value} ({item.percent}%)
-              </strong>
-              <CProgress thin className="mt-2" color={item.color} value={item.percent} />
-            </CCol>
-          ))}
-        </CRow>
-      </CCardFooter>
+      <CCardFooter></CCardFooter>
     </CCard>
   )
 }

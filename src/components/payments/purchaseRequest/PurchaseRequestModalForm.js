@@ -32,7 +32,7 @@ import { fileTags } from 'src/utils/fileTags'
 import { FileCard, AppToast } from '../../app'
 import Swal from 'sweetalert2'
 import { formatNumber, movementTypes, useHasPermission } from 'src/utils/functions'
-import { selectProviders } from 'src/actions/provider'
+import { selectAccountsByProvider, selectProviders } from 'src/actions/provider'
 import {
   addPurchaseRequest,
   approvePurchaseRequest,
@@ -40,6 +40,7 @@ import {
   rejectPurchaseRequest,
   payPurchaseRequest,
   updatePurchaseRequest,
+  getPurchaseRequests,
 } from 'src/actions/purchaseRequest'
 import { setToast } from 'src/actions/toast'
 import ModalFormPendingPaymentsTable from './ModalFormPendingPaymentsTable'
@@ -54,28 +55,43 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
     [totalAmount, setTotalAmount] = useState(0),
     [paymentAmount, setPaymentAmount] = useState(0),
     [imgFiles, setImgFiles] = useState([]),
+    [invoiceFile, setInvoiceFile] = useState(null),
+    [receiptFile, setReceiptFile] = useState(null),
     [totalPaymentApproved, setTotalPaymentApproved] = useState(false),
     [totalPaymentModified, setTotalPaymentModified] = useState(false),
+    [paymentWithoutInvoice, setPaymentWithoutInvoice] = useState(false),
     [paymentDate, setPaymentDate] = useState(''),
     [quoteID, setQuoteID] = useState(''),
-    [showPendingPayments, setShowPendingPayments] = useState(false),
-    [files, setFiles] = useState([]),
+    [providerID, setProviderID] = useState(''),
+    [providerAccountID, setProviderAccountID] = useState(''),
     dispatch = useDispatch(),
     { progress } = useSelector((state) => state.file),
-    { pendingPayments } = useSelector((state) => state.purchaseRequest),
-    inputFile = useRef(),
     hasPayPermission = useHasPermission('purchaseRequest', 'pay'),
     hasRejectPermission = useHasPermission('purchaseRequest', 'reject'),
     hasAuthorizePermission = useHasPermission('purchaseRequest', 'authorize'),
     user = useSelector((state) => state.auth.user)?.data?.user,
-    inputImgFile = useRef()
+    inputImgFile = useRef(),
+    inputReceiptFile = useRef(),
+    providers = useSelector((state) => state.provider.providers),
+    accounts = useSelector((state) => state.provider.accounts),
+    { purchaseRequests, filters } = useSelector((state) => state.purchaseRequest)
+
+  useEffect(() => {
+    dispatch(selectProviders())
+  }, [dispatch])
+
+  useEffect(() => {
+    if (!providerID) {
+      return
+    }
+    dispatch(selectAccountsByProvider(providerID))
+  }, [dispatch, providerID])
 
   useEffect(() => {
     if (!quoteID || quoteID === '') {
       return
     }
     dispatch(getPendingPaymentsByProvider(quoteID))
-    setShowPendingPayments(false)
   }, [dispatch, quoteID, purchaseData])
 
   useEffect(() => {
@@ -84,12 +100,18 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
     }
     setPurchaseRequestID(purchaseData.id)
     setQuoteID(purchaseData.quote.id)
-    setFiles(purchaseData.files)
+    setImgFiles(purchaseData.files?.filter((file) => file.tag === fileTags.img))
+    setInvoiceFile(purchaseData.files?.find((file) => file.tag === fileTags.invoice))
+    setReceiptFile(purchaseData.files?.find((file) => file.tag === fileTags.receipt))
     setTitle(purchaseData.title)
     setTotalAmount(purchaseData.totalAmount)
     setPaymentAmount(purchaseData.paymentAmount)
     setTotalPaymentApproved(!!purchaseData.totalPaymentApproved)
     setTotalPaymentModified(!!purchaseData.totalPaymentModified)
+    setProviderID(purchaseData.provider_id)
+    setProviderAccountID(purchaseData.provider_account_id)
+    setPaymentWithoutInvoice(purchaseData.paymentWithoutInvoice)
+    setPaymentDate(purchaseData.paymentDate)
   }, [purchaseData])
 
   const onReject = () => {
@@ -138,91 +160,56 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
     })
   }
 
-  const onApprove = (e) => {
-    e.preventDefault()
+  const onPay = () => {
     try {
+      if (!paymentDate) {
+        alert(`Selecciona fecha de pago`)
+        return
+      }
+      if (!receiptFile) {
+        alert(`Adjunta comprobante de pago`)
+        return
+      }
       dispatch(
-        approvePurchaseRequest({ user_id: user.id }, purchaseRequestID, (purchaseRequestRes) => {
-          if (purchaseRequestRes.success) {
-            dispatch(setToast(AppToast({ msg: 'Cotización autorizada', type: 'success' })))
-          } else {
-            dispatch(
-              setToast(
-                AppToast({
-                  msg: 'Ha ocurrido un error.',
-                  type: 'error',
-                }),
-              ),
-            )
-          }
-        }),
+        payPurchaseRequest(
+          { paymentDate, user_id: user.id },
+          purchaseData.id,
+          (purchaseRequestRes) => {
+            if (purchaseRequestRes.success) {
+              onUploadReceiptFile(purchaseRequestRes.data)
+              dispatch(setToast(AppToast({ msg: purchaseRequestRes.message, type: 'success' })))
+              Swal.fire({
+                title: `Solicitud pagada`,
+              })
+            }
+          },
+        ),
       )
     } catch (error) {
-      console.log(error)
+      Swal.showValidationMessage(`Request failed: ${error}`)
     }
-    onClose()
   }
 
-  const onPay = () => {
-    Swal.fire({
-      title: 'Selecciona la fecha del pago',
-      input: 'date',
-      showCancelButton: true,
-      confirmButtonText: 'Enviar',
-      confirmButtonColor: '#E94834',
-      showLoaderOnConfirm: true,
-      preConfirm: async (paymentDate) => {
-        try {
-          if (!paymentDate) {
-            Swal.showValidationMessage(`
-            selecciona fecha de pago
-          `)
-            return
-          }
-          dispatch(
-            payPurchaseRequest(
-              { paymentDate, user_id: user.id },
-              purchaseData.id,
-              (purchaseRequestRes) => {
-                if (purchaseRequestRes.success) {
-                  dispatch(setToast(AppToast({ msg: purchaseRequestRes.message, type: 'success' })))
-                }
-              },
-            ),
-          )
-        } catch (error) {
-          Swal.showValidationMessage(`
-            Request failed: ${error}
-          `)
-        }
-      },
-      allowOutsideClick: () => !Swal.isLoading(),
-    }).then((result) => {
-      if (result.isConfirmed) {
-        Swal.fire({
-          title: `Solicitud pagada, sube el comprobante de pago en la sección de archivos.`,
-        })
-      }
-    })
-  }
-
-  const onAddFiles = (e) => {
+  const onAddImages = (e) => {
     if (!e.target.files[0]) {
       return
     }
     let data = {
       localName: e.target.files[0].name,
-      tag: fileTags.receipt,
+      tag: fileTags.img,
       file: e.target.files[0],
     }
-    setFiles([...files, data])
-    inputFile.current.value = ''
+    setImgFiles([...imgFiles, data])
+    inputImgFile.current.value = ''
   }
 
   const clearGeneralInputs = useCallback(() => {
     setPurchaseRequestID('')
     setQuoteID('')
-    setFiles([])
+    setTitle('')
+    setTotalAmount('')
+    setPaymentAmount('')
+    setImgFiles([])
   }, [])
 
   const onSave = (e) => {
@@ -231,6 +218,14 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
       let data = {
         quote_id: quoteID,
         petitioner_id: user.id,
+        title,
+        paymentAmount,
+        totalAmount,
+        provider_id: providerID,
+        provider_account_id: providerAccountID,
+        paymentWithoutInvoice,
+        totalPaymentApproved,
+        totalPaymentModified,
       }
       dispatch(
         purchaseData
@@ -245,7 +240,7 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
                     }),
                   ),
                 )
-                onUploadFile(purchaseRequestRes.data)
+                onUploadImgFiles(purchaseRequestRes.data)
               } else {
                 dispatch(
                   setToast(
@@ -269,7 +264,7 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
                     }),
                   ),
                 )
-                onUploadFile(purchaseRequestRes.data)
+                onUploadImgFiles(purchaseRequestRes.data)
               } else {
                 dispatch(
                   setToast(
@@ -288,10 +283,10 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
     }
   }
 
-  const onUploadFile = (purchaseRequestRes) => {
-    if (files) {
+  const onUploadImgFiles = (purchaseRequestRes) => {
+    if (imgFiles.length > 0) {
       Promise.all(
-        files.map((file) => {
+        imgFiles.map((file) => {
           if (!file.id) {
             return dispatch(
               uploadFile(
@@ -303,12 +298,38 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
                 () => {},
               ),
             )
+          } else {
+            onClose()
+            clearGeneralInputs()
           }
         }),
-      )
+      ).finally(() => {
+        dispatch(getPurchaseRequests(purchaseRequests.current_page, filters.filter, filters.value))
+      })
     } else {
       onClose()
       clearGeneralInputs()
+    }
+  }
+
+  const onUploadReceiptFile = (purchaseRequestRes) => {
+    try {
+      dispatch(
+        uploadFile(
+          receiptFile.file,
+          receiptFile.tag,
+          null,
+          purchaseRequestRes.id,
+          modelTypes.purchaseRequest,
+          () => {
+            dispatch(
+              getPurchaseRequests(purchaseRequests.current_page, filters.filter, filters.value),
+            )
+          },
+        ),
+      )
+    } catch (error) {
+      console.log(error)
     }
   }
 
@@ -338,11 +359,18 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
     <CModal visible={visible} onClose={onClose} aria-labelledby="ModalForm" size="xl">
       <CModalHeader onClose={onClose}>
         <CModalTitle id="ModalForm">
-          {purchaseData ? `Editar solicitud` : 'Nueva solicitud'}
+          {purchaseData
+            ? `${view ? '' : 'Editar'} Solicitud ${purchaseData.title}`
+            : 'Nueva Solicitud'}
         </CModalTitle>
       </CModalHeader>
       <CModalBody>
-        {files.length > 0 && files.some((file) => !file.id) && (
+        {imgFiles.length > 0 && imgFiles.some((file) => !file.id) && (
+          <CProgress value={progress} className="mb-2">
+            {progress}%
+          </CProgress>
+        )}
+        {receiptFile && !receiptFile.id && (
           <CProgress value={progress} className="mb-2">
             {progress}%
           </CProgress>
@@ -360,35 +388,98 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
               General
             </CNavLink>
           </CNavItem>
-          <CNavItem role="presentation">
-            <CNavLink
-              active={activeKey === 2}
-              component="button"
-              role="tab"
-              aria-controls="account-tab-pane"
-              aria-selected={activeKey === 2}
-              onClick={() => setActiveKey(2)}
-            >
-              Ver pagos pendientes
-            </CNavLink>
-          </CNavItem>
-          <CNavItem role="presentation">
-            <CNavLink
-              active={activeKey === 3}
-              component="button"
-              role="tab"
-              aria-controls="account-tab-pane"
-              aria-selected={activeKey === 3}
-              onClick={() => setActiveKey(3)}
-            >
-              Tramite de pago
-            </CNavLink>
-          </CNavItem>
+          {!hasAuthorizePermission && !view && !purchaseData?.fromQuote && (
+            <CNavItem role="presentation">
+              <CNavLink
+                active={activeKey === 2}
+                component="button"
+                role="tab"
+                aria-controls="account-tab-pane"
+                aria-selected={activeKey === 2}
+                onClick={() => setActiveKey(2)}
+              >
+                Pagos pendientes
+              </CNavLink>
+            </CNavItem>
+          )}
+          {((view && purchaseData.status === 'approved' && hasPayPermission) ||
+            (view && purchaseData.status === 'paid')) && (
+            <CNavItem role="presentation">
+              <CNavLink
+                active={activeKey === 3}
+                component="button"
+                role="tab"
+                aria-controls="account-tab-pane"
+                aria-selected={activeKey === 3}
+                onClick={() => setActiveKey(3)}
+              >
+                Tramite de pago
+              </CNavLink>
+            </CNavItem>
+          )}
         </CNav>
         <CTabContent>
           {/* purchase request data */}
           <CTabPane role="tabpanel" aria-labelledby="data-tab-pane" visible={activeKey === 1}>
             <CForm className="mt-3">
+              {view && purchaseData.fromQuote && (
+                <>
+                  <div className="mb-3 d-flex">
+                    <div className="flex-md-fill me-2">
+                      <CFormLabel>Proveedor</CFormLabel>
+                      <CFormSelect
+                        aria-label="provider"
+                        onChange={(e) => setProviderID(e.target.value)}
+                        value={providerID}
+                        disabled={view || purchaseData?.fromQuote}
+                      >
+                        <option value={''}>Selecciona...</option>
+                        {providers.data.map(({ id, name }) => (
+                          <option key={id} value={id}>
+                            {name}
+                          </option>
+                        ))}
+                      </CFormSelect>
+                    </div>
+                    <div className="flex-md-fill me-2">
+                      <CFormLabel>Cuenta</CFormLabel>
+                      <CFormSelect
+                        aria-label="providerAccount"
+                        onChange={(e) => setProviderAccountID(e.target.value)}
+                        value={providerAccountID}
+                        disabled={view}
+                      >
+                        <option value={''}>Selecciona...</option>
+                        {accounts?.data?.map(({ id, clabe, bank }) => (
+                          <option key={id} value={id}>
+                            {bank.name} - {clabe}
+                          </option>
+                        ))}
+                      </CFormSelect>
+                    </div>
+                  </div>
+                  {invoiceFile && (
+                    <div className="mb-3 d-flex">
+                      <FileCard
+                        file={invoiceFile}
+                        onDelete={(id) => {
+                          setInvoiceFile(null)
+                        }}
+                        viewMode={view}
+                      />
+                    </div>
+                  )}
+                  <div className="mb-3">
+                    <CFormCheck
+                      id="paymentWithoutInvoice"
+                      label="Tramitar pago sin factura"
+                      checked={paymentWithoutInvoice}
+                      onChange={(e) => setPaymentWithoutInvoice(e.target.checked)}
+                      disabled={view || purchaseData?.fromQuote}
+                    />
+                  </div>
+                </>
+              )}
               <div className="mb-3">
                 <CFormLabel>Título</CFormLabel>
                 <CFormInput
@@ -408,7 +499,7 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
                   placeholder="0"
                   value={totalAmount}
                   onChange={(e) => setTotalAmount(e.target.value)}
-                  disabled={view}
+                  disabled={view || purchaseData?.fromQuote}
                 />
               </div>
               {!view && (
@@ -420,7 +511,7 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
                     ref={inputImgFile}
                     type="file"
                     id="imgFile"
-                    onChange={onAddFiles}
+                    onChange={onAddImages}
                     accept="image/*"
                     text="Archivos permitidos jpg, png, jpeg (10 MB)"
                   />
@@ -442,36 +533,51 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
                   )
                 })}
               </div>
-              <div className="mb-3">
-                <CFormCheck
-                  id="totalPaymentApproved"
-                  label="Se aprueba monto de pago"
-                  checked={totalPaymentApproved}
-                  onChange={(e) => setTotalPaymentApproved(e.target.checked)}
-                  disabled={view}
-                />
-              </div>
-              <div className="mb-3">
-                <CFormCheck
-                  id="totalPaymentModified"
-                  label="Se modifica monto de pago"
-                  checked={totalPaymentModified}
-                  onChange={(e) => setTotalPaymentModified(e.target.checked)}
-                  disabled={view}
-                />
-              </div>
-              {totalPaymentModified && (
-                <div className="mb-3">
-                  <CFormLabel>Monto</CFormLabel>
-                  <CFormInput
-                    type="number"
-                    id="amount"
-                    placeholder="0"
-                    value={paymentAmount}
-                    onChange={(e) => setPaymentAmount(e.target.value)}
-                    disabled={view}
-                  />
-                </div>
+              {((view && hasAuthorizePermission) ||
+                purchaseData?.status === 'approved' ||
+                purchaseData?.status === 'paid') && (
+                <>
+                  <div className="mb-3">
+                    <CFormCheck
+                      id="totalPaymentApproved"
+                      label="Se aprueba monto de pago"
+                      checked={totalPaymentApproved}
+                      onChange={(e) => setTotalPaymentApproved(e.target.checked)}
+                      disabled={
+                        (view && purchaseData.status === 'approved') ||
+                        purchaseData.status === 'paid'
+                      }
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <CFormCheck
+                      id="totalPaymentModified"
+                      label="Se modifica monto de pago"
+                      checked={totalPaymentModified}
+                      onChange={(e) => setTotalPaymentModified(e.target.checked)}
+                      disabled={
+                        (view && purchaseData.status === 'approved') ||
+                        purchaseData.status === 'paid'
+                      }
+                    />
+                  </div>
+                  {totalPaymentModified && (
+                    <div className="mb-3">
+                      <CFormLabel>Monto</CFormLabel>
+                      <CFormInput
+                        type="number"
+                        id="amount"
+                        placeholder="0"
+                        value={paymentAmount}
+                        onChange={(e) => setPaymentAmount(e.target.value)}
+                        disabled={
+                          (view && purchaseData.status === 'approved') ||
+                          purchaseData.status === 'paid'
+                        }
+                      />
+                    </div>
+                  )}
+                </>
               )}
             </CForm>
           </CTabPane>
@@ -493,32 +599,38 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
                   id="paymentDate"
                   value={paymentDate}
                   onChange={(e) => setPaymentDate(e.target.value)}
+                  disabled={view && purchaseData.status === 'paid'}
                 />
               </div>
-              <div className="mb-3">
-                <CFormLabel>Adjuntar comprobante de pago</CFormLabel>
-                <CFormInput
-                  ref={inputFile}
-                  type="file"
-                  id="csfFile"
-                  onChange={onAddFiles}
-                  text="Archivos permitidos jpg, pdf, png, xlxs (10 MB)"
-                />
-              </div>
+              {view && purchaseData.status !== 'paid' && (
+                <div className="mb-3">
+                  <CFormLabel>Adjuntar comprobante de pago</CFormLabel>
+                  <CFormInput
+                    type="file"
+                    ref={inputReceiptFile}
+                    id="receiptFile"
+                    onChange={(e) =>
+                      setReceiptFile({
+                        file: e.target.files[0],
+                        tag: fileTags.receipt,
+                        localName: e.target.files[0].name,
+                      })
+                    }
+                    text="Archivos permitidos jpg, pdf, png, xlxs (10 MB)"
+                  />
+                </div>
+              )}
               <div className="mb-3 d-flex">
-                {files.map((file, index) => {
-                  return (
-                    <FileCard
-                      file={file}
-                      key={file.tag}
-                      onDelete={(id) => {
-                        return file.id
-                          ? setFiles(files.filter((f) => f.id !== id))
-                          : setFiles(files.filter((f, i) => index !== i))
-                      }}
-                    />
-                  )
-                })}
+                {receiptFile && (
+                  <FileCard
+                    file={receiptFile}
+                    onDelete={(id) => {
+                      setReceiptFile(null)
+                      inputReceiptFile.current.value = ''
+                    }}
+                    viewMode={view && purchaseData.status === 'paid'}
+                  />
+                )}
               </div>
             </CForm>
           </CTabPane>
@@ -528,28 +640,27 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
         <CButton color="secondary" onClick={onClose}>
           Cerrar
         </CButton>
-        <CButton color="primary" className="text-light fw-semibold" onClick={onSave}>
-          Guardar
-        </CButton>
+        {purchaseData?.status !== 'approved' &&
+          !hasPayPermission &&
+          purchaseData?.status !== 'paid' && (
+            <CButton color="primary" className="text-light fw-semibold" onClick={onSave}>
+              Guardar
+            </CButton>
+          )}
         {view && (
           <>
-            {purchaseData.status !== 'paid' &&
-              purchaseData.status !== 'approved' &&
-              hasAuthorizePermission && (
-                <CButton color="success" className="text-light fw-semibold" onClick={onApprove}>
-                  Autorizar
-                </CButton>
-              )}
             {purchaseData.status === 'approved' && hasPayPermission && (
               <CButton color="info" className="text-light fw-semibold" onClick={onPay}>
                 Pagar
               </CButton>
             )}
-            {purchaseData.status !== 'paid' && hasRejectPermission && (
-              <CButton color="danger" className="text-light fw-semibold" onClick={onReject}>
-                Rechazar
-              </CButton>
-            )}
+            {purchaseData.status !== 'paid' &&
+              hasRejectPermission &&
+              purchaseData.status !== 'approved' && (
+                <CButton color="danger" className="text-light fw-semibold" onClick={onReject}>
+                  Rechazar
+                </CButton>
+              )}
           </>
         )}
       </CModalFooter>
