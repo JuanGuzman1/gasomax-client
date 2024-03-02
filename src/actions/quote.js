@@ -263,7 +263,7 @@ export const downloadQuoteFile = (id) => async (dispatch) => {
   }
 }
 
-export const viewQuoteFile = (id) => async (dispatch) => {
+export const viewQuoteFile = (id, ext) => async (dispatch) => {
   try {
     const res = await axios.get(`${config.instance.baseURL}/api/quoteFileDownload/${id}`, {
       headers: {
@@ -272,7 +272,9 @@ export const viewQuoteFile = (id) => async (dispatch) => {
       },
       responseType: 'blob',
     })
-    const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }))
+    const url = window.URL.createObjectURL(
+      new Blob([res.data], { type: ext === 'pdf' ? 'application/pdf' : `image/${ext}` }),
+    )
     window.open(url)
   } catch (err) {
     dispatch({

@@ -40,7 +40,7 @@ export const statusQuoteColors = {
   authorized: '#0000FF',
   ok: '#008000',
   sent: '#FFA500',
-  sentPay: '#FFFF00',
+  sentPay: '#30AFD4',
   paid: '#800080',
   rejected: '#FF0000',
 }

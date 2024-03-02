@@ -25,8 +25,8 @@ import { cilX, cilCheckAlt } from '@coreui/icons'
 import { selectDepartments } from 'src/actions/department'
 import { selectRoles } from 'src/actions/role'
 
-const UserModalForm = ({ visible, onClose, userData }) => {
-  const [activeKey, setActiveKey] = useState(1),
+const UserModalForm = ({ visible, onClose, userData, visibleChangePassword }) => {
+  const [activeKey, setActiveKey] = useState(visibleChangePassword ? 2 : 1),
     [userID, setUserID] = useState(),
     [user, setUser] = useState(''),
     [email, setEmail] = useState(''),
@@ -62,27 +62,35 @@ const UserModalForm = ({ visible, onClose, userData }) => {
       alert('Ingrese un correo electrónico')
       return
     }
+    if (visibleChangePassword || !userData) {
+      let arrayPasswordPolicies = Object.values(passwordPolicy)
 
-    var arrayPasswordPolicies = Object.values(passwordPolicy)
+      if (arrayPasswordPolicies.every((policy) => !policy)) {
+        alert('Verifique las políticas de contraseña segura')
+        return
+      }
 
-    if (arrayPasswordPolicies.every((policy) => !policy)) {
-      alert('Verifique las políticas de contraseña segura')
-      return
+      if (!confirmPassword) {
+        alert('Confirme la contraseña')
+        return
+      }
     }
 
-    if (!confirmPassword) {
-      alert('Confirme la contraseña')
-      return
-    }
-
-    let data = {
+    let dataEdit = {
       name: user,
       email,
-      password,
       nss,
       role_id: roleID,
+      department_id: departmentID,
       payrollNumber,
     }
+
+    let dataPassword = {
+      password,
+    }
+
+    let data = visibleChangePassword ? dataPassword : dataEdit
+
     dispatch(
       userData
         ? updateUser(data, userID, (dataRes) => {
@@ -106,7 +114,7 @@ const UserModalForm = ({ visible, onClose, userData }) => {
             cleanInputs()
             onClose()
           })
-        : addUser(data, (dataRes) => {
+        : addUser({ ...dataEdit, ...dataPassword }, (dataRes) => {
             if (dataRes.success) {
               dispatch(
                 setToast(
@@ -154,6 +162,7 @@ const UserModalForm = ({ visible, onClose, userData }) => {
     setDepartmentID(userData.department_id)
     setPayrollNumber(userData.payrollNumber)
     setNss(userData.nss)
+    console.log(userData)
   }, [userData])
 
   useEffect(() => {
@@ -189,30 +198,34 @@ const UserModalForm = ({ visible, onClose, userData }) => {
       </CModalHeader>
       <CModalBody>
         <CNav variant="tabs" role="tablist" className="mt-1">
-          <CNavItem role="presentation">
-            <CNavLink
-              active={activeKey === 1}
-              component="button"
-              role="tab"
-              aria-controls="data-tab-pane"
-              aria-selected={activeKey === 1}
-              onClick={() => setActiveKey(1)}
-            >
-              Datos
-            </CNavLink>
-          </CNavItem>
-          <CNavItem role="presentation">
-            <CNavLink
-              active={activeKey === 2}
-              component="button"
-              role="tab"
-              aria-controls="data-tab-pane"
-              aria-selected={activeKey === 2}
-              onClick={() => setActiveKey(2)}
-            >
-              Contraseña
-            </CNavLink>
-          </CNavItem>
+          {!visibleChangePassword && (
+            <CNavItem role="presentation">
+              <CNavLink
+                active={activeKey === 1}
+                component="button"
+                role="tab"
+                aria-controls="data-tab-pane"
+                aria-selected={activeKey === 1}
+                onClick={() => setActiveKey(1)}
+              >
+                Datos
+              </CNavLink>
+            </CNavItem>
+          )}
+          {(visibleChangePassword || !userData) && (
+            <CNavItem role="presentation">
+              <CNavLink
+                active={activeKey === 2}
+                component="button"
+                role="tab"
+                aria-controls="data-tab-pane"
+                aria-selected={activeKey === 2}
+                onClick={() => setActiveKey(2)}
+              >
+                Contraseña
+              </CNavLink>
+            </CNavItem>
+          )}
         </CNav>
         <CTabContent>
           {/* user data */}

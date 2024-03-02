@@ -92,7 +92,7 @@ export const downloadFile = (id) => async (dispatch) => {
   }
 }
 
-export const viewFile = (id) => async (dispatch) => {
+export const viewFile = (id, ext) => async (dispatch) => {
   try {
     const res = await axios.get(`${config.instance.baseURL}/api/download/${id}`, {
       headers: {
@@ -101,7 +101,9 @@ export const viewFile = (id) => async (dispatch) => {
       },
       responseType: 'blob',
     })
-    const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }))
+    const url = window.URL.createObjectURL(
+      new Blob([res.data], { type: ext === 'pdf' ? 'application/pdf' : `image/${ext}` }),
+    )
     window.open(url)
   } catch (err) {
     dispatch({

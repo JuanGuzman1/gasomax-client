@@ -27,6 +27,7 @@ const UserTable = ({ data }) => {
   const [visible, setVisible] = useState(false),
     [visibleModules, setVisibleModules] = useState(false),
     [visiblePermissions, setVisiblePermissions] = useState(false),
+    [visibleChangePassword, setVisibleChangePassword] = useState(false),
     [userData, setUserData] = useState(null),
     dispatch = useDispatch(),
     hasDeletePermission = useHasPermission('users', 'delete'),
@@ -143,6 +144,18 @@ const UserTable = ({ data }) => {
                         Editar
                       </CDropdownItem>
                     )}
+                    {hasEditPermission && (
+                      <CDropdownItem
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => {
+                          setVisible(!visible)
+                          setVisibleChangePassword(true)
+                          setUserData(user)
+                        }}
+                      >
+                        Cambiar contraseña
+                      </CDropdownItem>
+                    )}
                     {hasDeletePermission && (
                       <CDropdownItem
                         style={{ cursor: 'pointer' }}
@@ -159,7 +172,15 @@ const UserTable = ({ data }) => {
         </CTableBody>
       </CTable>
       {visible && (
-        <UserModalForm visible={visible} onClose={() => setVisible(false)} userData={userData} />
+        <UserModalForm
+          visible={visible}
+          onClose={() => {
+            setVisible(false)
+            setVisibleChangePassword(false)
+          }}
+          userData={userData}
+          visibleChangePassword={visibleChangePassword}
+        />
       )}
       {visibleModules && (
         <UserModulesModalForm

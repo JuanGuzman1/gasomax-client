@@ -47,6 +47,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
     [quoteID, setQuoteID] = useState(''),
     [title, setTitle] = useState(''),
     [charge, setCharge] = useState(''),
+    [departments, setDepartments] = useState([]),
     [departmentID, setDepartmentID] = useState(''),
     [quoteConceptID, setQuoteConceptID] = useState(''),
     [description, setDescription] = useState(''),
@@ -87,7 +88,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
     user = useSelector((state) => state.auth.user)?.data?.user,
     charges = useSelector((state) => state.quoteConcept.charges),
     concepts = useSelector((state) => state.quoteConcept.concepts),
-    departments = useSelector((state) => state.department.departments),
+    departmentsDB = useSelector((state) => state.department.departments),
     lines = useSelector((state) => state.unit.lines),
     units = useSelector((state) => state.unit.units),
     { quotes, filters, progress: progressQuoteFile } = useSelector((state) => state.quote),
@@ -101,6 +102,15 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
     dispatch(getLines())
     dispatch(selectDepartments())
   }, [dispatch])
+
+  useEffect(() => {
+    if (!departmentsDB) {
+      return
+    }
+    let blacklist = ['NOMINA', 'TESORERIA', 'CONTRALORIA', 'CARWASH', 'RESTAURANTE', 'MAXSTORE']
+    let data = departmentsDB.data.filter((dep) => !blacklist.includes(dep.name))
+    setDepartments(data)
+  }, [departmentsDB])
 
   useEffect(() => {
     if (!line) {
@@ -175,6 +185,13 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
     setProviderID(quoteData.provider_id)
     setProviderAccountID(quoteData.provider_account_id)
     setPaymentWithoutInvoice(quoteData.paymentWithoutInvoice)
+    if (!quoteData.paymentWithoutInvoice) {
+      let filesPR = quoteData?.payments?.find(
+        (p) => !p.purchase_request_pending_id && p.fromQuote,
+      )?.files
+      let file = filesPR?.find((f) => f.tag === fileTags.invoice)
+      setInvoiceFile(file)
+    }
   }, [quoteData])
 
   const onSelectRecommendedProvider = (e, i) => {
@@ -228,6 +245,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                     }),
                   ),
                 )
+                onUploadInvoiceFile(sendPayRes.data.purchaseRequest)
                 onClose()
                 clearGeneralInputs()
                 Swal.fire('Solicitud de pago enviada!', '', 'success')
@@ -266,6 +284,27 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
   }
 
   const onAddQuoteFiles = () => {
+    if (!inputQuoteFile.current.value) {
+      alert('Carga una cotización')
+      return
+    }
+    if (!quoteProvider) {
+      alert('Escribe un proveedor')
+      return
+    }
+    if (!quoteAmount) {
+      alert('Escribe un monto')
+      return
+    }
+    if (!deliveryDate) {
+      alert('Selecciona fecha de entrega')
+      return
+    }
+    if (!descriptionQuote) {
+      alert('Deja una breve descripción')
+      return
+    }
+
     if (inputQuoteFile.current.value) {
       setQuoteFiles([
         ...quoteFiles,
@@ -316,7 +355,6 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
       let data = {
         title,
         provider_id: providerID,
-        petitioner_id: user.id,
         quote_concept_id: quoteConceptID,
         description,
         numProviders,
@@ -358,7 +396,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                 )
               }
             })
-          : addQuote(data, (quoteRes) => {
+          : addQuote({ ...data, petitioner_id: user.id }, (quoteRes) => {
               if (quoteRes.success) {
                 dispatch(
                   setToast(
@@ -413,6 +451,10 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
   const onUploadQuoteFile = (e) => {
     e.preventDefault()
     try {
+      if (quoteFiles.length <= 0) {
+        alert('Agrega cotizaciónes a la solicitud')
+        return
+      }
       dispatch(
         updateQuote(
           { status: 'inprogress', rejectQuotes: false, approvedAmount: 0 },
@@ -465,6 +507,25 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                 ),
               )
             }
+          },
+        ),
+      )
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  const onUploadInvoiceFile = (purchaseRequestRes) => {
+    try {
+      dispatch(
+        uploadFile(
+          invoiceFile.file,
+          invoiceFile.tag,
+          null,
+          purchaseRequestRes.id,
+          modelTypes.purchaseRequest,
+          () => {
+            dispatch(getQuotes(quotes.current_page, filters.filter, filters.value))
           },
         ),
       )
@@ -540,33 +601,42 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
             return
           }
           dispatch(
-            updateQuote({ status: 'rejected', observation }, quoteID, (quoteRes) => {
-              if (quoteRes.success) {
-                dispatch(
-                  setToast(
-                    AppToast({
-                      msg: 'Solicitud actualizada correctamente.',
-                      title: 'Solicitudes de compra',
-                      type: 'success',
-                    }),
-                  ),
-                )
+            updateQuote(
+              {
+                status: 'rejected',
+                observation,
+                selectedQuoteID,
+                approvedAmount: 0,
+              },
+              quoteID,
+              (quoteRes) => {
+                if (quoteRes.success) {
+                  dispatch(
+                    setToast(
+                      AppToast({
+                        msg: 'Solicitud actualizada correctamente.',
+                        title: 'Solicitudes de compra',
+                        type: 'success',
+                      }),
+                    ),
+                  )
 
-                onClose()
-                clearGeneralInputs()
-                Swal.fire('Rechazado!', '', 'success')
-              } else {
-                dispatch(
-                  setToast(
-                    AppToast({
-                      msg: 'Ha ocurrido un error.',
-                      title: 'Solicitudes de compra',
-                      type: 'error',
-                    }),
-                  ),
-                )
-              }
-            }),
+                  onClose()
+                  clearGeneralInputs()
+                  Swal.fire('Rechazado!', '', 'success')
+                } else {
+                  dispatch(
+                    setToast(
+                      AppToast({
+                        msg: 'Ha ocurrido un error.',
+                        title: 'Solicitudes de compra',
+                        type: 'error',
+                      }),
+                    ),
+                  )
+                }
+              },
+            ),
           )
         } catch (error) {
           Swal.showValidationMessage(`
@@ -605,6 +675,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
   useEffect(() => {
     if (rejectQuotes) {
       setApprovedAmount(0)
+      setSelectedQuoteID('')
     }
   }, [rejectQuotes])
 
@@ -616,11 +687,12 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
     let quote = quoteData?.files?.find((f) => f.id === selectedQuoteID)
     if (quote) {
       setApprovedAmount(quote.amount)
+      setRejectQuotes(false)
     }
   }, [selectedQuoteID, quoteData])
 
   useEffect(() => {
-    if (quoteData.status === 'paid') {
+    if (view && quoteData.status === 'paid') {
       return
     }
 
@@ -628,7 +700,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
       setInvoiceFile(null)
       inputInvoiceFile.current.value = ''
     }
-  }, [paymentWithoutInvoice, quoteData])
+  }, [paymentWithoutInvoice, quoteData, view])
 
   return (
     <>
@@ -656,7 +728,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
               {progressQuoteFile}%
             </CProgress>
           )}
-          {invoiceFile && (
+          {invoiceFile && !invoiceFile?.id && (
             <CProgress value={progress} className="mb-2">
               {progress}%
             </CProgress>
@@ -689,8 +761,8 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
               </CNavItem>
             )}
             {((view && quoteData.status === 'authorized' && hasPayPermission) ||
-              quoteData.status === 'sentPay' ||
-              quoteData.status === 'paid') && (
+              (view && quoteData.status === 'sentPay') ||
+              (view && quoteData.status === 'paid')) && (
               <CNavItem role="presentation">
                 <CNavLink
                   active={activeKey === 3}
@@ -730,7 +802,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                       disabled={view}
                     >
                       <option value={''}>Selecciona...</option>
-                      {departments.data.map(({ id, name }) => (
+                      {departments.map(({ id, name }) => (
                         <option key={name} value={id}>
                           {name}
                         </option>
@@ -931,7 +1003,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                       </div>
                       <div className="d-flex mb-3">
                         <div className="flex-fill">
-                          <CFormLabel>Proveedor</CFormLabel>
+                          <CFormLabel>Proveedor(*)</CFormLabel>
                           <CFormInput
                             type="text"
                             id="quoteProvider"
@@ -941,7 +1013,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                           />
                         </div>
                         <div className="flex-fill mx-2">
-                          <CFormLabel>Monto</CFormLabel>
+                          <CFormLabel>Monto(*)</CFormLabel>
                           <CFormInput
                             type="number"
                             id="amount"
@@ -951,7 +1023,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                           />
                         </div>
                         <div className="flex-fill">
-                          <CFormLabel>Tiempo de entrega</CFormLabel>
+                          <CFormLabel>Tiempo de entrega(*)</CFormLabel>
                           <CFormInput
                             type="date"
                             id="deliveryDate"
@@ -964,7 +1036,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                       <div className="mb-3">
                         <CFormTextarea
                           id="desc"
-                          label="Descripción "
+                          label="Descripción(*)"
                           rows={2}
                           value={descriptionQuote}
                           onChange={(e) => setDescriptionQuote(e.target.value)}
@@ -993,7 +1065,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                             (hasPayPermission && quoteData.status === 'approved') ||
                             (hasPayPermission && quoteData.status === 'authorized') ||
                             (hasPayPermission && quoteData.status === 'sentPay') ||
-                            quoteData.status === 'paid') && (
+                            (view && quoteData.status === 'paid')) && (
                             <CTableHeaderCell scope="col" className="text-center">
                               Aprobada
                             </CTableHeaderCell>
@@ -1027,8 +1099,10 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                                 }}
                                 viewMode={
                                   (view && !hasUploadQuotePermission) ||
-                                  quoteData.status === 'authorized' ||
-                                  quoteData.status === 'sentPay'
+                                  (view && quoteData.status === 'approved') ||
+                                  (view && quoteData.status === 'authorized') ||
+                                  (view && quoteData.status === 'sentPay') ||
+                                  (view && quoteData.status === 'paid')
                                 }
                               />
                             </CTableDataCell>
@@ -1037,7 +1111,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                               (hasPayPermission && quoteData.status === 'approved') ||
                               (hasPayPermission && quoteData.status === 'authorized') ||
                               (hasPayPermission && quoteData.status === 'sentPay') ||
-                              quoteData.status === 'paid') && (
+                              (view && quoteData.status === 'paid')) && (
                               <CTableDataCell className="text-center">
                                 <CFormCheck
                                   id="selectedQuoteID"
@@ -1050,11 +1124,12 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                                     }
                                   }}
                                   disabled={
-                                    quoteData.status === 'approved' ||
-                                    quoteData.status === 'ok' ||
-                                    quoteData.status === 'authorized' ||
-                                    quoteData.status === 'sentPay' ||
-                                    quoteData.status === 'paid'
+                                    (quoteData?.status === 'rejected' && quoteData.rejectQuotes) ||
+                                    quoteData?.status === 'approved' ||
+                                    quoteData?.status === 'ok' ||
+                                    quoteData?.status === 'authorized' ||
+                                    quoteData?.status === 'sentPay' ||
+                                    quoteData?.status === 'paid'
                                   }
                                 />
                               </CTableDataCell>
@@ -1063,13 +1138,13 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                         ))}
                       </CTableBody>
                     </CTable>
-                    {(hasApprovePermission ||
-                      quoteData.status === 'approved' ||
-                      quoteData.status === 'ok' ||
-                      quoteData.status === 'authorized' ||
-                      quoteData.status === 'sentPay' ||
-                      quoteData.status === 'paid') &&
-                      view && (
+                    {view &&
+                      (hasApprovePermission ||
+                        quoteData.status === 'approved' ||
+                        quoteData.status === 'ok' ||
+                        quoteData.status === 'authorized' ||
+                        quoteData.status === 'sentPay' ||
+                        quoteData.status === 'paid') && (
                         <>
                           <div className="mb-3">
                             <CFormCheck
@@ -1078,11 +1153,12 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                               checked={rejectQuotes}
                               onChange={(e) => setRejectQuotes(e.target.checked)}
                               disabled={
-                                quoteData.status === 'approved' ||
-                                quoteData.status === 'ok' ||
-                                quoteData.status === 'authorized' ||
-                                quoteData.status === 'sentPay' ||
-                                quoteData.status === 'paid'
+                                (quoteData?.status === 'rejected' && quoteData.rejectQuotes) ||
+                                quoteData?.status === 'approved' ||
+                                quoteData?.status === 'ok' ||
+                                quoteData?.status === 'authorized' ||
+                                quoteData?.status === 'sentPay' ||
+                                quoteData?.status === 'paid'
                               }
                             />
                           </div>
@@ -1098,20 +1174,20 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                               value={approvedAmount}
                               disabled={
                                 rejectQuotes ||
-                                quoteData.status === 'approved' ||
-                                quoteData.status === 'ok' ||
-                                quoteData.status === 'authorized' ||
-                                quoteData.status === 'sentPay' ||
-                                quoteData.status === 'paid'
+                                quoteData?.status === 'approved' ||
+                                quoteData?.status === 'ok' ||
+                                quoteData?.status === 'authorized' ||
+                                quoteData?.status === 'sentPay' ||
+                                quoteData?.status === 'paid'
                               }
                             />
                           </div>
-                          {quoteData.status === 'rejected' ||
-                          quoteData.status === 'approved' ||
-                          quoteData.status === 'ok' ||
-                          quoteData.status === 'authorized' ||
-                          quoteData.status === 'sentPay' ||
-                          quoteData.status === 'paid' ? (
+                          {quoteData?.status === 'rejected' ||
+                          quoteData?.status === 'approved' ||
+                          quoteData?.status === 'ok' ||
+                          quoteData?.status === 'authorized' ||
+                          quoteData?.status === 'sentPay' ||
+                          quoteData?.status === 'paid' ? (
                             <CButton
                               color="primary"
                               className="text-white"
@@ -1147,12 +1223,12 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
               <CForm className="mt-3">
                 <div className="mb-3 d-flex">
                   <div className="flex-md-fill me-2">
-                    <CFormLabel>Proveedor</CFormLabel>
+                    <CFormLabel>Proveedor(*)</CFormLabel>
                     <CFormSelect
                       aria-label="provider"
                       onChange={(e) => setProviderID(e.target.value)}
                       value={providerID}
-                      disabled={quoteData.status === 'sentPay' || quoteData.status === 'paid'}
+                      disabled={quoteData?.status === 'sentPay' || quoteData?.status === 'paid'}
                     >
                       <option value={''}>Selecciona...</option>
                       {providers.data.map(({ id, name }) => (
@@ -1163,12 +1239,12 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                     </CFormSelect>
                   </div>
                   <div className="flex-md-fill me-2">
-                    <CFormLabel>Cuenta</CFormLabel>
+                    <CFormLabel>Cuenta(*)</CFormLabel>
                     <CFormSelect
                       aria-label="providerAccount"
                       onChange={(e) => setProviderAccountID(e.target.value)}
                       value={providerAccountID}
-                      disabled={quoteData.status === 'sentPay' || quoteData.status === 'paid'}
+                      disabled={quoteData?.status === 'sentPay' || quoteData?.status === 'paid'}
                     >
                       <option value={''}>Selecciona...</option>
                       {accounts?.data?.map(({ id, clabe, bank }) => (
@@ -1208,6 +1284,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                         setInvoiceFile(null)
                         inputInvoiceFile.current.value = ''
                       }}
+                      viewMode={invoiceFile?.id}
                     />
                   </div>
                 )}
@@ -1217,7 +1294,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                     label="Tramitar pago sin factura"
                     checked={paymentWithoutInvoice}
                     onChange={(e) => setPaymentWithoutInvoice(e.target.checked)}
-                    disabled={quoteData.status === 'sentPay' || quoteData.status === 'paid'}
+                    disabled={quoteData?.status === 'sentPay' || quoteData?.status === 'paid'}
                   />
                 </div>
               </CForm>

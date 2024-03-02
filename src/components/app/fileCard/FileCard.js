@@ -18,11 +18,11 @@ const FileCard = ({ file, onDelete, viewMode = false, quoteFile }) => {
     }
   }
 
-  const onViewFile = () => {
+  const onViewFile = (extension) => {
     if (quoteFile) {
-      dispatch(viewQuoteFile(file.id))
+      dispatch(viewQuoteFile(file.id, extension))
     } else {
-      dispatch(viewFile(file.id))
+      dispatch(viewFile(file.id, extension))
     }
   }
 
@@ -63,13 +63,13 @@ const FileCard = ({ file, onDelete, viewMode = false, quoteFile }) => {
               <CIcon icon={cilCloudDownload} />
             </CButton>
           )}
-          {file.id && file?.extension === 'pdf' && (
+          {file.id && ['pdf', 'jpeg', 'jpg', 'png'].includes(file.extension) && (
             <CButton
               className="mx-1"
               color="info"
               variant="outline"
               title="Ver"
-              onClick={onViewFile}
+              onClick={() => onViewFile(file.extension)}
             >
               <CIcon icon={cilAirplay} />
             </CButton>

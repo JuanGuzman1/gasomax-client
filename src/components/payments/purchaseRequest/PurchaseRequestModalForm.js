@@ -217,7 +217,6 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
     try {
       let data = {
         quote_id: quoteID,
-        petitioner_id: user.id,
         title,
         paymentAmount,
         totalAmount,
@@ -253,7 +252,7 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
                 )
               }
             })
-          : addPurchaseRequest(data, (purchaseRequestRes) => {
+          : addPurchaseRequest({ ...data, petitioner_id: user.id }, (purchaseRequestRes) => {
               if (purchaseRequestRes.success) {
                 dispatch(
                   setToast(
@@ -422,7 +421,7 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
           {/* purchase request data */}
           <CTabPane role="tabpanel" aria-labelledby="data-tab-pane" visible={activeKey === 1}>
             <CForm className="mt-3">
-              {view && purchaseData.fromQuote && (
+              {purchaseData && purchaseData.fromQuote && (
                 <>
                   <div className="mb-3 d-flex">
                     <div className="flex-md-fill me-2">
@@ -465,7 +464,7 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
                         onDelete={(id) => {
                           setInvoiceFile(null)
                         }}
-                        viewMode={view}
+                        viewMode={purchaseData}
                       />
                     </div>
                   )}
@@ -577,6 +576,13 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
                       />
                     </div>
                   )}
+                  {totalPaymentModified && (
+                    <div className="mb-3">
+                      <CFormLabel className="fw-bold">
+                        Saldo ${formatNumber(totalAmount - paymentAmount)}
+                      </CFormLabel>
+                    </div>
+                  )}
                 </>
               )}
             </CForm>
@@ -656,7 +662,8 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
             )}
             {purchaseData.status !== 'paid' &&
               hasRejectPermission &&
-              purchaseData.status !== 'approved' && (
+              purchaseData.status !== 'approved' &&
+              !purchaseData.fromQuote && (
                 <CButton color="danger" className="text-light fw-semibold" onClick={onReject}>
                   Rechazar
                 </CButton>
