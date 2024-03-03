@@ -137,6 +137,7 @@ const QuoteTable = ({ data }) => {
                     {hasEditPermission &&
                       quote.status !== 'approved' &&
                       quote.status !== 'inprogress' &&
+                      quote.status !== 'ok' &&
                       quote.status !== 'authorized' &&
                       quote.status !== 'sentPay' &&
                       quote.status !== 'paid' && (
@@ -153,6 +154,7 @@ const QuoteTable = ({ data }) => {
                     {hasDeletePermission &&
                       quote.status !== 'approved' &&
                       quote.status !== 'inprogress' &&
+                      quote.status !== 'ok' &&
                       quote.status !== 'authorized' &&
                       quote.status !== 'sentPay' &&
                       quote.status !== 'paid' && (

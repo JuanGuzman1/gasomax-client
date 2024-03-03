@@ -54,7 +54,7 @@ const Dashboard = () => {
           <div className="">
             <h2>Solicitudes de compra</h2>
             <div>
-              <h1 style={{ fontSize: 80 }}>30</h1>
+              <h1 style={{ fontSize: 80 }}>1</h1>
             </div>
           </div>
           <div className="w-50 h-50">
@@ -83,7 +83,7 @@ const Dashboard = () => {
                       '#30AFD4',
                       '#800080',
                     ],
-                    data: [40, 20, 80, 10, 40, 20, 80, 10],
+                    data: [1, 0, 0, 0, 0, 0, 0, 0],
                   },
                 ],
               }}

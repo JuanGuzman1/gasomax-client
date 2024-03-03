@@ -579,6 +579,51 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
     }
   }
 
+  const onVOBO = (e) => {
+    e.preventDefault()
+    try {
+      Swal.fire({
+        title: '¿Dar el visto bueno?',
+        showCancelButton: true,
+        confirmButtonText: 'Si',
+      }).then((result) => {
+        if (result.isConfirmed) {
+          dispatch(
+            updateQuote({ status: 'ok' }, quoteID, (quoteRes) => {
+              if (quoteRes.success) {
+                dispatch(
+                  setToast(
+                    AppToast({
+                      msg: 'Solicitud actualizada correctamente.',
+                      title: 'Solicitudes de compra',
+                      type: 'success',
+                    }),
+                  ),
+                )
+
+                onClose()
+                clearGeneralInputs()
+                Swal.fire('Autorizado!', '', 'success')
+              } else {
+                dispatch(
+                  setToast(
+                    AppToast({
+                      msg: 'Ha ocurrido un error.',
+                      title: 'Solicitudes de compra',
+                      type: 'error',
+                    }),
+                  ),
+                )
+              }
+            }),
+          )
+        }
+      })
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   const onReject = (e) => {
     e.preventDefault()
 
@@ -1062,6 +1107,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                           <CTableHeaderCell scope="col">Archivo Cotización</CTableHeaderCell>
                           {(hasApprovePermission ||
                             hasAuthorizeMinor5000Permission ||
+                            hasAuthorizeMayor5000Permission ||
                             (hasPayPermission && quoteData.status === 'approved') ||
                             (hasPayPermission && quoteData.status === 'authorized') ||
                             (hasPayPermission && quoteData.status === 'sentPay') ||
@@ -1108,6 +1154,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                             </CTableDataCell>
                             {(hasApprovePermission ||
                               hasAuthorizeMinor5000Permission ||
+                              hasAuthorizeMayor5000Permission ||
                               (hasPayPermission && quoteData.status === 'approved') ||
                               (hasPayPermission && quoteData.status === 'authorized') ||
                               (hasPayPermission && quoteData.status === 'sentPay') ||
@@ -1343,11 +1390,30 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
             </CButton>
           )}
 
-          {hasAuthorizeMinor5000Permission && view && quoteData.status === 'approved' && (
-            <CButton color="info" className="text-light fw-semibold" onClick={onAuthorize}>
-              Autorizar
-            </CButton>
-          )}
+          {hasAuthorizeMinor5000Permission &&
+            view &&
+            quoteData.status === 'approved' &&
+            quoteData.approvedAmount < 5000 && (
+              <CButton color="info" className="text-light fw-semibold" onClick={onAuthorize}>
+                Autorizar
+              </CButton>
+            )}
+          {hasAuthorizeMayor5000Permission &&
+            view &&
+            quoteData.status === 'ok' &&
+            quoteData.approvedAmount > 5000 && (
+              <CButton color="info" className="text-light fw-semibold" onClick={onAuthorize}>
+                Autorizar
+              </CButton>
+            )}
+          {hasAuthorizeMinor5000Permission &&
+            view &&
+            quoteData.status === 'approved' &&
+            quoteData.approvedAmount > 5000 && (
+              <CButton color="info" className="text-light fw-semibold" onClick={onVOBO}>
+                VoBo
+              </CButton>
+            )}
           {hasAuthorizeMinor5000Permission && view && quoteData.status === 'approved' && (
             <CButton color="danger" className="text-light fw-semibold" onClick={onReject}>
               Rechazar
