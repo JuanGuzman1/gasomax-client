@@ -166,14 +166,14 @@ const PurchaseRequestTable = ({ data }) => {
                     >
                       Ver observaciones
                     </CDropdownItem>
-                    <CDropdownItem
+                    {/* <CDropdownItem
                       style={{ cursor: 'pointer' }}
                       onClick={() => {
                         dispatch(getPurchaseRequestPDF(pr.id))
                       }}
                     >
                       Imprimir
-                    </CDropdownItem>
+                    </CDropdownItem> */}
                   </CDropdownMenu>
                 </CDropdown>
               </CTableDataCell>
