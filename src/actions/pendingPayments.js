@@ -4,9 +4,8 @@ import config from '../server.config'
 
 export const getPendingPayments = (page, filter, value) => async (dispatch) => {
   try {
-    const userId = 1
     const res = await axios.get(
-      `${config.instance.baseURL}/api/pending/purchaseRequest?user_id=${userId}&${filter}=${value}&page=${page}`,
+      `${config.instance.baseURL}/api/pending/purchaseRequest?${filter}=${value}&page=${page}`,
       {
         headers: {
           ...config.instance.headers,
@@ -14,6 +13,7 @@ export const getPendingPayments = (page, filter, value) => async (dispatch) => {
         },
       },
     )
+    console.log(res.data)
     dispatch({
       type: GET_PENDING_PAYMENTS,
       payload: { ...res.data, filters: { filter, value } },

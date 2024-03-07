@@ -32,7 +32,7 @@ const PendingPaymentsTable = ({ data }) => {
             <CTableHeaderCell scope="col">Solicitante</CTableHeaderCell>
             <CTableHeaderCell scope="col">Cargo</CTableHeaderCell>
             <CTableHeaderCell scope="col">Concepto</CTableHeaderCell>
-            <CTableHeaderCell scope="col">Observación</CTableHeaderCell>
+            <CTableHeaderCell scope="col">Titulo</CTableHeaderCell>
             <CTableHeaderCell scope="col">Fecha solic.</CTableHeaderCell>
             <CTableHeaderCell scope="col">Saldo</CTableHeaderCell>
             <CTableHeaderCell scope="col" className="text-center">
@@ -41,38 +41,36 @@ const PendingPaymentsTable = ({ data }) => {
           </CTableRow>
         </CTableHead>
         <CTableBody>
-          {data?.map((pr) =>
-            pr.detailsFiltered.map((df) => (
-              <CTableRow key={pr.id}>
-                <CTableDataCell>{pr.provider.name}</CTableDataCell>
-                <CTableDataCell>{pr.petitioner.name}</CTableDataCell>
-                <CTableDataCell>{df.charge}</CTableDataCell>
-                <CTableDataCell>{df.concept}</CTableDataCell>
-                <CTableDataCell>{df.observation}</CTableDataCell>
-                <CTableDataCell>{formatTimezoneToDate(pr.created_at)}</CTableDataCell>
-                <CTableDataCell>${formatNumber(df.balance)}</CTableDataCell>
-                <CTableDataCell className="text-center overflow-visible">
-                  <CDropdown variant="dropdown">
-                    <CDropdownToggle href="#" color="light">
-                      <CIcon icon={cilOptions} title="Opciones" size="lg" />
-                    </CDropdownToggle>
-                    <CDropdownMenu className="position-fixed">
-                      <CDropdownItem
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => {
-                          setProvider(pr.provider.name)
-                          setPurchaseRequestDetailID(df.id)
-                          setVisible(!visible)
-                        }}
-                      >
-                        Ver estado de cuenta
-                      </CDropdownItem>
-                    </CDropdownMenu>
-                  </CDropdown>
-                </CTableDataCell>
-              </CTableRow>
-            )),
-          )}
+          {data?.map((pr) => (
+            <CTableRow key={pr.id}>
+              <CTableDataCell>{pr.quote.provider.name}</CTableDataCell>
+              <CTableDataCell>{pr.petitioner.name}</CTableDataCell>
+              <CTableDataCell>{pr.quote.quote_concept.charge}</CTableDataCell>
+              <CTableDataCell>{pr.quote.quote_concept.concept}</CTableDataCell>
+              <CTableDataCell>{pr.title}</CTableDataCell>
+              <CTableDataCell>{formatTimezoneToDate(pr.created_at)}</CTableDataCell>
+              <CTableDataCell>${formatNumber(pr.balance)}</CTableDataCell>
+              <CTableDataCell className="text-center overflow-visible">
+                <CDropdown variant="dropdown">
+                  <CDropdownToggle href="#" color="light">
+                    <CIcon icon={cilOptions} title="Opciones" size="lg" />
+                  </CDropdownToggle>
+                  <CDropdownMenu className="position-fixed">
+                    <CDropdownItem
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => {
+                        setProvider(pr.quote.provider.name)
+                        setPurchaseRequestDetailID(pr.id)
+                        setVisible(!visible)
+                      }}
+                    >
+                      Ver estado de cuenta
+                    </CDropdownItem>
+                  </CDropdownMenu>
+                </CDropdown>
+              </CTableDataCell>
+            </CTableRow>
+          ))}
         </CTableBody>
       </CTable>
       {visible && (

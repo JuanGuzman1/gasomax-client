@@ -300,10 +300,6 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
       alert('Selecciona fecha de entrega')
       return
     }
-    if (!descriptionQuote) {
-      alert('Deja una breve descripción')
-      return
-    }
 
     if (inputQuoteFile.current.value) {
       setQuoteFiles([
@@ -344,8 +340,56 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
         )
         return
       }
-      let status
 
+      if (!departmentID || departmentID === '') {
+        dispatch(
+          setToast(
+            AppToast({
+              msg: 'Falta seleccionar departamento',
+              type: 'error',
+            }),
+          ),
+        )
+        return
+      }
+
+      if (!charge || charge === '') {
+        dispatch(
+          setToast(
+            AppToast({
+              msg: 'Falta seleccionar Cargo y Concepto',
+              type: 'error',
+            }),
+          ),
+        )
+        return
+      }
+
+      if (!description || description === '') {
+        dispatch(
+          setToast(
+            AppToast({
+              msg: 'Falta agregar descripcion',
+              type: 'error',
+            }),
+          ),
+        )
+        return
+      }
+
+      if (!line || line === '') {
+        dispatch(
+          setToast(
+            AppToast({
+              msg: 'Falta seleccionar Giro y Unidad',
+              type: 'error',
+            }),
+          ),
+        )
+        return
+      }
+
+      let status
       if (rejectQuotes) {
         status = 'rejected'
       } else if (approvedAmount > 0) {
@@ -737,7 +781,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
   }, [selectedQuoteID, quoteData])
 
   useEffect(() => {
-    if (view && quoteData.status === 'paid') {
+    if (view && ['sentPay', 'paid'].includes(quoteData.status)) {
       return
     }
 
@@ -827,7 +871,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
             <CTabPane role="tabpanel" aria-labelledby="data-tab-pane" visible={activeKey === 1}>
               <CForm className="mt-3">
                 <div className="mb-3">
-                  <CFormLabel>Título</CFormLabel>
+                  <CFormLabel>Título(*)</CFormLabel>
                   <CFormInput
                     type="text"
                     id="title"
@@ -839,7 +883,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                 </div>
                 <div className="mb-3 d-flex">
                   <div className="flex-md-fill me-2">
-                    <CFormLabel>Departamento</CFormLabel>
+                    <CFormLabel>Departamento(*)</CFormLabel>
                     <CFormSelect
                       aria-label="department"
                       onChange={(e) => setDepartmentID(e.target.value)}
@@ -855,7 +899,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                     </CFormSelect>
                   </div>
                   <div className="flex-md-fill me-2">
-                    <CFormLabel>Cargo</CFormLabel>
+                    <CFormLabel>Cargo(*)</CFormLabel>
                     <CFormSelect
                       aria-label="charge"
                       onChange={(e) => setCharge(e.target.value)}
@@ -871,7 +915,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                     </CFormSelect>
                   </div>
                   <div className="flex-md-fill me-2">
-                    <CFormLabel>Concepto</CFormLabel>
+                    <CFormLabel>Concepto(*)</CFormLabel>
                     <CFormSelect
                       aria-label="concept"
                       onChange={(e) => setQuoteConceptID(e.target.value)}
@@ -890,7 +934,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                 <div className="mb-3">
                   <CFormTextarea
                     id="desc"
-                    label="Descripción "
+                    label="Descripción(*)"
                     rows={2}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
@@ -948,7 +992,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                 </div>
                 <div className="mb-3 d-flex">
                   <div className="flex-fill">
-                    <CFormLabel>Giro</CFormLabel>
+                    <CFormLabel>Giro(*)</CFormLabel>
                     <CFormSelect
                       aria-label="line"
                       onChange={(e) => setLine(e.target.value)}
@@ -964,7 +1008,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                     </CFormSelect>
                   </div>
                   <div className="flex-fill mx-2">
-                    <CFormLabel>Unidad</CFormLabel>
+                    <CFormLabel>Unidad(*)</CFormLabel>
                     <CFormSelect
                       aria-label="unit"
                       onChange={(e) => setUnit(e.target.value)}
@@ -995,7 +1039,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                 </div>
                 {recommendedProvidersInput.map((x, i) => (
                   <div className="mb-3" key={x}>
-                    <CFormLabel>Proveedor recomendado {x + 1}</CFormLabel>
+                    <CFormLabel>Proveedor recomendado {x + 1} (opcional)</CFormLabel>
                     <CFormSelect
                       aria-label="charge"
                       onChange={(e) => onSelectRecommendedProvider(e, i)}
@@ -1013,7 +1057,7 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                 ))}
                 {numProviders > 0 && (
                   <div className="mb-3">
-                    <CFormLabel>Proveedor sugerido</CFormLabel>
+                    <CFormLabel>Proveedor sugerido (No registrado) (opcional)</CFormLabel>
                     <CFormInput
                       type="text"
                       id="suggestedProvider"
@@ -1029,74 +1073,78 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
             {/* Quote files */}
             <CTabPane role="tabpanel" aria-labelledby="data-tab-pane" visible={activeKey === 2}>
               <CForm className="mt-3">
-                {hasUploadQuotePermission &&
-                  quoteData.status !== 'authorized' &&
-                  quoteData.status !== 'approved' &&
-                  quoteData.status !== 'sentPay' &&
-                  quoteData.status !== 'paid' && (
-                    <>
-                      <CFormLabel className="fs-5">
-                        Añade las <b>Cotizaciónes</b> para la solicitud
-                      </CFormLabel>
-                      <div className="mb-3">
+                {((hasApprovePermission &&
+                  hasUploadQuotePermission &&
+                  quoteData?.status === 'sent') ||
+                  (hasUploadQuotePermission &&
+                    !hasApprovePermission &&
+                    quoteData?.status !== 'authorized' &&
+                    quoteData?.status !== 'approved' &&
+                    quoteData?.status !== 'sentPay' &&
+                    quoteData?.status !== 'paid')) && (
+                  <>
+                    <CFormLabel className="fs-5">
+                      Añade las <b>Cotizaciónes</b> para la solicitud
+                    </CFormLabel>
+                    <div className="mb-3">
+                      <CFormInput
+                        ref={inputQuoteFile}
+                        type="file"
+                        id="quoteFile"
+                        text="Archivos permitidos jpg, pdf, png, xlxs (10 MB)"
+                      />
+                    </div>
+                    <div className="d-flex mb-3">
+                      <div className="flex-fill">
+                        <CFormLabel>Proveedor(*)</CFormLabel>
                         <CFormInput
-                          ref={inputQuoteFile}
-                          type="file"
-                          id="quoteFile"
-                          text="Archivos permitidos jpg, pdf, png, xlxs (10 MB)"
+                          type="text"
+                          id="quoteProvider"
+                          placeholder="Proveedor"
+                          value={quoteProvider}
+                          onChange={(e) => setQuoteProvider(e.target.value)}
                         />
                       </div>
-                      <div className="d-flex mb-3">
-                        <div className="flex-fill">
-                          <CFormLabel>Proveedor(*)</CFormLabel>
-                          <CFormInput
-                            type="text"
-                            id="quoteProvider"
-                            placeholder="Proveedor"
-                            value={quoteProvider}
-                            onChange={(e) => setQuoteProvider(e.target.value)}
-                          />
-                        </div>
-                        <div className="flex-fill mx-2">
-                          <CFormLabel>Monto(*)</CFormLabel>
-                          <CFormInput
-                            type="number"
-                            id="amount"
-                            placeholder="0"
-                            value={quoteAmount}
-                            onChange={(e) => setQuoteAmount(e.target.value)}
-                          />
-                        </div>
-                        <div className="flex-fill">
-                          <CFormLabel>Tiempo de entrega(*)</CFormLabel>
-                          <CFormInput
-                            type="date"
-                            id="deliveryDate"
-                            value={deliveryDate}
-                            onChange={(e) => setDeliveryDate(e.target.value)}
-                          />
-                        </div>
+                      <div className="flex-fill mx-2">
+                        <CFormLabel>Monto(*)</CFormLabel>
+                        <CFormInput
+                          type="number"
+                          id="amount"
+                          placeholder="0"
+                          value={quoteAmount}
+                          onChange={(e) => setQuoteAmount(e.target.value)}
+                        />
                       </div>
+                      <div className="flex-fill">
+                        <CFormLabel>Tiempo de entrega(*)</CFormLabel>
+                        <CFormInput
+                          type="date"
+                          id="deliveryDate"
+                          value={deliveryDate}
+                          onChange={(e) => setDeliveryDate(e.target.value)}
+                        />
+                      </div>
+                    </div>
 
-                      <div className="mb-3">
-                        <CFormTextarea
-                          id="desc"
-                          label="Descripción(*)"
-                          rows={2}
-                          value={descriptionQuote}
-                          onChange={(e) => setDescriptionQuote(e.target.value)}
-                        ></CFormTextarea>
-                      </div>
-                      <CButton
-                        color="primary"
-                        className="text-light fw-semibold me-2"
-                        onClick={onAddQuoteFiles}
-                      >
-                        <CIcon icon={cilPlus} className="me-1" />
-                        Añadir a la solicitud
-                      </CButton>
-                    </>
-                  )}
+                    <div className="mb-3">
+                      <CFormTextarea
+                        id="desc"
+                        label="Descripción"
+                        rows={2}
+                        value={descriptionQuote}
+                        onChange={(e) => setDescriptionQuote(e.target.value)}
+                      ></CFormTextarea>
+                    </div>
+                    <CButton
+                      color="primary"
+                      className="text-light fw-semibold me-2"
+                      onClick={onAddQuoteFiles}
+                    >
+                      <CIcon icon={cilPlus} className="me-1" />
+                      Añadir a la solicitud
+                    </CButton>
+                  </>
+                )}
                 {quoteFiles.length > 0 ? (
                   <>
                     <CTable striped responsive>
@@ -1106,12 +1154,15 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                           <CTableHeaderCell scope="col">Descripción</CTableHeaderCell>
                           <CTableHeaderCell scope="col">Archivo Cotización</CTableHeaderCell>
                           {(hasApprovePermission ||
+                            (hasApprovePermission &&
+                              hasUploadQuotePermission &&
+                              quoteData?.status === 'sent') ||
                             hasAuthorizeMinor5000Permission ||
                             hasAuthorizeMayor5000Permission ||
-                            (hasPayPermission && quoteData.status === 'approved') ||
-                            (hasPayPermission && quoteData.status === 'authorized') ||
-                            (hasPayPermission && quoteData.status === 'sentPay') ||
-                            (view && quoteData.status === 'paid')) && (
+                            (hasPayPermission && quoteData?.status === 'approved') ||
+                            (hasPayPermission && quoteData?.status === 'authorized') ||
+                            (hasPayPermission && quoteData?.status === 'sentPay') ||
+                            (view && quoteData?.status === 'paid')) && (
                             <CTableHeaderCell scope="col" className="text-center">
                               Aprobada
                             </CTableHeaderCell>
@@ -1144,6 +1195,9 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                                     : setQuoteFiles(quoteFiles.filter((f, i) => index !== i))
                                 }}
                                 viewMode={
+                                  (view &&
+                                    hasUploadQuotePermission &&
+                                    quoteData.status === 'inprogress') ||
                                   (view && !hasUploadQuotePermission) ||
                                   (view && quoteData.status === 'approved') ||
                                   (view && quoteData.status === 'authorized') ||
@@ -1153,12 +1207,15 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                               />
                             </CTableDataCell>
                             {(hasApprovePermission ||
+                              (hasApprovePermission &&
+                                hasUploadQuotePermission &&
+                                quoteData?.status === 'sent') ||
                               hasAuthorizeMinor5000Permission ||
                               hasAuthorizeMayor5000Permission ||
-                              (hasPayPermission && quoteData.status === 'approved') ||
-                              (hasPayPermission && quoteData.status === 'authorized') ||
-                              (hasPayPermission && quoteData.status === 'sentPay') ||
-                              (view && quoteData.status === 'paid')) && (
+                              (hasPayPermission && quoteData?.status === 'approved') ||
+                              (hasPayPermission && quoteData?.status === 'authorized') ||
+                              (hasPayPermission && quoteData?.status === 'sentPay') ||
+                              (view && quoteData?.status === 'paid')) && (
                               <CTableDataCell className="text-center">
                                 <CFormCheck
                                   id="selectedQuoteID"
@@ -1187,11 +1244,14 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                     </CTable>
                     {view &&
                       (hasApprovePermission ||
-                        quoteData.status === 'approved' ||
-                        quoteData.status === 'ok' ||
-                        quoteData.status === 'authorized' ||
-                        quoteData.status === 'sentPay' ||
-                        quoteData.status === 'paid') && (
+                        (hasApprovePermission &&
+                          hasUploadQuotePermission &&
+                          quoteData?.status === 'sent') ||
+                        quoteData?.status === 'approved' ||
+                        quoteData?.status === 'ok' ||
+                        quoteData?.status === 'authorized' ||
+                        quoteData?.status === 'sentPay' ||
+                        quoteData?.status === 'paid') && (
                         <>
                           <div className="mb-3">
                             <CFormCheck
@@ -1367,8 +1427,16 @@ const QuoteModalForm = ({ visible, onClose, quoteData, view }) => {
                 color="primary"
                 className="text-light fw-semibold"
                 onClick={(e) => {
-                  if (user.id !== quoteData.petitioner_id && hasUploadQuotePermission) {
-                    onUploadQuoteFile(e)
+                  if (hasUploadQuotePermission) {
+                    if (hasApprovePermission && quoteData.status === 'sent') {
+                      onUploadQuoteFile(e)
+                    }
+                    if (hasApprovePermission && quoteData.status === 'inprogress') {
+                      onSave(e)
+                    }
+                    if (!hasApprovePermission) {
+                      onUploadQuoteFile(e)
+                    }
                   } else {
                     onSave(e) //for approve
                   }

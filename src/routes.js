@@ -11,6 +11,7 @@ const PendingPayments = React.lazy(() => import('./views/payments/pendingPayment
 //Usuarios
 const Departments = React.lazy(() => import('./views/users/departments/Departments'))
 const Users = React.lazy(() => import('./views/users/users/Users'))
+const Profile = React.lazy(() => import('./views/users/profile/Profile'))
 
 const routes = [
   { path: '/dashboard', name: 'Dashboard', element: Dashboard },
@@ -21,6 +22,7 @@ const routes = [
   { path: '/pagos/pendientes', name: 'Pendientes', element: PendingPayments },
   { path: '/departamentos', name: 'Departamentos', element: Departments },
   { path: '/usuarios', name: 'Usuarios', element: Users },
+  { path: '/perfil', name: 'Perfil', element: Profile },
 ]
 
 export default routes

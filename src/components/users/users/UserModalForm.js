@@ -24,8 +24,9 @@ import CIcon from '@coreui/icons-react'
 import { cilX, cilCheckAlt } from '@coreui/icons'
 import { selectDepartments } from 'src/actions/department'
 import { selectRoles } from 'src/actions/role'
+import { useNavigate } from 'react-router-dom'
 
-const UserModalForm = ({ visible, onClose, userData, visibleChangePassword }) => {
+const UserModalForm = ({ visible, onClose, userData, visibleChangePassword, fromProfile }) => {
   const [activeKey, setActiveKey] = useState(visibleChangePassword ? 2 : 1),
     [userID, setUserID] = useState(),
     [user, setUser] = useState(''),
@@ -45,7 +46,8 @@ const UserModalForm = ({ visible, onClose, userData, visibleChangePassword }) =>
     }),
     dispatch = useDispatch(),
     roles = useSelector((state) => state.role.roles),
-    departments = useSelector((state) => state.department.departments)
+    departments = useSelector((state) => state.department.departments),
+    navigate = useNavigate()
 
   useEffect(() => {
     dispatch(selectDepartments())
@@ -104,6 +106,9 @@ const UserModalForm = ({ visible, onClose, userData, visibleChangePassword }) =>
                   }),
                 ),
               )
+              if (visibleChangePassword && fromProfile) {
+                navigate('/login')
+              }
             } else {
               dispatch(
                 setToast(
@@ -162,7 +167,6 @@ const UserModalForm = ({ visible, onClose, userData, visibleChangePassword }) =>
     setDepartmentID(userData.department_id)
     setPayrollNumber(userData.payrollNumber)
     setNss(userData.nss)
-    console.log(userData)
   }, [userData])
 
   useEffect(() => {

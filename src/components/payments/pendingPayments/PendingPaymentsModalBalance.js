@@ -20,7 +20,7 @@ import {
 import { useDispatch, useSelector } from 'react-redux'
 import { setToast } from 'src/actions/toast'
 import { AppToast } from 'src/components/app'
-import { formatNumber, formatTimezoneToDateTime } from 'src/utils/functions'
+import { formatNumber, formatTimezoneToDate, formatTimezoneToDateTime } from 'src/utils/functions'
 import { getBalancePayments } from 'src/actions/pendingPayments'
 
 const PendingPaymentsModalBalance = ({ visible, onClose, purchaseRequestDetailID, provider }) => {
@@ -40,7 +40,7 @@ const PendingPaymentsModalBalance = ({ visible, onClose, purchaseRequestDetailID
   }, [balance])
 
   return (
-    <CModal visible={visible} onClose={onClose} aria-labelledby="ModalForm" size="lg">
+    <CModal visible={visible} onClose={onClose} aria-labelledby="ModalForm" size="xl">
       <CModalHeader onClose={onClose}>
         <CModalTitle id="ModalForm">Estado de cuenta</CModalTitle>
       </CModalHeader>
@@ -61,13 +61,13 @@ const PendingPaymentsModalBalance = ({ visible, onClose, purchaseRequestDetailID
                 <h5 id="totalAmount" className="fw-bold text-primary">
                   ${formatNumber(totalAmount)}
                 </h5>
-                {/* <CFormInput type="number" id="totalAmount" value={totalAmount} disabled /> */}
               </div>
             </CForm>
             <CTable striped responsive>
               <CTableHead>
                 <CTableRow>
-                  <CTableHeaderCell scope="col">Fecha</CTableHeaderCell>
+                  <CTableHeaderCell scope="col">Fecha solic.</CTableHeaderCell>
+                  <CTableHeaderCell scope="col">Fecha pago</CTableHeaderCell>
                   <CTableHeaderCell scope="col">Cargo</CTableHeaderCell>
                   <CTableHeaderCell scope="col">Concepto</CTableHeaderCell>
                   <CTableHeaderCell scope="col">Detalle</CTableHeaderCell>
@@ -79,9 +79,10 @@ const PendingPaymentsModalBalance = ({ visible, onClose, purchaseRequestDetailID
                 {balance?.map((balance) => (
                   <CTableRow key={balance.id}>
                     <CTableDataCell>{formatTimezoneToDateTime(balance.created_at)}</CTableDataCell>
-                    <CTableDataCell>{balance.charge}</CTableDataCell>
-                    <CTableDataCell>{balance.concept}</CTableDataCell>
-                    <CTableDataCell>{balance.observation}</CTableDataCell>
+                    <CTableDataCell>{formatTimezoneToDate(balance.paymentDate)}</CTableDataCell>
+                    <CTableDataCell>{balance.quote.quote_concept.charge}</CTableDataCell>
+                    <CTableDataCell>{balance.quote.quote_concept.concept}</CTableDataCell>
+                    <CTableDataCell>{balance.title}</CTableDataCell>
                     <CTableDataCell>${formatNumber(balance.paymentAmount)}</CTableDataCell>
                     <CTableDataCell>
                       {balance.balance <= 0
