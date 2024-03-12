@@ -12,6 +12,7 @@ const config = {
     headersFormData: {
       'Content-Type': 'multipart/form-data',
     },
+    dropbox_client_id: 'g3bm3pdzcbycsb7',
   },
 }
 

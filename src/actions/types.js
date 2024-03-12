@@ -101,3 +101,7 @@ export const PERMISSION_ERROR = 'PERMISSION_ERROR'
 export const GET_ROLES = 'GET_ROLES'
 export const ROLE_ERROR = 'ROLE_ERROR'
 export const SELECT_ROLES = 'SELECT_ROLES'
+
+//dropbox
+export const GET_AUTHORIZATION_CODE = 'GET_AUTHORIZATION_CODE'
+export const DROPBOX_ERROR = 'DROPBOX_ERROR'

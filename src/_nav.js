@@ -11,7 +11,7 @@ import {
   cilPencil,
   cilPuzzle,
   cilSpeedometer,
-  cilStar,
+  cibDropbox,
   cilPeople,
   cilWallet,
 } from '@coreui/icons'
@@ -110,6 +110,13 @@ const _nav = [
     name: 'Docs',
     href: 'https://coreui.io/react/docs/templates/installation/',
     icon: <CIcon icon={cilDescription} customClassName="nav-icon" />,
+  },
+  {
+    component: CNavItem,
+    name: 'Dropbox Auth',
+    href: 'https://www.dropbox.com/oauth2/authorize?client_id=g3bm3pdzcbycsb7&response_type=code&token_access_type=offline&redirect_uri=http://localhost:3000/dashboard',
+    icon: <CIcon icon={cibDropbox} customClassName="nav-icon" />,
+    key: 'users',
   },
 ]
 

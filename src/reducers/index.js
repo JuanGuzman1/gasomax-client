@@ -14,6 +14,7 @@ import user from './user'
 import permission from './permission'
 import role from './role'
 import unit from './unit'
+import dropbox from './dropbox'
 
 export default combineReducers({
   auth,
@@ -31,4 +32,5 @@ export default combineReducers({
   permission,
   role,
   unit,
+  dropbox,
 })
