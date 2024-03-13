@@ -15,13 +15,6 @@ import {
   CTabContent,
   CTabPane,
   CFormCheck,
-  CFormTextarea,
-  CTable,
-  CTableHead,
-  CTableRow,
-  CTableHeaderCell,
-  CTableBody,
-  CTableDataCell,
   CFormSelect,
   CProgress,
 } from '@coreui/react'
@@ -31,12 +24,12 @@ import { useDispatch, useSelector } from 'react-redux'
 import { fileTags } from 'src/utils/fileTags'
 import { FileCard, AppToast } from '../../app'
 import Swal from 'sweetalert2'
-import { formatNumber, movementTypes, useHasPermission } from 'src/utils/functions'
+import { formatNumber, useHasPermission } from 'src/utils/functions'
 import { selectAccountsByProvider, selectProviders } from 'src/actions/provider'
 import {
   addPurchaseRequest,
   approvePurchaseRequest,
-  getPendingPaymentsByProvider,
+  getPendingPayments,
   rejectPurchaseRequest,
   payPurchaseRequest,
   updatePurchaseRequest,
@@ -50,7 +43,7 @@ import { modelTypes } from 'src/utils/modelTypes'
 const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
   const [activeKey, setActiveKey] = useState(1),
     [purchaseRequestID, setPurchaseRequestID] = useState(''),
-    [detailPendingID, setDetailPendingID] = useState(null),
+    [purchaseRequestPendingID, setPurchaseRequestPendingID] = useState(null),
     [title, setTitle] = useState(''),
     [totalAmount, setTotalAmount] = useState(0),
     [paymentAmount, setPaymentAmount] = useState(0),
@@ -74,7 +67,7 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
     inputReceiptFile = useRef(),
     providers = useSelector((state) => state.provider.providers),
     accounts = useSelector((state) => state.provider.accounts),
-    { purchaseRequests, filters } = useSelector((state) => state.purchaseRequest)
+    { purchaseRequests, filters, pendingPayments } = useSelector((state) => state.purchaseRequest)
 
   useEffect(() => {
     dispatch(selectProviders())
@@ -88,18 +81,15 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
   }, [dispatch, providerID])
 
   useEffect(() => {
-    if (!quoteID || quoteID === '') {
-      return
-    }
-    dispatch(getPendingPaymentsByProvider(quoteID))
-  }, [dispatch, quoteID, purchaseData])
+    dispatch(getPendingPayments(user.id))
+  }, [dispatch, user])
 
   useEffect(() => {
     if (!purchaseData) {
       return
     }
     setPurchaseRequestID(purchaseData.id)
-    setQuoteID(purchaseData.quote.id)
+    setQuoteID(purchaseData?.quote?.id)
     setImgFiles(purchaseData.files?.filter((file) => file.tag === fileTags.img))
     setInvoiceFile(purchaseData.files?.find((file) => file.tag === fileTags.invoice))
     setReceiptFile(purchaseData.files?.find((file) => file.tag === fileTags.receipt))
@@ -112,6 +102,7 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
     setProviderAccountID(purchaseData.provider_account_id)
     setPaymentWithoutInvoice(purchaseData.paymentWithoutInvoice)
     setPaymentDate(purchaseData.paymentDate)
+    setPurchaseRequestPendingID(purchaseData.purchase_request_pending_id)
   }, [purchaseData])
 
   const onReject = () => {
@@ -225,6 +216,7 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
         paymentWithoutInvoice,
         totalPaymentApproved,
         totalPaymentModified,
+        purchase_request_pending_id: purchaseRequestPendingID,
       }
       dispatch(
         purchaseData
@@ -330,6 +322,27 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
     } catch (error) {
       console.log(error)
     }
+  }
+
+  const onAddPurchasePending = (pr) => {
+    setPurchaseRequestPendingID(pr.id)
+    setTotalAmount(pr.balance)
+    setPaymentAmount(pr.balance)
+    setTitle(pr.title)
+    setActiveKey(1)
+    if (pr?.quote) {
+      setQuoteID(pr.quote.id)
+    }
+    setProviderID(pr.provider_id)
+    setProviderAccountID(pr.provider_account_id)
+  }
+
+  const onRemovePurchasePending = () => {
+    setPurchaseRequestPendingID(null)
+    setTotalAmount(0)
+    setPaymentAmount(0)
+    setTitle('')
+    setActiveKey(1)
   }
 
   useEffect(() => {
@@ -498,7 +511,7 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
                   placeholder="0"
                   value={totalAmount}
                   onChange={(e) => setTotalAmount(e.target.value)}
-                  disabled={view || purchaseData?.fromQuote}
+                  disabled={view || purchaseData?.fromQuote || purchaseRequestPendingID}
                 />
               </div>
               {!view && (
@@ -589,11 +602,17 @@ const PurchaseRequestModalForm = ({ visible, onClose, purchaseData, view }) => {
           </CTabPane>
 
           {/* pending payments */}
-          <CTabPane
-            role="tabpanel"
-            aria-labelledby="data-tab-pane"
-            visible={activeKey === 2}
-          ></CTabPane>
+          <CTabPane role="tabpanel" aria-labelledby="data-tab-pane" visible={activeKey === 2}>
+            {pendingPayments.length > 0 ? (
+              <ModalFormPendingPaymentsTable
+                detailPendingID={purchaseRequestPendingID}
+                onAddDetailPending={(det) => onAddPurchasePending(det)}
+                onRemoveDetailPending={onRemovePurchasePending}
+              />
+            ) : (
+              <h3 className="text-center text-primary font-monospace">No hay pagos pendientes</h3>
+            )}
+          </CTabPane>
 
           {/* files purchase request */}
           <CTabPane role="tabpanel" aria-labelledby="data-tab-pane" visible={activeKey === 3}>

@@ -17,18 +17,13 @@ const ModalFormPendingPaymentsTable = ({
   onAddDetailPending,
   onRemoveDetailPending,
   detailPendingID,
-  details,
 }) => {
   const { pendingPayments } = useSelector((state) => state.purchaseRequest),
     [pendingPaymentsFiltered, setPendingPaymentsFiltered] = useState([])
 
   useEffect(() => {
-    setPendingPaymentsFiltered(
-      pendingPayments.filter(
-        (pp) => !details.find((det) => det.purchase_detail_pending_id === pp.id),
-      ),
-    )
-  }, [details, pendingPayments])
+    setPendingPaymentsFiltered(pendingPayments)
+  }, [pendingPayments])
 
   return (
     <CTable striped responsive>
@@ -65,10 +60,10 @@ const ModalFormPendingPaymentsTable = ({
                 </CButton>
               )}
             </CTableDataCell>
-            <CTableDataCell>{detail.charge}</CTableDataCell>
-            <CTableDataCell>{detail.concept}</CTableDataCell>
-            <CTableDataCell>{detail.observation}</CTableDataCell>
-            <CTableDataCell>{formatNumber(detail.balance)}</CTableDataCell>
+            <CTableDataCell>{detail.quote.quote_concept.charge}</CTableDataCell>
+            <CTableDataCell>{detail.quote.quote_concept.concept}</CTableDataCell>
+            <CTableDataCell>{detail.title}</CTableDataCell>
+            <CTableDataCell>${formatNumber(detail.balance)}</CTableDataCell>
           </CTableRow>
         ))}
       </CTableBody>

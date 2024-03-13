@@ -7,7 +7,7 @@ import {
   DELETE_PURCHASE_REQUEST,
   ADD_PURCHASE_REQUEST_OBSERVATION,
   GET_PURCHASE_REQUEST_OBSERVATIONS,
-  GET_PP_PURCHASE_REQUEST_PROVIDER,
+  GET_PP_PURCHASE_REQUEST,
 } from './types'
 import config from '../server.config'
 
@@ -201,10 +201,10 @@ export const getPurchaseRequestPDF = (id) => async (dispatch) => {
   }
 }
 
-export const getPendingPaymentsByProvider = (id) => async (dispatch) => {
+export const getPendingPayments = (id) => async (dispatch) => {
   try {
     const res = await axios.get(
-      `${config.instance.baseURL}/api/pending/details/purchaseRequest?provider_id=${id}`,
+      `${config.instance.baseURL}/api/pending/details/purchaseRequest?user_id=${id}`,
       {
         headers: {
           ...config.instance.headers,
@@ -213,7 +213,7 @@ export const getPendingPaymentsByProvider = (id) => async (dispatch) => {
       },
     )
     dispatch({
-      type: GET_PP_PURCHASE_REQUEST_PROVIDER,
+      type: GET_PP_PURCHASE_REQUEST,
       payload: res.data,
     })
   } catch (err) {

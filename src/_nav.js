@@ -116,7 +116,7 @@ const _nav = [
     name: 'Dropbox Auth',
     href: 'https://www.dropbox.com/oauth2/authorize?client_id=g3bm3pdzcbycsb7&response_type=code&token_access_type=offline&redirect_uri=http://localhost:3000/dashboard',
     icon: <CIcon icon={cibDropbox} customClassName="nav-icon" />,
-    key: 'users',
+    key: 'dropbox',
   },
 ]
 

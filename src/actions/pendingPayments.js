@@ -40,6 +40,7 @@ export const getBalancePayments = (id) => async (dispatch) => {
         },
       },
     )
+
     dispatch({
       type: GET_BALANCE_PAYMENTS,
       payload: res.data,

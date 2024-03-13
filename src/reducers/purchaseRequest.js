@@ -6,7 +6,7 @@ import {
   PURCHASE_REQUEST_ERROR,
   ADD_PURCHASE_REQUEST_OBSERVATION,
   GET_PURCHASE_REQUEST_OBSERVATIONS,
-  GET_PP_PURCHASE_REQUEST_PROVIDER,
+  GET_PP_PURCHASE_REQUEST,
 } from 'src/actions/types'
 
 const initialState = {
@@ -68,7 +68,7 @@ export default function (state = initialState, action) {
         observations: [...state.observations, payload],
         loadingObservations: false,
       }
-    case GET_PP_PURCHASE_REQUEST_PROVIDER:
+    case GET_PP_PURCHASE_REQUEST:
       return {
         ...state,
         pendingPayments: payload,

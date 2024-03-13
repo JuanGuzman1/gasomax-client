@@ -6,6 +6,7 @@ import { useSelector } from 'react-redux'
 
 export const AppSidebarNav = ({ items }) => {
   const modules = useSelector((state) => state.auth.modules)
+  const user = useSelector((state) => state.auth.user)?.data?.user
   const location = useLocation()
 
   const navLink = (name, icon, badge) => {
@@ -34,7 +35,11 @@ export const AppSidebarNav = ({ items }) => {
         key={index}
         {...rest}
         className={
-          modules?.find((m) => m.submodule === rest.key) || !rest.key ? 'd-flex' : 'd-none'
+          modules?.find((m) => m.submodule === rest.key) ||
+          !rest.key ||
+          (user?.role?.name === 'ADMIN' && rest.key === 'dropbox')
+            ? 'd-flex'
+            : 'd-none'
         }
       >
         {navLink(name, icon, badge)}
