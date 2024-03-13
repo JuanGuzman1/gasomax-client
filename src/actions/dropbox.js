@@ -32,6 +32,7 @@ export const setDropboxAccessToken = (code) => async (dispatch) => {
       `${config.instance.baseURL}/api/token/dropbox`,
       {
         code,
+        redirect_uri: config.instance.return_uri,
       },
       {
         headers: {

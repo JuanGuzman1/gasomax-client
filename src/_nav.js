@@ -16,6 +16,7 @@ import {
   cilWallet,
 } from '@coreui/icons'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
+import config from './server.config'
 
 const _nav = [
   {
@@ -114,7 +115,7 @@ const _nav = [
   {
     component: CNavItem,
     name: 'Dropbox Auth',
-    href: 'https://www.dropbox.com/oauth2/authorize?client_id=g3bm3pdzcbycsb7&response_type=code&token_access_type=offline&redirect_uri=http://localhost:3000/dashboard',
+    href: `https://www.dropbox.com/oauth2/authorize?client_id=${config.instance.dropbox_client_id}&response_type=code&token_access_type=offline&redirect_uri=${config.instance.return_uri}`,
     icon: <CIcon icon={cibDropbox} customClassName="nav-icon" />,
     key: 'dropbox',
   },
