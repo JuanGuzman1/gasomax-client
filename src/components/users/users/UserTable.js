@@ -89,6 +89,7 @@ const UserTable = ({ data }) => {
             <CTableHeaderCell scope="col">Nombre</CTableHeaderCell>
             <CTableHeaderCell scope="col">Correo electrónico</CTableHeaderCell>
             <CTableHeaderCell scope="col">Departamento</CTableHeaderCell>
+            <CTableHeaderCell scope="col">Rol</CTableHeaderCell>
             <CTableHeaderCell scope="col" className="text-center">
               Opciones
             </CTableHeaderCell>
@@ -103,6 +104,11 @@ const UserTable = ({ data }) => {
               <CTableDataCell>
                 {user?.department?.name || (
                   <span className="text-primary fw-bolder">Sin departamento asignado</span>
+                )}
+              </CTableDataCell>
+              <CTableDataCell>
+                {user?.role?.name || (
+                  <span className="text-primary fw-bolder">Sin rol asignado</span>
                 )}
               </CTableDataCell>
               <CTableDataCell className="text-center overflow-visible">

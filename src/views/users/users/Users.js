@@ -70,7 +70,10 @@ const Users = () => {
                   value={caseFilter}
                   onChange={(e) => setCaseFilter(e.target.value)}
                   aria-label="caseFilter"
-                  options={[{ label: 'Nombre', value: 'name' }]}
+                  options={[
+                    { label: 'Nombre', value: 'name' },
+                    { label: 'Rol', value: 'role' },
+                  ]}
                 />
               </div>
               <div className="flex-fill me-2">
