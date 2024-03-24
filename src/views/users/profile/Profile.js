@@ -1,7 +1,6 @@
 import { CButton, CCard, CCardBody, CCardTitle, CImage } from '@coreui/react'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { getUrlImage } from 'src/actions/file'
 import ProfilePhotoUploadModalForm from 'src/components/users/profile/ProfilePhotoUploadModalForm'
 import UserModalForm from 'src/components/users/users/UserModalForm'
 const DEFAULTIMAGE = require('../../../assets/images/avatars/1.jpg')

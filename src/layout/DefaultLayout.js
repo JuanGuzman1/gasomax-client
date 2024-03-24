@@ -7,6 +7,7 @@ import { useSearchParams } from 'react-router-dom'
 import { setToast } from 'src/actions/toast'
 import { getUrlImage } from 'src/actions/file'
 import { PROFILE_PICTURE } from 'src/actions/types'
+import { fileTags } from 'src/utils/fileTags'
 
 const DefaultLayout = () => {
   const dispatch = useDispatch()
@@ -21,18 +22,22 @@ const DefaultLayout = () => {
   }, [dispatch])
 
   useEffect(() => {
-    if (!user.data.user && user.data.user.files.length <= 0) {
+    if (!user?.data || !user?.data.user || user?.data?.user?.files?.length <= 0) {
       return
     }
-    let image = user.data.user.files.find((file) => file.tag === 'img')
-    dispatch(
-      getUrlImage(image.id, image.extension, (url) => {
-        dispatch({
-          type: PROFILE_PICTURE,
-          payload: url,
-        })
-      }),
-    )
+
+    let image = user?.data?.user?.files?.find((file) => file.tag === fileTags.img)
+    if (image) {
+      console.log('image')
+      dispatch(
+        getUrlImage(image.id, image.extension, (url) => {
+          dispatch({
+            type: PROFILE_PICTURE,
+            payload: url,
+          })
+        }),
+      )
+    }
   }, [user, dispatch])
 
   useEffect(() => {
