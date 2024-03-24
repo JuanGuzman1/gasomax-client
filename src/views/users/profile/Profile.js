@@ -1,22 +1,39 @@
 import { CButton, CCard, CCardBody, CCardTitle, CImage } from '@coreui/react'
-import React, { useState } from 'react'
-import { useSelector } from 'react-redux'
+import React, { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { getUrlImage } from 'src/actions/file'
 import ProfilePhotoUploadModalForm from 'src/components/users/profile/ProfilePhotoUploadModalForm'
 import UserModalForm from 'src/components/users/users/UserModalForm'
 const DEFAULTIMAGE = require('../../../assets/images/avatars/1.jpg')
 
 const Profile = () => {
-  const user = useSelector((state) => state.auth.user).data.user,
+  const { user: userState, profilePicture } = useSelector((state) => state.auth),
+    user = userState?.data.user,
     [visible, setVisible] = useState(false),
-    [visibleUploadPhoto, setVisibleUploadPhoto] = useState(false)
+    [visibleUploadPhoto, setVisibleUploadPhoto] = useState(false),
+    [selectedImage, setSelectedImage] = useState(null),
+    dispatch = useDispatch()
+
+  useEffect(() => {
+    if (!profilePicture) {
+      return
+    }
+    setSelectedImage(profilePicture)
+  }, [profilePicture])
 
   return (
     <>
-      <div className="d-flex">
-        <CCard className="flex-fill mx-3">
+      <div className="d-md-flex flex-md-row">
+        <CCard className="flex-fill mx-md-3">
           <CCardBody className="d-flex flex-column align-items-center">
             <div>
-              <CImage rounded src={DEFAULTIMAGE} width={200} height={200} className="mt-4" />
+              <CImage
+                rounded
+                src={selectedImage ? selectedImage : DEFAULTIMAGE}
+                width={200}
+                height={200}
+                className="mt-4"
+              />
               <p
                 className="text-primary text-center text-decoration-underline"
                 onClick={() => setVisibleUploadPhoto(!visibleUploadPhoto)}
@@ -52,10 +69,10 @@ const Profile = () => {
                   <p className="text-start lh-sm fw-bold">{user.email}</p>
                 </div>
                 <div>
-                  <p className="text-start lh-sm fw-bold">{user.department.name}</p>
+                  <p className="text-start lh-sm fw-bold">{user.department?.name}</p>
                 </div>
                 <div>
-                  <p className="text-start lh-sm fw-bold">{user.role.name}</p>
+                  <p className="text-start lh-sm fw-bold">{user.role?.name}</p>
                 </div>
                 <div>
                   <p className="text-start lh-sm fw-bold">{user.payrollNumber}</p>
@@ -64,7 +81,7 @@ const Profile = () => {
             </div>
           </CCardBody>
         </CCard>
-        <div className="w-25">
+        <div className="w-auto">
           <CCard>
             <CCardBody>
               <CButton
@@ -96,6 +113,7 @@ const Profile = () => {
           setVisibleUploadPhoto(false)
         }}
         userData={user}
+        selectedImage={setSelectedImage}
       />
     </>
   )

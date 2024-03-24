@@ -14,6 +14,14 @@ export const formatTimezoneToDateTime = (date) => {
   return DateTime.fromISO(date).toLocaleString(DateTime.DATETIME_SHORT)
 }
 
+export const getBase64 = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = (e) => resolve(e.target.result.toString())
+    reader.onerror = reject
+  })
+
 export const movementTypes = {
   advance: 'Anticipo',
   settlement: 'Liquidación',

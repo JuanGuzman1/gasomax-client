@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import {
   CModal,
   CModalHeader,
@@ -18,16 +18,18 @@ import {
 } from '@coreui/react'
 import { useDispatch, useSelector } from 'react-redux'
 import { fileTags } from 'src/utils/fileTags'
-import { uploadFile } from 'src/actions/file'
+import { deleteFile, uploadFile } from 'src/actions/file'
 import { modelTypes } from 'src/utils/modelTypes'
 import { getUser } from 'src/actions/auth'
+import { getBase64 } from 'src/utils/functions'
 
-const ProfilePhotoUploadModalForm = ({ visible, onClose, userData }) => {
+const ProfilePhotoUploadModalForm = ({ visible, onClose, userData, selectedImage }) => {
   const [activeKey, setActiveKey] = useState(1),
     [userID, setUserID] = useState(),
     [profilePhotoFile, setProfilePhotoFile] = useState(null),
     progress = useSelector((state) => state.file.progress),
-    dispatch = useDispatch()
+    dispatch = useDispatch(),
+    photo = useRef()
 
   useEffect(() => {
     if (!userData) {
@@ -36,8 +38,26 @@ const ProfilePhotoUploadModalForm = ({ visible, onClose, userData }) => {
     setUserID(userData.id)
   }, [userData])
 
+  useEffect(() => {
+    if (!profilePhotoFile) {
+      return
+    }
+    const imageSelected = async () => {
+      let result = await getBase64(profilePhotoFile.file)
+      selectedImage(result)
+    }
+    imageSelected()
+  }, [profilePhotoFile, selectedImage])
+
   const onSave = () => {
     try {
+      if (userData.files.length > 0) {
+        let image = userData.files.find((file) => file.tag === fileTags.img)
+        if (image) {
+          dispatch(deleteFile(image.id, () => console.log('Foto eliminada')))
+        }
+      }
+
       dispatch(
         uploadFile(
           profilePhotoFile.file,
@@ -97,6 +117,7 @@ const ProfilePhotoUploadModalForm = ({ visible, onClose, userData }) => {
               <div className="mb-3">
                 <CFormLabel htmlFor="name">Sube una foto o imagen de perfil</CFormLabel>
                 <CFormInput
+                  ref={photo}
                   type="file"
                   id="photo"
                   onChange={(e) =>

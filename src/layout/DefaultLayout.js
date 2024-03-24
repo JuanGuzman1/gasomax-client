@@ -5,6 +5,8 @@ import { getUser } from 'src/actions/auth'
 import { getConfigurationSystem, setDropboxAccessToken } from 'src/actions/dropbox'
 import { useSearchParams } from 'react-router-dom'
 import { setToast } from 'src/actions/toast'
+import { getUrlImage } from 'src/actions/file'
+import { PROFILE_PICTURE } from 'src/actions/types'
 
 const DefaultLayout = () => {
   const dispatch = useDispatch()
@@ -17,6 +19,21 @@ const DefaultLayout = () => {
   useEffect(() => {
     dispatch(getUser())
   }, [dispatch])
+
+  useEffect(() => {
+    if (!user.data.user && user.data.user.files.length <= 0) {
+      return
+    }
+    let image = user.data.user.files.find((file) => file.tag === 'img')
+    dispatch(
+      getUrlImage(image.id, image.extension, (url) => {
+        dispatch({
+          type: PROFILE_PICTURE,
+          payload: url,
+        })
+      }),
+    )
+  }, [user, dispatch])
 
   useEffect(() => {
     dispatch(

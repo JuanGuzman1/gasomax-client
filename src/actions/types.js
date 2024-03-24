@@ -3,6 +3,7 @@ export const LOGIN = 'LOGIN'
 export const LOGOUT = 'LOGOUT'
 export const AUTH_ERROR = 'AUTH_ERROR'
 export const GET_USER = 'GET_USER'
+export const PROFILE_PICTURE = 'PROFILE_PICTURE'
 
 // departments
 export const GET_DEPARTMENTS = 'GET_DEPARTMENTS'

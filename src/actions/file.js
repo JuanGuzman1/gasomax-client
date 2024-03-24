@@ -168,3 +168,28 @@ export const deleteFilesByModel = (model_id, model_type) => async (dispatch) => 
     )
   }
 }
+
+export const getUrlImage = (id, ext, cb) => async (dispatch) => {
+  try {
+    const res = await axios.get(`${config.instance.baseURL}/api/download/${id}`, {
+      headers: {
+        ...config.instance.headers,
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+      },
+      responseType: 'blob',
+    })
+    const url = window.URL.createObjectURL(new Blob([res.data], { type: `image/${ext}` }))
+    cb(url)
+  } catch (err) {
+    dispatch({
+      type: FILE_ERROR,
+      payload: {
+        msg: err.response.statusText,
+        status: err.response.status,
+      },
+    })
+    dispatch(
+      setToast(AppToast({ msg: 'Ha ocurrido un error al descargar archivo.', title: 'Archivos' })),
+    )
+  }
+}
